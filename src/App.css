@@ -1,0 +1,247 @@
+/* src/App.css */
+
+/* Pulse animation for the brand dot */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #363742;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4a4b58;
+}
+
+/* Smooth transitions for all elements */
+* {
+  transition: all 0.2s ease;
+}
+
+/* Custom utility classes for rank colors (used in LobbyCard) */
+.rank-gold {
+  border-left-color: #f5c842;
+}
+
+.rank-silver {
+  border-left-color: #94a3b8;
+}
+
+.rank-diamond {
+  border-left-color: #a78bfa;
+}
+
+.rank-plat {
+  border-left-color: #4fc3f7;
+}
+
+.rank-iron {
+  border-left-color: #94a3b8;
+}
+
+.rank-bronze {
+  border-left-color: #cd7f32;
+}
+
+.rank-radiant {
+  border-left-color: #f5c842;
+}
+
+/* Tag color classes */
+.tag-gold {
+  background-color: rgba(245, 200, 66, 0.15);
+  color: #f5c842;
+  border: 1px solid rgba(245, 200, 66, 0.3);
+}
+
+.tag-silver {
+  background-color: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.tag-diamond {
+  background-color: rgba(167, 139, 250, 0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+.tag-plat {
+  background-color: rgba(79, 195, 247, 0.15);
+  color: #4fc3f7;
+  border: 1px solid rgba(79, 195, 247, 0.3);
+}
+
+.tag-iron {
+  background-color: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.tag-bronze {
+  background-color: rgba(205, 127, 50, 0.15);
+  color: #cd7f32;
+  border: 1px solid rgba(205, 127, 50, 0.3);
+}
+
+.tag-radiant {
+  background-color: rgba(245, 200, 66, 0.1);
+  color: #f5c842;
+  border: 1px solid rgba(255, 70, 85, 0.4);
+}
+
+/* Playstyle classes */
+.ps-chill {
+  background-color: rgba(74, 222, 128, 0.1);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.25);
+}
+
+.ps-comp {
+  background-color: rgba(255, 70, 85, 0.1);
+  color: #ff4655;
+  border: 1px solid rgba(255, 70, 85, 0.25);
+}
+
+.ps-mid {
+  background-color: rgba(245, 200, 66, 0.1);
+  color: #f5c842;
+  border: 1px solid rgba(245, 200, 66, 0.25);
+}
+
+/* Animation for page transitions */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-enter {
+  animation: fadeIn 0.25s ease forwards;
+}
+
+/* Toast animation */
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+}
+
+/* Gradient text utility */
+.gradient-text {
+  background: linear-gradient(135deg, #ff4655, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Glass morphism effect */
+.glass {
+  backdrop-filter: blur(10px);
+  background: rgba(20, 21, 25, 0.8);
+}
+
+/* Hover scale effect */
+.hover-scale {
+  transition: transform 0.2s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* Rank bar fill gradient */
+.rank-bar-fill {
+  background: linear-gradient(90deg, #ff4655, #f5c842);
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none;
+  }
+  
+  .full-width-mobile {
+    width: 100%;
+  }
+}
+
+/* Custom focus styles */
+*:focus-visible {
+  outline: 2px solid #ff4655;
+  outline-offset: 2px;
+}
+
+/* Loading spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 70, 85, 0.3);
+  border-top-color: #ff4655;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: all 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  border-color: #ff4655;
+}
+
+/* Avatar stack overlap */
+.avatar-stack {
+  display: flex;
+  align-items: center;
+}
+
+.avatar-stack > *:not(:first-child) {
+  margin-left: -10px;
+}
