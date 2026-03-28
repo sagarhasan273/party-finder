@@ -189,6 +189,13 @@ export function Navbar() {
                 </Box>
                 <Divider />
                 <MenuItem
+                  onClick={() => { navigate('/profile'); setAnchorEl(null); }}
+                  sx={{ gap: 1.5, fontSize: '0.85rem' }}
+                >
+                  <ListItemIcon sx={{ minWidth: 0 }}><Layout size={15} /></ListItemIcon>
+                  My Profile
+                </MenuItem>
+                <MenuItem
                   onClick={() => { navigate('/my-lobbies'); setAnchorEl(null); }}
                   sx={{ gap: 1.5, fontSize: '0.85rem' }}
                 >

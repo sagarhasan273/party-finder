@@ -4,6 +4,7 @@ import { HomePage } from '../pages/HomePage';
 import { CreateLobbyPage } from '../pages/CreateLobbyPage';
 import { MyLobbiesPage } from '../pages/MyLobbiesPage';
 import { Box } from '@mui/material';
+import { ProfilePage } from '../pages/ProfilePage';
 
 export function AppRouter() {
   return (
@@ -13,6 +14,7 @@ export function AppRouter() {
         <Box component="main" sx={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path='/profile' element={<ProfilePage />} />
             <Route path="/create" element={<CreateLobbyPage />} />
             <Route path="/my-lobbies" element={<MyLobbiesPage />} />
           </Routes>
