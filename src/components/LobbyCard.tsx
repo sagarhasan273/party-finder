@@ -1,23 +1,26 @@
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { Users, Clock, Globe, MapPin, ExternalLink } from "lucide-react";
+
 import {
   Box,
   Card,
-  CardContent,
-  Typography,
-  Stack,
-  IconButton,
   Chip,
+  Stack,
   Divider,
   Tooltip,
-} from '@mui/material';
-import { motion } from 'framer-motion';
-import { Users, Clock, ExternalLink, MapPin, Globe } from 'lucide-react';
-import { RankChip } from './RankChip';
-import { RoleChip } from './RoleChip';
-import { StatusChip } from './StatusChip';
-import type { Lobby } from '../types';
-import { parseRoles, formatTimeAgo } from '../lib/valorant';
-import { useAuth } from '../hooks/useAuth';
-import { toast } from 'sonner';
+  Typography,
+  IconButton,
+  CardContent,
+} from "@mui/material";
+
+import { RankChip } from "./RankChip";
+import { RoleChip } from "./RoleChip";
+import { StatusChip } from "./StatusChip";
+import { useAuth } from "../hooks/useAuth";
+import { parseRoles, formatTimeAgo } from "../lib/valorant";
+
+import type { Lobby } from "../types";
 
 interface LobbyCardProps {
   lobby: Lobby;
@@ -37,10 +40,10 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
       return;
     }
     if (lobby.discordLink) {
-      window.open(lobby.discordLink, '_blank', 'noopener,noreferrer');
+      window.open(lobby.discordLink, "_blank", "noopener,noreferrer");
     } else {
-      toast.success('Request sent!', {
-        description: `Reached out to ${lobby.hostUsername ?? 'host'} to join.`,
+      toast.success("Request sent!", {
+        description: `Reached out to ${lobby.hostUsername ?? "host"} to join.`,
       });
     }
   };
@@ -49,53 +52,70 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.06, duration: 0.35, ease: 'easeOut' }}
+      transition={{ delay: index * 0.06, duration: 0.35, ease: "easeOut" }}
     >
       <Card
         sx={{
-          height: 'fit-content',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-          overflow: 'hidden',
-          '&::before': {
+          height: "fit-content",
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+          overflow: "hidden",
+          "&::before": {
             content: '""',
-            position: 'absolute',
+            position: "absolute",
             top: 0,
             left: 0,
             right: 0,
-            height: '2px',
-            background: lobby.status === 'open'
-              ? 'linear-gradient(90deg, transparent, #22c55e, transparent)'
-              : lobby.status === 'full'
-              ? 'linear-gradient(90deg, transparent, #ff4655, transparent)'
-              : 'transparent',
+            height: "2px",
+            background:
+              lobby.status === "open"
+                ? "linear-gradient(90deg, transparent, #22c55e, transparent)"
+                : lobby.status === "full"
+                  ? "linear-gradient(90deg, transparent, #ff4655, transparent)"
+                  : "transparent",
             opacity: 0.6,
           },
         }}
       >
-        <CardContent sx={{ p: 2.5, flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <CardContent
+          sx={{
+            p: 2.5,
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: 1.5,
+          }}
+        >
           {/* Header */}
-          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="flex-start"
+            gap={1}
+          >
             <Box flex={1} minWidth={0}>
               <Typography
                 variant="h6"
                 sx={{
-                  fontSize: '0.95rem',
+                  fontSize: "0.95rem",
                   fontWeight: 700,
                   fontFamily: '"Rajdhani", sans-serif',
-                  letterSpacing: '0.04em',
+                  letterSpacing: "0.04em",
                   lineHeight: 1.2,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  color: 'text.primary',
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  color: "text.primary",
                 }}
               >
                 {lobby.title}
               </Typography>
               {lobby.hostUsername && (
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                <Typography
+                  variant="caption"
+                  sx={{ color: "text.secondary", fontWeight: 500 }}
+                >
                   {lobby.hostUsername}
                   {lobby.hostTag && (
                     <Box component="span" sx={{ opacity: 0.5 }}>
@@ -108,7 +128,12 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
             {/* Rank range */}
             <Stack direction="row" alignItems="center" gap={0.5} flexShrink={0}>
               <RankChip rank={lobby.rankMin} />
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>→</Typography>
+              <Typography
+                variant="caption"
+                sx={{ color: "text.secondary", fontSize: "0.65rem" }}
+              >
+                →
+              </Typography>
               <RankChip rank={lobby.rankMax} />
             </Stack>
           </Stack>
@@ -118,13 +143,13 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
             <Typography
               variant="body2"
               sx={{
-                color: 'text.secondary',
-                fontSize: '0.8rem',
+                color: "text.secondary",
+                fontSize: "0.8rem",
                 lineHeight: 1.5,
-                display: '-webkit-box',
+                display: "-webkit-box",
                 WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
               }}
             >
               {lobby.description}
@@ -134,21 +159,21 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
           {/* Meta row */}
           <Stack direction="row" flexWrap="wrap" gap={0.75}>
             <StatusChip status={lobby.status} />
-            {lobby.map && lobby.map !== 'Any' && (
+            {lobby.map && lobby.map !== "Any" && (
               <Chip
                 icon={<MapPin size={9} />}
                 label={lobby.map.toUpperCase()}
                 size="small"
                 sx={{
-                  backgroundColor: 'rgba(255,255,255,0.06)',
-                  color: 'text.secondary',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  backgroundColor: "rgba(255,255,255,0.06)",
+                  color: "text.secondary",
+                  border: "1px solid rgba(255,255,255,0.1)",
                   fontFamily: '"Rajdhani", sans-serif',
                   fontWeight: 700,
-                  fontSize: '0.65rem',
+                  fontSize: "0.65rem",
                   height: 22,
-                  letterSpacing: '0.05em',
-                  '& .MuiChip-icon': { ml: 0.5, color: 'text.secondary' },
+                  letterSpacing: "0.05em",
+                  "& .MuiChip-icon": { ml: 0.5, color: "text.secondary" },
                 }}
               />
             )}
@@ -157,15 +182,15 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
               label={lobby.region}
               size="small"
               sx={{
-                backgroundColor: 'rgba(255,255,255,0.06)',
-                color: 'text.secondary',
-                border: '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: "rgba(255,255,255,0.06)",
+                color: "text.secondary",
+                border: "1px solid rgba(255,255,255,0.1)",
                 fontFamily: '"Rajdhani", sans-serif',
                 fontWeight: 700,
-                fontSize: '0.65rem',
+                fontSize: "0.65rem",
                 height: 22,
-                letterSpacing: '0.05em',
-                '& .MuiChip-icon': { ml: 0.5, color: 'text.secondary' },
+                letterSpacing: "0.05em",
+                "& .MuiChip-icon": { ml: 0.5, color: "text.secondary" },
               }}
             />
           </Stack>
@@ -180,31 +205,41 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
           )}
 
           {/* Footer */}
-          <Divider sx={{ mt: 'auto', pt: 0.5, borderColor: 'divider' }} />
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Divider sx={{ mt: "auto", pt: 0.5, borderColor: "divider" }} />
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
             <Stack direction="row" gap={1.5} alignItems="center">
               <Stack direction="row" alignItems="center" gap={0.5}>
-                <Users size={13} style={{ color: '#7a8499' }} />
+                <Users size={13} style={{ color: "#7a8499" }} />
                 <Typography
                   variant="caption"
                   sx={{
                     fontFamily: '"Rajdhani", sans-serif',
                     fontWeight: 700,
-                    color: 'text.primary',
-                    fontSize: '0.8rem',
+                    color: "text.primary",
+                    fontSize: "0.8rem",
                   }}
                 >
                   {playerCount}/{maxPlayers}
                 </Typography>
-                {spotsLeft > 0 && lobby.status === 'open' && (
-                  <Typography variant="caption" sx={{ color: '#22c55e', fontSize: '0.72rem' }}>
+                {spotsLeft > 0 && lobby.status === "open" && (
+                  <Typography
+                    variant="caption"
+                    sx={{ color: "#22c55e", fontSize: "0.72rem" }}
+                  >
                     ({spotsLeft} left)
                   </Typography>
                 )}
               </Stack>
               <Stack direction="row" alignItems="center" gap={0.5}>
-                <Clock size={11} style={{ color: '#7a8499' }} />
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem' }}>
+                <Clock size={11} style={{ color: "#7a8499" }} />
+                <Typography
+                  variant="caption"
+                  sx={{ color: "text.secondary", fontSize: "0.72rem" }}
+                >
                   {formatTimeAgo(lobby.createdAt)}
                 </Typography>
               </Stack>
@@ -221,53 +256,53 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
                     sx={{
                       width: 28,
                       height: 28,
-                      backgroundColor: 'rgba(114,137,218,0.12)',
-                      border: '1px solid rgba(114,137,218,0.25)',
-                      color: '#7289DA',
-                      '&:hover': { backgroundColor: 'rgba(114,137,218,0.22)' },
+                      backgroundColor: "rgba(114,137,218,0.12)",
+                      border: "1px solid rgba(114,137,218,0.25)",
+                      color: "#7289DA",
+                      "&:hover": { backgroundColor: "rgba(114,137,218,0.22)" },
                     }}
                   >
                     <ExternalLink size={13} />
                   </IconButton>
                 </Tooltip>
               )}
-              {lobby.status === 'open' && (
+              {lobby.status === "open" && (
                 <Box
                   component="button"
                   onClick={handleJoin}
                   sx={{
                     px: 1.5,
                     py: 0.5,
-                    borderRadius: '4px',
-                    background: '#FF4655',
-                    color: '#fff',
+                    borderRadius: "4px",
+                    background: "#FF4655",
+                    color: "#fff",
                     fontFamily: '"Rajdhani", sans-serif',
                     fontWeight: 700,
-                    fontSize: '0.75rem',
-                    letterSpacing: '0.06em',
-                    border: 'none',
-                    cursor: 'pointer',
-                    transition: 'background 0.2s, box-shadow 0.2s',
-                    '&:hover': {
-                      background: '#ff6b77',
-                      boxShadow: '0 0 14px rgba(255,70,85,0.4)',
+                    fontSize: "0.75rem",
+                    letterSpacing: "0.06em",
+                    border: "none",
+                    cursor: "pointer",
+                    transition: "background 0.2s, box-shadow 0.2s",
+                    "&:hover": {
+                      background: "#ff6b77",
+                      boxShadow: "0 0 14px rgba(255,70,85,0.4)",
                     },
                   }}
                 >
                   JOIN
                 </Box>
               )}
-              {lobby.status === 'full' && (
+              {lobby.status === "full" && (
                 <Chip
                   label="FULL"
                   size="small"
                   sx={{
-                    backgroundColor: 'rgba(255,70,85,0.1)',
-                    color: '#ff4655',
-                    border: '1px solid rgba(255,70,85,0.3)',
+                    backgroundColor: "rgba(255,70,85,0.1)",
+                    color: "#ff4655",
+                    border: "1px solid rgba(255,70,85,0.3)",
                     fontFamily: '"Rajdhani", sans-serif',
                     fontWeight: 700,
-                    fontSize: '0.65rem',
+                    fontSize: "0.65rem",
                     height: 22,
                   }}
                 />

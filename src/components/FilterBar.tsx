@@ -1,54 +1,61 @@
+import { X, Search, SlidersHorizontal } from "lucide-react";
+
 import {
   Box,
   Stack,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  InputAdornment,
-  Button,
-  ToggleButton,
-  Typography,
   Paper,
-} from '@mui/material';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../store';
-import { setFilters, resetFilters } from '../store/lobbiesSlice';
-import { RANKS, MAPS, REGIONS } from '../lib/valorant';
+  Select,
+  Button,
+  MenuItem,
+  TextField,
+  InputLabel,
+  Typography,
+  FormControl,
+  ToggleButton,
+  InputAdornment,
+} from "@mui/material";
+
+import { MAPS, RANKS, REGIONS } from "../lib/valorant";
+import { useAppDispatch, useAppSelector } from "../store";
+import { setFilters, resetFilters } from "../store/lobbiesSlice";
 
 export function FilterBar() {
   const dispatch = useAppDispatch();
   const filters = useAppSelector((s) => s.lobbies.filters);
 
-  const hasActive = filters.search || filters.rankMin || filters.map || filters.region || filters.openOnly;
+  const hasActive =
+    filters.search ||
+    filters.rankMin ||
+    filters.map ||
+    filters.region ||
+    filters.openOnly;
 
   const update = (patch: Partial<typeof filters>) => {
     dispatch(setFilters({ ...filters, ...patch }));
   };
 
   const selectSx = {
-    '& .MuiOutlinedInput-root': {
+    "& .MuiOutlinedInput-root": {
       height: 38,
-      backgroundColor: 'rgba(28,32,48,0.8)',
-      '& fieldset': { borderColor: 'rgba(255,255,255,0.08)' },
-      '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.18)' },
-      '&.Mui-focused fieldset': { borderColor: '#FF4655' },
+      backgroundColor: "rgba(28,32,48,0.8)",
+      "& fieldset": { borderColor: "rgba(255,255,255,0.08)" },
+      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.18)" },
+      "&.Mui-focused fieldset": { borderColor: "#FF4655" },
     },
-    '& .MuiInputLabel-root': {
-      fontSize: '0.72rem',
+    "& .MuiInputLabel-root": {
+      fontSize: "0.72rem",
       fontFamily: '"Rajdhani", sans-serif',
       fontWeight: 700,
-      letterSpacing: '0.07em',
-      color: 'rgba(255,255,255,0.4)',
-      '&.Mui-focused': { color: '#FF4655' },
+      letterSpacing: "0.07em",
+      color: "rgba(255,255,255,0.4)",
+      "&.Mui-focused": { color: "#FF4655" },
     },
-    '& .MuiSelect-select': {
+    "& .MuiSelect-select": {
       fontFamily: '"Rajdhani", sans-serif',
       fontWeight: 700,
-      fontSize: '0.8rem',
-      letterSpacing: '0.05em',
-      color: '#e8ecf0',
+      fontSize: "0.8rem",
+      letterSpacing: "0.05em",
+      color: "#e8ecf0",
       py: 0,
     },
   };
@@ -58,9 +65,9 @@ export function FilterBar() {
       elevation={0}
       sx={{
         p: 2,
-        backgroundColor: 'rgba(22,25,38,0.9)',
-        border: '1px solid rgba(255,255,255,0.07)',
-        borderRadius: '8px',
+        backgroundColor: "rgba(22,25,38,0.9)",
+        border: "1px solid rgba(255,255,255,0.07)",
+        borderRadius: "8px",
       }}
     >
       <Stack direction="row" alignItems="center" gap={1} mb={1.5}>
@@ -69,9 +76,9 @@ export function FilterBar() {
           sx={{
             fontFamily: '"Rajdhani", sans-serif',
             fontWeight: 700,
-            fontSize: '0.78rem',
-            letterSpacing: '0.1em',
-            color: 'text.secondary',
+            fontSize: "0.78rem",
+            letterSpacing: "0.1em",
+            color: "text.secondary",
           }}
         >
           FILTERS
@@ -82,16 +89,16 @@ export function FilterBar() {
             size="small"
             startIcon={<X size={12} />}
             sx={{
-              ml: 'auto',
-              fontSize: '0.72rem',
+              ml: "auto",
+              fontSize: "0.72rem",
               fontFamily: '"Rajdhani", sans-serif',
               fontWeight: 600,
-              color: 'text.secondary',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
+              color: "text.secondary",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
               minWidth: 0,
               px: 1,
-              '&:hover': { color: 'text.primary' },
+              "&:hover": { color: "text.primary" },
             }}
           >
             Clear
@@ -115,14 +122,14 @@ export function FilterBar() {
             sx: {
               height: 38,
               fontFamily: '"DM Sans", sans-serif',
-              fontSize: '0.85rem',
-              backgroundColor: 'rgba(28,32,48,0.8)',
-              '& fieldset': { borderColor: 'rgba(255,255,255,0.08)' },
-              '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.18)' },
-              '&.Mui-focused fieldset': { borderColor: '#FF4655 !important' },
+              fontSize: "0.85rem",
+              backgroundColor: "rgba(28,32,48,0.8)",
+              "& fieldset": { borderColor: "rgba(255,255,255,0.08)" },
+              "&:hover fieldset": { borderColor: "rgba(255,255,255,0.18)" },
+              "&.Mui-focused fieldset": { borderColor: "#FF4655 !important" },
             },
           }}
-          sx={{ flex: '1 1 180px', minWidth: 160 }}
+          sx={{ flex: "1 1 180px", minWidth: 160 }}
         />
 
         {/* Min Rank */}
@@ -134,10 +141,27 @@ export function FilterBar() {
             onChange={(e) => update({ rankMin: e.target.value })}
           >
             <MenuItem value="">
-              <em style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: '0.8rem' }}>All Ranks</em>
+              <em
+                style={{
+                  fontFamily: '"Rajdhani", sans-serif',
+                  fontWeight: 600,
+                  fontSize: "0.8rem",
+                }}
+              >
+                All Ranks
+              </em>
             </MenuItem>
             {RANKS.map((r) => (
-              <MenuItem key={r} value={r} sx={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.04em' }}>
+              <MenuItem
+                key={r}
+                value={r}
+                sx={{
+                  fontFamily: '"Rajdhani", sans-serif',
+                  fontWeight: 700,
+                  fontSize: "0.8rem",
+                  letterSpacing: "0.04em",
+                }}
+              >
                 {r.toUpperCase()}
               </MenuItem>
             ))}
@@ -153,10 +177,26 @@ export function FilterBar() {
             onChange={(e) => update({ map: e.target.value })}
           >
             <MenuItem value="">
-              <em style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: '0.8rem' }}>All Maps</em>
+              <em
+                style={{
+                  fontFamily: '"Rajdhani", sans-serif',
+                  fontWeight: 600,
+                  fontSize: "0.8rem",
+                }}
+              >
+                All Maps
+              </em>
             </MenuItem>
-            {MAPS.filter((m) => m !== 'Any').map((m) => (
-              <MenuItem key={m} value={m} sx={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: '0.8rem' }}>
+            {MAPS.filter((m) => m !== "Any").map((m) => (
+              <MenuItem
+                key={m}
+                value={m}
+                sx={{
+                  fontFamily: '"Rajdhani", sans-serif',
+                  fontWeight: 700,
+                  fontSize: "0.8rem",
+                }}
+              >
                 {m.toUpperCase()}
               </MenuItem>
             ))}
@@ -172,10 +212,26 @@ export function FilterBar() {
             onChange={(e) => update({ region: e.target.value })}
           >
             <MenuItem value="">
-              <em style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: '0.8rem' }}>All Regions</em>
+              <em
+                style={{
+                  fontFamily: '"Rajdhani", sans-serif',
+                  fontWeight: 600,
+                  fontSize: "0.8rem",
+                }}
+              >
+                All Regions
+              </em>
             </MenuItem>
             {REGIONS.map((r) => (
-              <MenuItem key={r} value={r} sx={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: '0.8rem' }}>
+              <MenuItem
+                key={r}
+                value={r}
+                sx={{
+                  fontFamily: '"Rajdhani", sans-serif',
+                  fontWeight: 700,
+                  fontSize: "0.8rem",
+                }}
+              >
                 {r}
               </MenuItem>
             ))}
@@ -193,15 +249,19 @@ export function FilterBar() {
             px: 1.5,
             fontFamily: '"Rajdhani", sans-serif',
             fontWeight: 700,
-            fontSize: '0.72rem',
-            letterSpacing: '0.06em',
-            border: '1px solid rgba(255,255,255,0.08) !important',
-            color: filters.openOnly ? '#22c55e' : 'text.secondary',
-            backgroundColor: filters.openOnly ? 'rgba(34,197,94,0.1) !important' : 'rgba(28,32,48,0.8) !important',
-            borderColor: filters.openOnly ? 'rgba(34,197,94,0.35) !important' : undefined,
-            '&.Mui-selected': {
-              color: '#22c55e',
-              backgroundColor: 'rgba(34,197,94,0.1)',
+            fontSize: "0.72rem",
+            letterSpacing: "0.06em",
+            border: "1px solid rgba(255,255,255,0.08) !important",
+            color: filters.openOnly ? "#22c55e" : "text.secondary",
+            backgroundColor: filters.openOnly
+              ? "rgba(34,197,94,0.1) !important"
+              : "rgba(28,32,48,0.8) !important",
+            borderColor: filters.openOnly
+              ? "rgba(34,197,94,0.35) !important"
+              : undefined,
+            "&.Mui-selected": {
+              color: "#22c55e",
+              backgroundColor: "rgba(34,197,94,0.1)",
             },
           }}
         >
@@ -209,8 +269,8 @@ export function FilterBar() {
             sx={{
               width: 6,
               height: 6,
-              borderRadius: '50%',
-              backgroundColor: filters.openOnly ? '#22c55e' : 'text.secondary',
+              borderRadius: "50%",
+              backgroundColor: filters.openOnly ? "#22c55e" : "text.secondary",
               mr: 0.75,
             }}
           />

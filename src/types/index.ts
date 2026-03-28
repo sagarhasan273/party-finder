@@ -1,28 +1,28 @@
 export type RankTier =
-  | 'Iron'
-  | 'Bronze'
-  | 'Silver'
-  | 'Gold'
-  | 'Platinum'
-  | 'Diamond'
-  | 'Ascendant'
-  | 'Immortal'
-  | 'Radiant';
+  | "Iron"
+  | "Bronze"
+  | "Silver"
+  | "Gold"
+  | "Platinum"
+  | "Diamond"
+  | "Ascendant"
+  | "Immortal"
+  | "Radiant";
 
 export type ValorantMap =
-  | 'Any'
-  | 'Ascent'
-  | 'Bind'
-  | 'Breeze'
-  | 'Fracture'
-  | 'Haven'
-  | 'Icebox'
-  | 'Lotus'
-  | 'Pearl'
-  | 'Split'
-  | 'Sunset';
+  | "Any"
+  | "Ascent"
+  | "Bind"
+  | "Breeze"
+  | "Fracture"
+  | "Haven"
+  | "Icebox"
+  | "Lotus"
+  | "Pearl"
+  | "Split"
+  | "Sunset";
 
-export type LobbyStatus = 'open' | 'full' | 'closed';
+export type LobbyStatus = "open" | "full" | "closed";
 
 export interface Lobby {
   id: string;

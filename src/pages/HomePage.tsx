@@ -1,22 +1,24 @@
-import { useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { useMemo, useEffect } from "react";
+import { Plus, Crosshair, ChevronRight } from "lucide-react";
+
 import {
   Box,
-  Container,
-  Typography,
   Grid,
   Stack,
-  Skeleton,
   Button,
+  Skeleton,
+  Container,
+  Typography,
 } from "@mui/material";
-import { motion } from "framer-motion";
-import { Crosshair, ChevronRight, Plus } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../store";
-import { fetchLobbies } from "../store/lobbiesSlice";
-import { LobbyCard } from "../components/LobbyCard";
-import { FilterBar } from "../components/FilterBar";
+
 import { useAuth } from "../hooks/useAuth";
 import { RANK_INDEX } from "../lib/valorant";
+import { LobbyCard } from "../components/LobbyCard";
+import { FilterBar } from "../components/FilterBar";
+import { fetchLobbies } from "../store/lobbiesSlice";
+import { useAppDispatch, useAppSelector } from "../store";
 
 export function HomePage() {
   const dispatch = useAppDispatch();
@@ -30,35 +32,37 @@ export function HomePage() {
     }
   }, [dispatch, status]);
 
-  const filteredLobbies = useMemo(() => {
-    return lobbies.filter((lobby) => {
-      if (filters.search) {
-        const q = filters.search.toLowerCase();
-        if (
-          !lobby.title.toLowerCase().includes(q) &&
-          !lobby.description?.toLowerCase().includes(q) &&
-          !lobby.hostUsername?.toLowerCase().includes(q)
-        ) {
-          return false;
+  const filteredLobbies = useMemo(
+    () =>
+      lobbies.filter((lobby) => {
+        if (filters.search) {
+          const q = filters.search.toLowerCase();
+          if (
+            !lobby.title.toLowerCase().includes(q) &&
+            !lobby.description?.toLowerCase().includes(q) &&
+            !lobby.hostUsername?.toLowerCase().includes(q)
+          ) {
+            return false;
+          }
         }
-      }
-      if (filters.rankMin) {
-        const minIdx = RANK_INDEX[filters.rankMin] ?? 0;
-        const lobbyMaxIdx = RANK_INDEX[lobby.rankMax] ?? 8;
-        if (lobbyMaxIdx < minIdx) return false;
-      }
-      if (filters.map && filters.map !== "Any") {
-        if (lobby.map !== filters.map && lobby.map !== "Any") return false;
-      }
-      if (filters.region) {
-        if (lobby.region !== filters.region) return false;
-      }
-      if (filters.openOnly) {
-        if (lobby.status !== "open") return false;
-      }
-      return true;
-    });
-  }, [lobbies, filters]);
+        if (filters.rankMin) {
+          const minIdx = RANK_INDEX[filters.rankMin] ?? 0;
+          const lobbyMaxIdx = RANK_INDEX[lobby.rankMax] ?? 8;
+          if (lobbyMaxIdx < minIdx) return false;
+        }
+        if (filters.map && filters.map !== "Any") {
+          if (lobby.map !== filters.map && lobby.map !== "Any") return false;
+        }
+        if (filters.region) {
+          if (lobby.region !== filters.region) return false;
+        }
+        if (filters.openOnly) {
+          if (lobby.status !== "open") return false;
+        }
+        return true;
+      }),
+    [lobbies, filters],
+  );
 
   const openCount = lobbies.filter((l) => l.status === "open").length;
 
@@ -427,7 +431,7 @@ export function HomePage() {
         ) : (
           <Grid container spacing={2}>
             {filteredLobbies.map((lobby, i) => (
-              <Grid size={{ xs: 12, md: 6, xl: 4 }}  key={lobby.id}>
+              <Grid size={{ xs: 12, md: 6, xl: 4 }} key={lobby.id}>
                 <LobbyCard lobby={lobby} index={i} />
               </Grid>
             ))}

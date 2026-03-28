@@ -1,7 +1,10 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import lobbiesReducer from './lobbiesSlice';
-import authReducer from './authSlice';
+import type { TypedUseSelectorHook } from "react-redux";
+
+import { configureStore } from "@reduxjs/toolkit";
+import { useDispatch, useSelector } from "react-redux";
+
+import authReducer from "./authSlice";
+import lobbiesReducer from "./lobbiesSlice";
 
 export const store = configureStore({
   reducer: {
