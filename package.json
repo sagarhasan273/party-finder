@@ -44,6 +44,7 @@
     "dayjs": "^1.11.13",
     "emoji-picker-react": "^4.12.2",
     "framer-motion": "^11.3.29",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.518.0",
     "mui-one-time-password-input": "^2.0.3",
     "nprogress": "^0.2.0",

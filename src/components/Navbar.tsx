@@ -1,13 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  Plus,
-  LogIn,
-  LogOut,
-  Layout,
-  Crosshair,
-  ChevronDown,
-} from "lucide-react";
+import { Plus, LogOut, Layout, Crosshair, ChevronDown } from "lucide-react";
 
 import {
   Box,
@@ -23,7 +16,8 @@ import {
   ListItemIcon,
 } from "@mui/material";
 
-import { useAuth } from "../hooks/useAuth";
+import { GoogleSignIn } from "src/core/auth";
+import { useCredentials } from "src/core/slices";
 
 const navLinks = [
   { label: "BROWSE", path: "/" },
@@ -32,7 +26,8 @@ const navLinks = [
 ];
 
 export function Navbar() {
-  const { user, isAuthenticated, login, signOut } = useAuth();
+  const { user, isAuthenticated, logout } = useCredentials();
+
   const location = useLocation();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -173,11 +168,7 @@ export function Navbar() {
                     fontSize: "0.8rem",
                   }}
                 >
-                  {(
-                    user?.displayName?.[0] ??
-                    user?.email?.[0] ??
-                    "U"
-                  ).toUpperCase()}
+                  {(user?.name?.[0] ?? user?.email?.[0] ?? "U").toUpperCase()}
                 </Avatar>
                 <Typography
                   sx={{
@@ -192,7 +183,7 @@ export function Navbar() {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {user?.displayName ?? user?.email?.split("@")[0] ?? "User"}
+                  {user?.name ?? user?.email?.split("@")[0] ?? "User"}
                 </Typography>
                 <ChevronDown size={12} color="rgba(255,255,255,0.4)" />
               </Box>
@@ -260,7 +251,7 @@ export function Navbar() {
                 <Divider />
                 <MenuItem
                   onClick={() => {
-                    signOut();
+                    logout();
                     setAnchorEl(null);
                   }}
                   sx={{ gap: 1.5, fontSize: "0.85rem", color: "#FF4655" }}
@@ -273,26 +264,7 @@ export function Navbar() {
               </Menu>
             </>
           ) : (
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<LogIn size={14} />}
-              onClick={login}
-              sx={{
-                background: "#FF4655",
-                fontFamily: '"Rajdhani", sans-serif',
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                fontSize: "0.78rem",
-                height: 34,
-                "&:hover": {
-                  background: "#ff6b77",
-                  boxShadow: "0 0 18px rgba(255,70,85,0.4)",
-                },
-              }}
-            >
-              SIGN IN
-            </Button>
+            <GoogleSignIn />
           )}
         </Stack>
       </Toolbar>

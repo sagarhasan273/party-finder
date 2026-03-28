@@ -1,65 +1,97 @@
 import type { UserType } from "src/types/type-user";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
-import { useMemo } from "react";
+import axios from "axios";
 import { createSlice } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
+import { useMemo, useEffect, useCallback } from "react";
+
+import { endpoints } from "src/utils/axios";
+
+import { CONFIG } from "src/config-global";
 
 import type { RootState } from "../types";
 
 // Define auth state interface
 interface UserState {
-  user: UserType;
+  user: UserType | null;
   isAuthenticated: boolean;
-  loading: boolean;
+  isLoading: boolean;
 }
 
 // Initial state
 const initialState: UserState = {
-  user: {} as UserType,
+  user: null,
   isAuthenticated: false,
-  loading: false,
+  isLoading: false,
 };
 
 export const accountSlice = createSlice({
   name: "account",
   initialState,
   reducers: {
-    setAccount: (state, action: PayloadAction<UserState["user"]>) => {
+    setUser(state, action: PayloadAction<UserState["user"]>) {
       state.user = action.payload;
-      state.isAuthenticated = true;
+      state.isAuthenticated = !!action.payload;
+      state.isLoading = false;
     },
-
-    logout: (state) => {
-      state.user = {} as UserType;
+    setLoading(state, action: PayloadAction<boolean>) {
+      state.isLoading = action.payload;
+    },
+    logout(state) {
+      state.user = null;
       state.isAuthenticated = false;
-    },
-    setAccountLoading: (state, action: PayloadAction<boolean>) => {
-      state.loading = action.payload;
+      state.isLoading = false;
     },
   },
 });
 
-export const { setAccount, logout, setAccountLoading } = accountSlice.actions;
+const { setUser, logout, setLoading } = accountSlice.actions;
 
-// Selectors with proper typing
-export const selectAccount = (state: RootState) => state.account.user;
-export const selectIsAuthenticated = (state: RootState) =>
+const selectIsAuthenticated = (state: RootState) =>
   state.account.isAuthenticated;
+const selectAccount = (state: RootState) => state.account.user;
+const selectIsLoading = (state: RootState) => state.account.isLoading;
 
 export const useCredentials = () => {
   const dispatch = useDispatch();
 
   const user = useSelector(selectAccount);
+  const isLoading = useSelector(selectIsLoading);
   const isAuthenticated = useSelector(selectIsAuthenticated);
+
+  const checkUserSession = useCallback(async () => {
+    try {
+      const accessToken = sessionStorage.getItem(CONFIG.googleAccessToken);
+
+      if (accessToken) {
+        const res = await axios.get(endpoints.auth.me);
+
+        const { data, status } = res.data;
+        if (status) {
+          dispatch(setUser(data));
+        }
+      }
+    } catch (error) {
+      dispatch(logout());
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
+    checkUserSession();
+  }, [checkUserSession]);
 
   const memoCredentials = useMemo(
     () => ({
       user,
+      isLoading,
       isAuthenticated,
-      setAccount: (payload: UserState["user"]) => dispatch(setAccount(payload)),
+      setUser: (payload: UserState["user"]) => dispatch(setUser(payload)),
+      setLoading: (payload: UserState["isLoading"]) =>
+        dispatch(setLoading(payload)),
+      logout: () => dispatch(logout()),
     }),
-    [isAuthenticated, user, dispatch],
+    [isAuthenticated, isLoading, user, dispatch],
   );
 
   return memoCredentials;
