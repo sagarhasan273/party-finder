@@ -1,200 +1,281 @@
-// src/components/LobbyCard.tsx
-import React from 'react';
-import { Card, Box, Typography, Chip, Button, Avatar, AvatarGroup, alpha } from '@mui/material';
-import { AccessTime, Public } from '@mui/icons-material';
-import { Lobby } from '../types';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Stack,
+  IconButton,
+  Chip,
+  Divider,
+  Tooltip,
+} from '@mui/material';
 import { motion } from 'framer-motion';
-import { useToast } from '../contexts/ToastContext';
-
-const getRankColor = (rank: string): string => {
-  const rankLower = rank.toLowerCase();
-  if (rankLower.includes('gold')) return '#f5c842';
-  if (rankLower.includes('plat')) return '#4fc3f7';
-  if (rankLower.includes('diamond')) return '#a78bfa';
-  if (rankLower.includes('silver')) return '#94a3b8';
-  if (rankLower.includes('iron')) return '#94a3b8';
-  if (rankLower.includes('bronze')) return '#cd7f32';
-  if (rankLower.includes('radiant')) return '#f5c842';
-  return '#94a3b8';
-};
-
-const getStyleChip = (style: string) => {
-  switch (style) {
-    case 'chill':
-      return { label: 'Chill', color: '#4ade80', bg: 'rgba(74, 222, 128, 0.1)', border: 'rgba(74, 222, 128, 0.25)' };
-    case 'comp':
-      return { label: 'Tryhard', color: '#ff4655', bg: 'rgba(255, 70, 85, 0.1)', border: 'rgba(255, 70, 85, 0.25)' };
-    default:
-      return { label: 'Balanced', color: '#f5c842', bg: 'rgba(245, 200, 66, 0.1)', border: 'rgba(245, 200, 66, 0.25)' };
-  }
-};
+import { Users, Clock, ExternalLink, MapPin, Globe } from 'lucide-react';
+import { RankChip } from './RankChip';
+import { RoleChip } from './RoleChip';
+import { StatusChip } from './StatusChip';
+import type { Lobby } from '../types';
+import { parseRoles, formatTimeAgo } from '../lib/valorant';
+import { useAuth } from '../hooks/useAuth';
+import { toast } from 'sonner';
 
 interface LobbyCardProps {
   lobby: Lobby;
-  onJoin: (id: number) => void;
+  index?: number;
 }
 
-export const LobbyCard: React.FC<LobbyCardProps> = ({ lobby, onJoin }) => {
-  const { showToast } = useToast();
-  const rankColor = getRankColor(lobby.rank);
-  const styleChip = getStyleChip(lobby.style);
+export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
+  const { isAuthenticated, login } = useAuth();
+  const roles = parseRoles(lobby.rolesNeeded);
+  const playerCount = Number(lobby.currentPlayers) || 4;
+  const maxPlayers = Number(lobby.maxPlayers) || 5;
+  const spotsLeft = maxPlayers - playerCount;
 
-  const handleJoin = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (lobby.rank === 'Radiant') {
-      showToast('Warning: Significant rank gap may reduce your RR gains', 'warning');
-      setTimeout(() => showToast(`Request sent to ${lobby.host}! Check Discord.`, 'success'), 1500);
-    } else {
-      showToast(`Request sent to ${lobby.host}! They'll see it now.`, 'success');
+  const handleJoin = () => {
+    if (!isAuthenticated) {
+      login();
+      return;
     }
-    onJoin(lobby.id);
+    if (lobby.discordLink) {
+      window.open(lobby.discordLink, '_blank', 'noopener,noreferrer');
+    } else {
+      toast.success('Request sent!', {
+        description: `Reached out to ${lobby.hostUsername ?? 'host'} to join.`,
+      });
+    }
   };
 
   return (
-    <motion.div whileHover={{ y: -1 }} transition={{ duration: 0.2 }}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.06, duration: 0.35, ease: 'easeOut' }}
+    >
       <Card
         sx={{
-          bgcolor: '#141519',
-          border: '1px solid #2a2b35',
-          borderRadius: 2,
-          p: 2.5,
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
           position: 'relative',
           overflow: 'hidden',
-          cursor: 'pointer',
-          transition: '0.2s',
-          '&:hover': {
-            borderColor: '#ff4655',
-          },
           '&::before': {
             content: '""',
             position: 'absolute',
-            left: 0,
             top: 0,
-            bottom: 0,
-            width: 3,
-            background: rankColor,
-            borderRadius: '3px 0 0 3px',
+            left: 0,
+            right: 0,
+            height: '2px',
+            background: lobby.status === 'open'
+              ? 'linear-gradient(90deg, transparent, #22c55e, transparent)'
+              : lobby.status === 'full'
+              ? 'linear-gradient(90deg, transparent, #ff4655, transparent)'
+              : 'transparent',
+            opacity: 0.6,
           },
         }}
-        onClick={() => handleJoin(new MouseEvent('click') as any)}
       >
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1.75 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <AvatarGroup max={4} sx={{ 
-              '& .MuiAvatar-root': { 
-                width: 34, 
-                height: 34, 
-                fontSize: 12, 
-                fontWeight: 700,
-                border: '2px solid #0d0e10',
-                fontFamily: '"Barlow Condensed", sans-serif'
-              } 
-            }}>
-              {lobby.players.map((player, idx) => (
-                <Avatar key={idx} sx={{ bgcolor: ['#ff4655', '#7c3aed', '#059669', '#d97706', '#db2777'][idx % 5] }}>
-                  {player.slice(0, 2)}
-                </Avatar>
-              ))}
-              {Array(4 - lobby.players.length).fill(0).map((_, idx) => (
-                <Avatar key={`empty-${idx}`} sx={{ bgcolor: '#1c1d22', border: '2px dashed #363742', fontSize: 14 }}>
-                  +
-                </Avatar>
-              ))}
-            </AvatarGroup>
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, fontFamily: '"Barlow Condensed", sans-serif', fontSize: 15 }}>
-                {lobby.host}
-                <Typography component="span" sx={{ color: '#5c6070', fontWeight: 400, ml: 0.5, fontFamily: '"Barlow", sans-serif' }}>
-                  {lobby.tag}
+        <CardContent sx={{ p: 2.5, flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          {/* Header */}
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
+            <Box flex={1} minWidth={0}>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  fontFamily: '"Rajdhani", sans-serif',
+                  letterSpacing: '0.04em',
+                  lineHeight: 1.2,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  color: 'text.primary',
+                }}
+              >
+                {lobby.title}
+              </Typography>
+              {lobby.hostUsername && (
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                  {lobby.hostUsername}
+                  {lobby.hostTag && (
+                    <Box component="span" sx={{ opacity: 0.5 }}>
+                      #{lobby.hostTag}
+                    </Box>
+                  )}
                 </Typography>
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#5c6070', fontSize: 12 }}>
-                {lobby.players.length}/4 players · {lobby.region}
-              </Typography>
+              )}
             </Box>
-          </Box>
-          <Box sx={{ textAlign: 'right' }}>
+            {/* Rank range */}
+            <Stack direction="row" alignItems="center" gap={0.5} flexShrink={0}>
+              <RankChip rank={lobby.rankMin} />
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>→</Typography>
+              <RankChip rank={lobby.rankMax} />
+            </Stack>
+          </Stack>
+
+          {/* Description */}
+          {lobby.description && (
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                fontSize: '0.8rem',
+                lineHeight: 1.5,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {lobby.description}
+            </Typography>
+          )}
+
+          {/* Meta row */}
+          <Stack direction="row" flexWrap="wrap" gap={0.75}>
+            <StatusChip status={lobby.status} />
+            {lobby.map && lobby.map !== 'Any' && (
+              <Chip
+                icon={<MapPin size={9} />}
+                label={lobby.map.toUpperCase()}
+                size="small"
+                sx={{
+                  backgroundColor: 'rgba(255,255,255,0.06)',
+                  color: 'text.secondary',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  fontFamily: '"Rajdhani", sans-serif',
+                  fontWeight: 700,
+                  fontSize: '0.65rem',
+                  height: 22,
+                  letterSpacing: '0.05em',
+                  '& .MuiChip-icon': { ml: 0.5, color: 'text.secondary' },
+                }}
+              />
+            )}
             <Chip
-              label={lobby.rank}
+              icon={<Globe size={9} />}
+              label={lobby.region}
               size="small"
               sx={{
-                bgcolor: alpha(rankColor, 0.15),
-                color: rankColor,
-                border: `1px solid ${alpha(rankColor, 0.3)}`,
-                fontFamily: '"Barlow Condensed", sans-serif',
+                backgroundColor: 'rgba(255,255,255,0.06)',
+                color: 'text.secondary',
+                border: '1px solid rgba(255,255,255,0.1)',
+                fontFamily: '"Rajdhani", sans-serif',
                 fontWeight: 700,
-                fontSize: 13,
-                letterSpacing: '0.3px',
-                height: 26,
+                fontSize: '0.65rem',
+                height: 22,
+                letterSpacing: '0.05em',
+                '& .MuiChip-icon': { ml: 0.5, color: 'text.secondary' },
               }}
             />
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, justifyContent: 'flex-end' }}>
-              <AccessTime sx={{ fontSize: 12, color: '#5c6070' }} />
-              <Typography variant="caption" sx={{ color: '#5c6070', fontSize: 12 }}>
-                {lobby.time}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
+          </Stack>
 
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, bgcolor: '#1c1d22', border: '1px solid #2a2b35', px: 1.25, py: 0.5, borderRadius: 20 }}>
-            <Public sx={{ fontSize: 12, color: '#9aa0b8' }} />
-            <Typography variant="caption" sx={{ color: '#9aa0b8', fontSize: 12 }}>
-              {lobby.region}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, bgcolor: '#1c1d22', border: '1px solid #2a2b35', px: 1.25, py: 0.5, borderRadius: 20 }}>
-            <AccessTime sx={{ fontSize: 12, color: '#9aa0b8' }} />
-            <Typography variant="caption" sx={{ color: '#9aa0b8', fontSize: 12 }}>
-              {lobby.role}
-            </Typography>
-          </Box>
-          {lobby.rank === 'Radiant' && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, bgcolor: 'rgba(255, 70, 85, 0.1)', border: '1px solid rgba(255, 70, 85, 0.3)', px: 1.25, py: 0.5, borderRadius: 20 }}>
-              <span style={{ fontSize: 12 }}>⚠</span>
-              <Typography variant="caption" sx={{ color: '#ff4655', fontSize: 12 }}>
-                Rank Disparity
-              </Typography>
-            </Box>
+          {/* Roles */}
+          {roles.length > 0 && (
+            <Stack direction="row" flexWrap="wrap" gap={0.75}>
+              {roles.map((role) => (
+                <RoleChip key={role} role={role} />
+              ))}
+            </Stack>
           )}
-        </Box>
 
-        <Typography variant="body2" sx={{ color: '#9aa0b8', fontSize: 13, lineHeight: 1.5, mb: 1.75 }}>
-          {lobby.desc}
-        </Typography>
+          {/* Footer */}
+          <Divider sx={{ mt: 'auto', pt: 0.5, borderColor: 'divider' }} />
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack direction="row" gap={1.5} alignItems="center">
+              <Stack direction="row" alignItems="center" gap={0.5}>
+                <Users size={13} style={{ color: '#7a8499' }} />
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontFamily: '"Rajdhani", sans-serif',
+                    fontWeight: 700,
+                    color: 'text.primary',
+                    fontSize: '0.8rem',
+                  }}
+                >
+                  {playerCount}/{maxPlayers}
+                </Typography>
+                {spotsLeft > 0 && lobby.status === 'open' && (
+                  <Typography variant="caption" sx={{ color: '#22c55e', fontSize: '0.72rem' }}>
+                    ({spotsLeft} left)
+                  </Typography>
+                )}
+              </Stack>
+              <Stack direction="row" alignItems="center" gap={0.5}>
+                <Clock size={11} style={{ color: '#7a8499' }} />
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem' }}>
+                  {formatTimeAgo(lobby.createdAt)}
+                </Typography>
+              </Stack>
+            </Stack>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Chip
-            label={styleChip.label}
-            size="small"
-            sx={{
-              bgcolor: styleChip.bg,
-              color: styleChip.color,
-              border: `1px solid ${styleChip.border}`,
-              fontFamily: '"Barlow Condensed", sans-serif',
-              fontWeight: 700,
-              fontSize: 12,
-              letterSpacing: '0.3px',
-            }}
-          />
-          <Button
-            variant="contained"
-            size="small"
-            onClick={handleJoin}
-            sx={{
-              fontFamily: '"Barlow Condensed", sans-serif',
-              fontWeight: 700,
-              fontSize: 14,
-              letterSpacing: '0.5px',
-              px: 2.25,
-              py: 0.875,
-            }}
-          >
-            Request to Join
-          </Button>
-        </Box>
+            <Stack direction="row" gap={0.75} alignItems="center">
+              {lobby.discordLink && (
+                <Tooltip title="Join Discord">
+                  <IconButton
+                    href={lobby.discordLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    size="small"
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      backgroundColor: 'rgba(114,137,218,0.12)',
+                      border: '1px solid rgba(114,137,218,0.25)',
+                      color: '#7289DA',
+                      '&:hover': { backgroundColor: 'rgba(114,137,218,0.22)' },
+                    }}
+                  >
+                    <ExternalLink size={13} />
+                  </IconButton>
+                </Tooltip>
+              )}
+              {lobby.status === 'open' && (
+                <Box
+                  component="button"
+                  onClick={handleJoin}
+                  sx={{
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: '4px',
+                    background: '#FF4655',
+                    color: '#fff',
+                    fontFamily: '"Rajdhani", sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.06em',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s, box-shadow 0.2s',
+                    '&:hover': {
+                      background: '#ff6b77',
+                      boxShadow: '0 0 14px rgba(255,70,85,0.4)',
+                    },
+                  }}
+                >
+                  JOIN
+                </Box>
+              )}
+              {lobby.status === 'full' && (
+                <Chip
+                  label="FULL"
+                  size="small"
+                  sx={{
+                    backgroundColor: 'rgba(255,70,85,0.1)',
+                    color: '#ff4655',
+                    border: '1px solid rgba(255,70,85,0.3)',
+                    fontFamily: '"Rajdhani", sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.65rem',
+                    height: 22,
+                  }}
+                />
+              )}
+            </Stack>
+          </Stack>
+        </CardContent>
       </Card>
     </motion.div>
   );
-};
+}

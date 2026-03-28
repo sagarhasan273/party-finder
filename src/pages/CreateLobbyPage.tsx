@@ -1,184 +1,418 @@
-// src/pages/CreateLobbyPage.tsx
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
+  Container,
   Typography,
-  Paper,
+  Stack,
   TextField,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
   Button,
-  Stack,
-  Alert,
+  Paper,
   Chip,
+  Alert,
+  CircularProgress,
+  Divider,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { useLobby } from '../contexts/LobbyContext';
-import { useToast } from '../contexts/ToastContext';
+import { motion } from 'framer-motion';
+import { Plus, ChevronLeft, Crosshair, AlertCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAppDispatch } from '../store';
+import { createLobby } from '../store/lobbiesSlice';
+import { useAuth } from '../hooks/useAuth';
+import { RANKS, MAPS, REGIONS, ROLES, ROLE_COLORS } from '../lib/valorant';
+import type { RankTier } from '../types';
+import { toast } from 'sonner';
 
-const regions = ['NA — North America', 'EU — Europe', 'AP — Asia Pacific', 'KR — Korea', 'BR — Brazil'];
-const ranks = ['Iron I – III', 'Bronze I – III', 'Silver I – III', 'Gold I – III', 'Platinum I – III', 'Diamond I – III', 'Ascendant I – III', 'Immortal I – III', 'Radiant'];
-const roles = ['Any Role', 'Duelist', 'Controller / Smokes', 'Initiator / Flash', 'Sentinel'];
+const sectionSx = {
+  p: 3,
+  backgroundColor: 'rgba(22,25,38,0.9)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  borderRadius: '8px',
+};
 
-export const CreateLobbyPage: React.FC = () => {
+const sectionLabel = {
+  fontFamily: '"Rajdhani", sans-serif' as const,
+  fontWeight: 700,
+  fontSize: '0.72rem',
+  letterSpacing: '0.12em',
+  color: 'rgba(255,255,255,0.35)',
+  mb: 2.5,
+};
+
+export function CreateLobbyPage() {
+  const { user, isLoading, isAuthenticated, login } = useAuth();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { postLobby } = useLobby();
-  const { showToast } = useToast();
-  const [rank, setRank] = useState('Gold I – III');
-  const [playstyle, setPlaystyle] = useState('Chill');
-  const [showWarning, setShowWarning] = useState(false);
 
-  const handlePost = () => {
-    const isHighRank = rank.includes('Diamond') || rank.includes('Immortal') || rank.includes('Radiant');
-    if (isHighRank) {
-      setShowWarning(true);
+  const [title, setTitle] = useState('');
+  const [hostUsername, setHostUsername] = useState('');
+  const [hostTag, setHostTag] = useState('');
+  const [description, setDescription] = useState('');
+  const [rankMin, setRankMin] = useState<RankTier>('Gold');
+  const [rankMax, setRankMax] = useState<RankTier>('Platinum');
+  const [map, setMap] = useState('Any');
+  const [region, setRegion] = useState('NA');
+  const [rolesNeeded, setRolesNeeded] = useState<string[]>(['Any']);
+  const [discordLink, setDiscordLink] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      login();
     }
-    
-    postLobby({
-      host: 'YourHost',
-      tag: '#NA1',
-      rank: rank.split(' ')[0],
-      rankNum: 1,
-      style: playstyle.toLowerCase() as 'chill' | 'mid' | 'comp',
-      region: 'NA',
-      role: 'Any Role',
-      desc: 'Looking for fifth!',
-      players: ['Host'],
+  }, [isLoading, isAuthenticated, login]);
+
+  const toggleRole = (role: string) => {
+    setRolesNeeded((prev) => {
+      if (role === 'Any') return ['Any'];
+      const withoutAny = prev.filter((r) => r !== 'Any');
+      if (withoutAny.includes(role)) {
+        const next = withoutAny.filter((r) => r !== role);
+        return next.length === 0 ? ['Any'] : next;
+      }
+      return [...withoutAny, role];
     });
-    
-    showToast('Lobby posted! You\'ll get notified when someone requests to join.', 'success');
-    setTimeout(() => navigate('/lobbies'), 1500);
   };
 
-  return (
-    <Box>
-      <Box sx={{ mb: 3 }}>
-        <Typography sx={{ fontSize: 28, fontWeight: 800, fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.3px' }}>
-          Create a Lobby
-        </Typography>
-        <Typography sx={{ fontSize: 14, color: '#9aa0b8', mt: 0.5 }}>
-          Post your 4-stack — find your fifth in under 3 minutes
-        </Typography>
-      </Box>
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) { login(); return; }
+    if (!title.trim()) { toast.error('Title is required'); return; }
+    if (!hostUsername.trim()) { toast.error('Username is required'); return; }
 
-      <Paper
-        sx={{
-          p: 3.5,
-          bgcolor: '#141519',
-          border: '1px solid #2a2b35',
-          borderRadius: 3,
-          maxWidth: 560,
-        }}
+    setIsSubmitting(true);
+    try {
+      await dispatch(
+        createLobby({
+          userId: user.id,
+          title: title.trim(),
+          description: description.trim() || undefined,
+          rankMin,
+          rankMax,
+          map: map || 'Any',
+          rolesNeeded: JSON.stringify(rolesNeeded),
+          region,
+          status: 'open',
+          hostUsername: hostUsername.trim(),
+          hostTag: hostTag.trim() || undefined,
+          discordLink: discordLink.trim() || undefined,
+          currentPlayers: 4,
+          maxPlayers: 5,
+        })
+      ).unwrap();
+      toast.success('Lobby posted! Good luck finding your 5th 🎯');
+      navigate('/');
+    } catch {
+      toast.error('Failed to create lobby. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const selectSx = {
+    backgroundColor: 'rgba(28,32,48,0.8)',
+    fontFamily: '"Rajdhani", sans-serif',
+    fontWeight: 700,
+    fontSize: '0.85rem',
+    letterSpacing: '0.04em',
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.08)' },
+    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.2)' },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#FF4655' },
+  };
+
+  if (isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <Stack alignItems="center" gap={2}>
+          <CircularProgress size={40} sx={{ color: '#FF4655' }} />
+          <Typography sx={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, letterSpacing: '0.1em', color: 'text.secondary', fontSize: '0.8rem' }}>
+            LOADING...
+          </Typography>
+        </Stack>
+      </Box>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <Stack alignItems="center" gap={2.5} textAlign="center">
+          <AlertCircle size={44} color="#FF4655" />
+          <Typography variant="h4" sx={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 800 }}>
+            SIGN IN REQUIRED
+          </Typography>
+          <Typography sx={{ color: 'text.secondary' }}>You need to sign in to create a lobby.</Typography>
+          <Button
+            variant="contained"
+            onClick={login}
+            sx={{ background: '#FF4655', fontFamily: '"Rajdhani", sans-serif', fontWeight: 700 }}
+          >
+            Sign In
+          </Button>
+        </Stack>
+      </Box>
+    );
+  }
+
+  return (
+    <Container maxWidth="sm" sx={{ py: 5 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
       >
-        <Stack spacing={2}>
-          <TextField
-            label="Your Riot ID"
-            defaultValue="ProPlayer#NA1"
-            fullWidth
-            placeholder="Name#Tag"
-          />
-          <FormControl fullWidth>
-            <InputLabel sx={{ fontFamily: '"Barlow Condensed", sans-serif', fontSize: 12, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-              Region
-            </InputLabel>
-            <Select label="Region" defaultValue="NA — North America">
-              {regions.map(r => (
-                <MenuItem key={r} value={r}>{r}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth>
-            <InputLabel sx={{ fontFamily: '"Barlow Condensed", sans-serif', fontSize: 12, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-              Rank Range (4 players)
-            </InputLabel>
-            <Select label="Rank Range (4 players)" value={rank} onChange={(e) => setRank(e.target.value)}>
-              {ranks.map(r => (
-                <MenuItem key={r} value={r}>{r}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth>
-            <InputLabel sx={{ fontFamily: '"Barlow Condensed", sans-serif', fontSize: 12, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-              Needed Role
-            </InputLabel>
-            <Select label="Needed Role" defaultValue="Any Role">
-              {roles.map(r => (
-                <MenuItem key={r} value={r}>{r}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
-          <Box>
-            <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#9aa0b8', letterSpacing: '0.5px', textTransform: 'uppercase', fontFamily: '"Barlow Condensed", sans-serif', mb: 1 }}>
-              Playstyle
-            </Typography>
-            <Stack direction="row" spacing={1}>
-              {['Chill', 'Balanced', 'Tryhard'].map(ps => (
-                <Chip
-                  key={ps}
-                  label={ps}
-                  onClick={() => setPlaystyle(ps)}
-                  sx={{
-                    cursor: 'pointer',
-                    fontFamily: '"Barlow Condensed", sans-serif',
-                    fontWeight: 600,
-                    fontSize: 13,
-                    letterSpacing: '0.3px',
-                    bgcolor: playstyle === ps ? 'rgba(255, 70, 85, 0.1)' : '#1c1d22',
-                    color: playstyle === ps ? '#ff4655' : '#9aa0b8',
-                    border: playstyle === ps ? '1px solid rgba(255, 70, 85, 0.4)' : '1px solid #2a2b35',
-                    '&:hover': {
-                      bgcolor: playstyle === ps ? 'rgba(255, 70, 85, 0.15)' : '#252630',
-                    }
-                  }}
-                />
-              ))}
-            </Stack>
-          </Box>
-          
-          <TextField
-            label="Description (optional)"
-            multiline
-            rows={3}
-            placeholder="e.g. Gold 4-stack looking for a last-minute fill. Good comms. Discord optional."
-            fullWidth
-          />
-          
-          {showWarning && (
-            <Alert 
-              severity="warning" 
-              sx={{ 
-                bgcolor: 'rgba(245, 200, 66, 0.06)', 
-                color: '#f5c842',
-                border: '1px solid rgba(245, 200, 66, 0.25)',
-                '& .MuiAlert-icon': { color: '#f5c842' }
+        {/* Back + header */}
+        <Box mb={4}>
+          <Button
+            component={Link}
+            to="/"
+            startIcon={<ChevronLeft size={15} />}
+            size="small"
+            sx={{
+              fontFamily: '"Rajdhani", sans-serif',
+              fontWeight: 700,
+              fontSize: '0.72rem',
+              letterSpacing: '0.07em',
+              color: 'text.secondary',
+              mb: 2,
+              '&:hover': { color: 'text.primary' },
+            }}
+          >
+            BACK TO BROWSE
+          </Button>
+          <Stack direction="row" alignItems="center" gap={1.5} mb={0.75}>
+            <Box
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: '6px',
+                background: 'rgba(255,70,85,0.12)',
+                border: '1px solid rgba(255,70,85,0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              Rank disparity may apply. Your 5th might receive reduced RR gains/losses depending on the rank gap.
-            </Alert>
-          )}
-          
-          <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
-            <Button 
-              variant="contained" 
-              onClick={handlePost}
-              startIcon={
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M22 2L11 13" />
-                  <path d="M22 2L15 22l-4-9-9-4 20-7z" />
-                </svg>
-              }
+              <Crosshair size={18} color="#FF4655" />
+            </Box>
+            <Typography
+              variant="h3"
+              sx={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 900, fontSize: '1.8rem', letterSpacing: '0.04em' }}
             >
-              Post Lobby
-            </Button>
-            <Button variant="outlined" onClick={() => navigate('/lobbies')}>
-              Cancel
+              POST A LOBBY
+            </Typography>
+          </Stack>
+          <Typography sx={{ color: 'text.secondary', fontSize: '0.88rem' }}>
+            Fill in the details below to find your perfect 5th teammate.
+          </Typography>
+        </Box>
+
+        <Box component="form" onSubmit={handleSubmit}>
+          <Stack gap={2.5}>
+            {/* ── Basic Info ── */}
+            <Paper elevation={0} sx={sectionSx}>
+              <Typography sx={sectionLabel}>BASIC INFO</Typography>
+              <Stack gap={2.5}>
+                <TextField
+                  label="Lobby Title *"
+                  placeholder="e.g. Gold-Plat ranked, chill vibes"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  fullWidth
+                  inputProps={{ maxLength: 80 }}
+                  required
+                />
+                <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
+                  <TextField
+                    label="Your Username *"
+                    placeholder="NightReaper"
+                    value={hostUsername}
+                    onChange={(e) => setHostUsername(e.target.value)}
+                    fullWidth
+                    inputProps={{ maxLength: 32 }}
+                    required
+                  />
+                  <TextField
+                    label="Tag"
+                    placeholder="1234"
+                    value={hostTag}
+                    onChange={(e) => setHostTag(e.target.value.replace('#', ''))}
+                    fullWidth
+                    inputProps={{ maxLength: 8 }}
+                    InputProps={{
+                      startAdornment: (
+                        <Typography sx={{ color: 'text.secondary', mr: 0.25, fontFamily: '"Rajdhani", sans-serif', fontWeight: 700 }}>#</Typography>
+                      ),
+                    }}
+                  />
+                </Stack>
+                <Box>
+                  <TextField
+                    label="Description (optional)"
+                    placeholder="Tell players about your playstyle, mic requirements, schedule..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    fullWidth
+                    multiline
+                    rows={3}
+                    inputProps={{ maxLength: 300 }}
+                  />
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textAlign: 'right', mt: 0.5 }}>
+                    {description.length}/300
+                  </Typography>
+                </Box>
+              </Stack>
+            </Paper>
+
+            {/* ── Rank & Region ── */}
+            <Paper elevation={0} sx={sectionSx}>
+              <Typography sx={sectionLabel}>RANK & REGION</Typography>
+              <Stack gap={2.5}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
+                  <FormControl fullWidth>
+                    <InputLabel>Min Rank</InputLabel>
+                    <Select
+                      value={rankMin}
+                      label="Min Rank"
+                      onChange={(e) => setRankMin(e.target.value as RankTier)}
+                      sx={selectSx}
+                    >
+                      {RANKS.map((r) => (
+                        <MenuItem key={r} value={r} sx={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700 }}>
+                          {r}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <FormControl fullWidth>
+                    <InputLabel>Max Rank</InputLabel>
+                    <Select
+                      value={rankMax}
+                      label="Max Rank"
+                      onChange={(e) => setRankMax(e.target.value as RankTier)}
+                      sx={selectSx}
+                    >
+                      {RANKS.map((r) => (
+                        <MenuItem key={r} value={r} sx={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700 }}>
+                          {r}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Stack>
+                <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
+                  <FormControl fullWidth>
+                    <InputLabel>Map</InputLabel>
+                    <Select value={map} label="Map" onChange={(e) => setMap(e.target.value)} sx={selectSx}>
+                      {MAPS.map((m) => (
+                        <MenuItem key={m} value={m} sx={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700 }}>
+                          {m}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <FormControl fullWidth>
+                    <InputLabel>Region</InputLabel>
+                    <Select value={region} label="Region" onChange={(e) => setRegion(e.target.value)} sx={selectSx}>
+                      {REGIONS.map((r) => (
+                        <MenuItem key={r} value={r} sx={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700 }}>
+                          {r}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Stack>
+              </Stack>
+            </Paper>
+
+            {/* ── Roles ── */}
+            <Paper elevation={0} sx={sectionSx}>
+              <Typography sx={sectionLabel}>ROLES NEEDED</Typography>
+              <Stack direction="row" flexWrap="wrap" gap={1}>
+                {ROLES.map((role) => {
+                  const isSelected = rolesNeeded.includes(role);
+                  const colors = ROLE_COLORS[role] ?? { bg: 'rgba(100,100,130,0.2)', color: '#a0a0c0', border: 'rgba(100,100,130,0.3)' };
+                  return (
+                    <Chip
+                      key={role}
+                      label={role.toUpperCase()}
+                      onClick={() => toggleRole(role)}
+                      sx={{
+                        fontFamily: '"Rajdhani", sans-serif',
+                        fontWeight: 700,
+                        fontSize: '0.75rem',
+                        letterSpacing: '0.05em',
+                        cursor: 'pointer',
+                        height: 30,
+                        backgroundColor: isSelected ? colors.bg : 'rgba(28,32,48,0.8)',
+                        color: isSelected ? colors.color : 'rgba(255,255,255,0.45)',
+                        border: `1px solid ${isSelected ? colors.border : 'rgba(255,255,255,0.08)'}`,
+                        transition: 'all 0.15s',
+                        '&:hover': {
+                          backgroundColor: isSelected ? colors.bg : 'rgba(255,255,255,0.05)',
+                          filter: 'brightness(1.1)',
+                        },
+                        '& .MuiChip-label': { px: 1.5 },
+                      }}
+                    />
+                  );
+                })}
+              </Stack>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1.5 }}>
+                Selected: {rolesNeeded.join(', ')}
+              </Typography>
+            </Paper>
+
+            {/* ── Contact ── */}
+            <Paper elevation={0} sx={sectionSx}>
+              <Typography sx={sectionLabel}>CONTACT (OPTIONAL)</Typography>
+              <TextField
+                label="Discord Server / Invite Link"
+                placeholder="https://discord.gg/yourserver"
+                value={discordLink}
+                onChange={(e) => setDiscordLink(e.target.value)}
+                type="url"
+                fullWidth
+              />
+            </Paper>
+
+            <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)' }} />
+
+            {/* Submit */}
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={isSubmitting}
+              startIcon={
+                isSubmitting ? (
+                  <CircularProgress size={16} sx={{ color: 'white' }} />
+                ) : (
+                  <Plus size={18} />
+                )
+              }
+              sx={{
+                background: isSubmitting ? 'rgba(255,70,85,0.5)' : '#FF4655',
+                fontFamily: '"Rajdhani", sans-serif',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                fontSize: '0.95rem',
+                height: 48,
+                '&:hover': {
+                  background: '#ff6b77',
+                  boxShadow: '0 0 24px rgba(255,70,85,0.4)',
+                },
+                '&.Mui-disabled': { background: 'rgba(255,70,85,0.3)', color: 'rgba(255,255,255,0.5)' },
+              }}
+            >
+              {isSubmitting ? 'POSTING...' : 'POST LOBBY'}
             </Button>
           </Stack>
-        </Stack>
-      </Paper>
-    </Box>
+        </Box>
+      </motion.div>
+    </Container>
   );
-};
+}

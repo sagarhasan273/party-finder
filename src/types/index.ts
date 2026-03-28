@@ -1,63 +1,59 @@
-// src/types/index.ts
-export interface Player {
-  id: string;
-  name: string;
-  tag: string;
-  rank: string;
-  rankNum: number;
-  region: string;
-  role: string;
-  style: 'chill' | 'mid' | 'comp';
-  agents: string[];
-  matches: number;
-  winRate: string;
-  karma: number;
-  labels: string[];
-  online: boolean;
-  avatarInitials: string;
-}
+export type RankTier =
+  | 'Iron'
+  | 'Bronze'
+  | 'Silver'
+  | 'Gold'
+  | 'Platinum'
+  | 'Diamond'
+  | 'Ascendant'
+  | 'Immortal'
+  | 'Radiant';
+
+export type ValorantMap =
+  | 'Any'
+  | 'Ascent'
+  | 'Bind'
+  | 'Breeze'
+  | 'Fracture'
+  | 'Haven'
+  | 'Icebox'
+  | 'Lotus'
+  | 'Pearl'
+  | 'Split'
+  | 'Sunset';
+
+export type LobbyStatus = 'open' | 'full' | 'closed';
 
 export interface Lobby {
-  id: number;
-  host: string;
-  tag: string;
-  rank: string;
-  rankNum: number;
-  style: 'chill' | 'mid' | 'comp';
-  region: string;
-  role: string;
-  desc: string;
-  players: string[];
-  time: string;
-  rankClass: string;
-  tagClass: string;
-}
-
-export interface Friend {
-  name: string;
-  tag: string;
-  rank: string;
-  status: string;
-  online: boolean;
-}
-
-export interface UserProfile {
-  riotId: string;
-  region: string;
-  rank: string;
-  rr: number;
-  peakRank: string;
-  winRate: string;
-  mainRole: string;
-  playstyle: 'chill' | 'mid' | 'comp';
-  mainAgents: string[];
-  bio: string;
-  discord: string;
-  tracker: string;
-}
-
-export interface ToastMessage {
   id: string;
-  icon: 'success' | 'warning' | 'info';
-  message: string;
+  userId: string;
+  title: string;
+  description?: string;
+  rankMin: RankTier;
+  rankMax: RankTier;
+  map: ValorantMap | string;
+  rolesNeeded: string; // JSON string array
+  region: string;
+  status: LobbyStatus;
+  hostUsername: string;
+  hostTag?: string;
+  discordLink?: string;
+  currentPlayers: number;
+  maxPlayers: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LobbyFilters {
+  search: string;
+  rankMin: string;
+  map: string;
+  region: string;
+  openOnly: boolean;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  displayName?: string;
 }
