@@ -2,10 +2,10 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-import type { Lobby, LobbyFilters } from "../types";
+import type { Lobby, LobbyFilters } from "../../types";
 
 // ── Mock data (replace with real API calls) ──────────────────────────────────
-const MOCK_LOBBIES: Lobby[] = [
+export const MOCK_LOBBIES: Lobby[] = [
   {
     id: "1",
     userId: "u1",
@@ -22,6 +22,7 @@ const MOCK_LOBBIES: Lobby[] = [
     discordLink: "https://discord.gg/example",
     currentPlayers: 4,
     maxPlayers: 5,
+    open: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -41,6 +42,7 @@ const MOCK_LOBBIES: Lobby[] = [
     hostTag: "9999",
     currentPlayers: 4,
     maxPlayers: 5,
+    open: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -59,6 +61,7 @@ const MOCK_LOBBIES: Lobby[] = [
     hostTag: "4242",
     currentPlayers: 4,
     maxPlayers: 5,
+    open: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -77,6 +80,7 @@ const MOCK_LOBBIES: Lobby[] = [
     hostTag: "0001",
     currentPlayers: 5,
     maxPlayers: 5,
+    open: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 200).toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -95,6 +99,7 @@ const MOCK_LOBBIES: Lobby[] = [
     hostTag: "7777",
     currentPlayers: 3,
     maxPlayers: 5,
+    open: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -113,6 +118,7 @@ const MOCK_LOBBIES: Lobby[] = [
     hostTag: "5500",
     currentPlayers: 4,
     maxPlayers: 5,
+    open: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 320).toISOString(),
     updatedAt: new Date().toISOString(),
   },

@@ -42,6 +42,7 @@ export interface Lobby {
   maxPlayers: number;
   createdAt: string;
   updatedAt: string;
+  open: boolean;
 }
 
 export interface LobbyFilters {

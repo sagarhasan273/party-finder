@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { useMemo, useEffect } from "react";
 import { Plus, Crosshair, ChevronRight } from "lucide-react";
 
 import {
@@ -13,58 +12,18 @@ import {
   Typography,
 } from "@mui/material";
 
-import { useAuth } from "../hooks/useAuth";
-import { RANK_INDEX } from "../lib/valorant";
+import { useCredentials } from "src/core/slices";
+import { MOCK_LOBBIES } from "src/core/slices/lobbiesSlice";
+
 import { LobbyCard } from "../components/LobbyCard";
 import { FilterBar } from "../components/FilterBar";
-import { fetchLobbies } from "../store/lobbiesSlice";
-import { useAppDispatch, useAppSelector } from "../store";
 
 export function HomePage() {
-  const dispatch = useAppDispatch();
-  const { isAuthenticated } = useAuth();
-  const { items: lobbies, status, filters } = useAppSelector((s) => s.lobbies);
-  const isLoading = status === "loading" || status === "idle";
+  const { isAuthenticated, isLoading } = useCredentials();
 
-  useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchLobbies());
-    }
-  }, [dispatch, status]);
+  const lobbies = MOCK_LOBBIES;
 
-  const filteredLobbies = useMemo(
-    () =>
-      lobbies.filter((lobby) => {
-        if (filters.search) {
-          const q = filters.search.toLowerCase();
-          if (
-            !lobby.title.toLowerCase().includes(q) &&
-            !lobby.description?.toLowerCase().includes(q) &&
-            !lobby.hostUsername?.toLowerCase().includes(q)
-          ) {
-            return false;
-          }
-        }
-        if (filters.rankMin) {
-          const minIdx = RANK_INDEX[filters.rankMin] ?? 0;
-          const lobbyMaxIdx = RANK_INDEX[lobby.rankMax] ?? 8;
-          if (lobbyMaxIdx < minIdx) return false;
-        }
-        if (filters.map && filters.map !== "Any") {
-          if (lobby.map !== filters.map && lobby.map !== "Any") return false;
-        }
-        if (filters.region) {
-          if (lobby.region !== filters.region) return false;
-        }
-        if (filters.openOnly) {
-          if (lobby.status !== "open") return false;
-        }
-        return true;
-      }),
-    [lobbies, filters],
-  );
-
-  const openCount = lobbies.filter((l) => l.status === "open").length;
+  const openCount = MOCK_LOBBIES.filter((l) => l.open).length;
 
   return (
     <Box>
@@ -303,9 +262,9 @@ export function HomePage() {
                 color: "text.secondary",
               }}
             >
-              {isLoading ? "LOADING..." : `${filteredLobbies.length} LOBBIES`}
+              {isLoading ? "LOADING..." : `${MOCK_LOBBIES.length} LOBBIES`}
             </Typography>
-            {!isLoading && filters.openOnly && (
+            {!isLoading && (
               <Box
                 sx={{
                   px: 1,
@@ -372,7 +331,7 @@ export function HomePage() {
               </Grid>
             ))}
           </Grid>
-        ) : filteredLobbies.length === 0 ? (
+        ) : MOCK_LOBBIES.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -430,7 +389,7 @@ export function HomePage() {
           </motion.div>
         ) : (
           <Grid container spacing={2}>
-            {filteredLobbies.map((lobby, i) => (
+            {MOCK_LOBBIES.map((lobby, i) => (
               <Grid size={{ xs: 12, md: 6, xl: 4 }} key={lobby.id}>
                 <LobbyCard lobby={lobby} index={i} />
               </Grid>

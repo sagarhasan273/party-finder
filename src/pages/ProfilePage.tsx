@@ -19,7 +19,7 @@ import {
   LinearProgress,
 } from "@mui/material";
 
-import { useAuth } from "../hooks/useAuth";
+import { useCredentials } from "src/core/slices";
 
 const ranks = [
   "Iron I",
@@ -64,7 +64,7 @@ const agents = [
 ];
 
 export const ProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useCredentials();
   const [rank, setRank] = useState("Gold II");
   const [rr, setRr] = useState(64);
   const [mainRole, setMainRole] = useState("Initiator");
@@ -124,16 +124,16 @@ export const ProfilePage: React.FC = () => {
               borderColor: "primary.main",
             }}
           >
-            {user?.displayName}
+            {user?.name}
           </Avatar>
           <Box sx={{ flex: 1 }}>
             <Typography variant="h5" sx={{ fontWeight: 800 }}>
-              {user?.displayName}
+              {user?.name}
               <Typography
                 component="span"
                 sx={{ color: "grey.400", fontWeight: 400, ml: 1 }}
               >
-                {user?.displayName}
+                {user?.name}
               </Typography>
             </Typography>
             <Typography variant="body2" sx={{ color: "grey.400", mb: 1 }}>

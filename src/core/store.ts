@@ -5,7 +5,6 @@ import { accountSlice } from "./slices";
 
 const apis = [userApi];
 
-// Combine reducers
 const rootReducer = {
   account: accountSlice.reducer,
   [userApi.reducerPath]: userApi.reducer,
@@ -15,5 +14,5 @@ export const store = configureStore({
   reducer: rootReducer,
 
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(apis.map((api) => api.middleware)),
+    getDefaultMiddleware().concat(...apis.map((api) => api.middleware)),
 });

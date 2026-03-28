@@ -1,6 +1,6 @@
 import { toast } from "sonner";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Crosshair, ChevronLeft, AlertCircle } from "lucide-react";
 
@@ -21,9 +21,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 
-import { useAppDispatch } from "../store";
-import { useAuth } from "../hooks/useAuth";
-import { createLobby } from "../store/lobbiesSlice";
+import { useCredentials } from "src/core/slices";
+
 import { MAPS, RANKS, ROLES, REGIONS, ROLE_COLORS } from "../lib/valorant";
 
 import type { RankTier } from "../types";
@@ -45,8 +44,7 @@ const sectionLabel = {
 };
 
 export function CreateLobbyPage() {
-  const { user, isLoading, isAuthenticated, login } = useAuth();
-  const dispatch = useAppDispatch();
+  const { user, isLoading, isAuthenticated } = useCredentials();
   const navigate = useNavigate();
 
   const [title, setTitle] = useState("");
@@ -60,12 +58,6 @@ export function CreateLobbyPage() {
   const [rolesNeeded, setRolesNeeded] = useState<string[]>(["Any"]);
   const [discordLink, setDiscordLink] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      login();
-    }
-  }, [isLoading, isAuthenticated, login]);
 
   const toggleRole = (role: string) => {
     setRolesNeeded((prev) => {
@@ -82,7 +74,7 @@ export function CreateLobbyPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      login();
+      console.log("..//");
       return;
     }
     if (!title.trim()) {
@@ -96,24 +88,6 @@ export function CreateLobbyPage() {
 
     setIsSubmitting(true);
     try {
-      await dispatch(
-        createLobby({
-          userId: user.id,
-          title: title.trim(),
-          description: description.trim() || undefined,
-          rankMin,
-          rankMax,
-          map: map || "Any",
-          rolesNeeded: JSON.stringify(rolesNeeded),
-          region,
-          status: "open",
-          hostUsername: hostUsername.trim(),
-          hostTag: hostTag.trim() || undefined,
-          discordLink: discordLink.trim() || undefined,
-          currentPlayers: 4,
-          maxPlayers: 5,
-        }),
-      ).unwrap();
       toast.success("Lobby posted! Good luck finding your 5th 🎯");
       navigate("/");
     } catch {
@@ -187,7 +161,7 @@ export function CreateLobbyPage() {
           </Typography>
           <Button
             variant="contained"
-            onClick={login}
+            onClick={() => {}}
             sx={{
               background: "#FF4655",
               fontFamily: '"Rajdhani", sans-serif',

@@ -14,14 +14,14 @@ import type { RootState } from "../types";
 
 // Define auth state interface
 interface UserState {
-  user: UserType | null;
+  user: UserType;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
 
 // Initial state
 const initialState: UserState = {
-  user: null,
+  user: {} as UserType,
   isAuthenticated: false,
   isLoading: false,
 };
@@ -39,7 +39,7 @@ export const accountSlice = createSlice({
       state.isLoading = action.payload;
     },
     logout(state) {
-      state.user = null;
+      state.user = {} as UserType;
       state.isAuthenticated = false;
       state.isLoading = false;
     },

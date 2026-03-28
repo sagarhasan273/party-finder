@@ -14,10 +14,11 @@ import {
   CardContent,
 } from "@mui/material";
 
+import { useCredentials } from "src/core/slices";
+
 import { RankChip } from "./RankChip";
 import { RoleChip } from "./RoleChip";
 import { StatusChip } from "./StatusChip";
-import { useAuth } from "../hooks/useAuth";
 import { parseRoles, formatTimeAgo } from "../lib/valorant";
 
 import type { Lobby } from "../types";
@@ -28,7 +29,7 @@ interface LobbyCardProps {
 }
 
 export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated } = useCredentials();
   const roles = parseRoles(lobby.rolesNeeded);
   const playerCount = Number(lobby.currentPlayers) || 4;
   const maxPlayers = Number(lobby.maxPlayers) || 5;
@@ -36,7 +37,6 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
 
   const handleJoin = () => {
     if (!isAuthenticated) {
-      login();
       return;
     }
     if (lobby.discordLink) {

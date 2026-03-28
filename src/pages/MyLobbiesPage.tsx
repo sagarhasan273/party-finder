@@ -28,45 +28,30 @@ import {
   CircularProgress,
 } from "@mui/material";
 
-import { useAuth } from "../hooks/useAuth";
+import { useCredentials } from "src/core/slices";
+import { MOCK_LOBBIES } from "src/core/slices/lobbiesSlice";
+
 import { RankChip } from "../components/RankChip";
 import { RoleChip } from "../components/RoleChip";
 import { StatusChip } from "../components/StatusChip";
-import { useAppDispatch, useAppSelector } from "../store";
 import { parseRoles, formatTimeAgo } from "../lib/valorant";
-import {
-  deleteLobby,
-  fetchMyLobbies,
-  toggleLobbyStatus,
-} from "../store/lobbiesSlice";
 
 export function MyLobbiesPage() {
-  const { user, isLoading: authLoading, isAuthenticated, login } = useAuth();
-  const dispatch = useAppDispatch();
+  const { isLoading: authLoading, isAuthenticated } = useCredentials();
+
   const navigate = useNavigate();
-  const { myLobbies: lobbies, myStatus } = useAppSelector((s) => s.lobbies);
-  const lobbiesLoading = myStatus === "loading" || myStatus === "idle";
+  const myStatus = "idle";
+  const lobbiesLoading = myStatus === "idle";
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      login();
+      console.log("/..");
     }
-  }, [authLoading, isAuthenticated, login]);
-
-  useEffect(() => {
-    if (user?.id && myStatus === "idle") {
-      dispatch(fetchMyLobbies(user.id));
-    }
-  }, [user, myStatus, dispatch]);
+  }, [authLoading, isAuthenticated]);
 
   const handleToggle = async (id: string, currentStatus: string) => {
     try {
-      const result = await dispatch(
-        toggleLobbyStatus({ id, currentStatus }),
-      ).unwrap();
-      toast.success(
-        result.status === "open" ? "Lobby reopened!" : "Lobby closed.",
-      );
+      toast.success("Lobby reopened!");
     } catch {
       toast.error("Failed to update lobby status.");
     }
@@ -75,7 +60,6 @@ export function MyLobbiesPage() {
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this lobby?")) return;
     try {
-      await dispatch(deleteLobby(id)).unwrap();
       toast.success("Lobby deleted.");
     } catch {
       toast.error("Failed to delete lobby.");
@@ -126,7 +110,7 @@ export function MyLobbiesPage() {
           </Typography>
           <Button
             variant="contained"
-            onClick={login}
+            onClick={() => {}}
             sx={{
               background: "#FF4655",
               fontFamily: '"Rajdhani", sans-serif',
@@ -200,8 +184,8 @@ export function MyLobbiesPage() {
                   MY LOBBIES
                 </Typography>
                 <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                  {lobbies.length} {lobbies.length === 1 ? "lobby" : "lobbies"}{" "}
-                  posted
+                  {MOCK_LOBBIES.length}{" "}
+                  {MOCK_LOBBIES.length === 1 ? "lobby" : "lobbies"} posted
                 </Typography>
               </Box>
             </Stack>
@@ -239,7 +223,7 @@ export function MyLobbiesPage() {
               />
             ))}
           </Stack>
-        ) : lobbies.length === 0 ? (
+        ) : MOCK_LOBBIES.length === 0 ? (
           <Box
             sx={{
               py: 12,
@@ -285,7 +269,7 @@ export function MyLobbiesPage() {
           </Box>
         ) : (
           <Stack gap={2}>
-            {lobbies.map((lobby, i) => {
+            {MOCK_LOBBIES.map((lobby, i) => {
               const roles = parseRoles(lobby.rolesNeeded);
               const playerCount = Number(lobby.currentPlayers) || 4;
               const maxPlayers = Number(lobby.maxPlayers) || 5;
