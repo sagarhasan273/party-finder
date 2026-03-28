@@ -53,7 +53,7 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
     >
       <Card
         sx={{
-          height: '100%',
+          height: 'fit-content',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',

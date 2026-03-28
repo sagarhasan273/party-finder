@@ -1,6 +1,6 @@
 import { createTheme, alpha } from '@mui/material/styles';
 
-const PRIMARY = '#FF4655'; // Valorant red
+const PRIMARY = '#ff1c2f'; // Valorant red
 const BG_DARKEST = '#0d0f1a';
 const BG_DARK = '#10131f';
 const BG_CARD = '#161926';
@@ -12,8 +12,8 @@ export const theme = createTheme({
     mode: 'dark',
     primary: {
       main: PRIMARY,
-      light: '#ff6b77',
-      dark: '#cc3544',
+      light: '#f74553',
+      dark: '#cf1023',
       contrastText: '#fff',
     },
     secondary: {
