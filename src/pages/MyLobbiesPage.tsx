@@ -7,8 +7,10 @@ import {
   Lock,
   Users,
   Clock,
+  Globe,
   Trash2,
   Layout,
+  Server,
   RefreshCw,
   ChevronLeft,
 } from "lucide-react";
@@ -25,29 +27,31 @@ import {
   Container,
   Typography,
   IconButton,
-  CircularProgress,
 } from "@mui/material";
 
+import { ValorantRegionalServers } from "src/@mock";
 import { useInventory, useCredentials } from "src/core/slices";
+import { useGetMyLobbiesQuery } from "src/core/apis/api-inventory";
+
+import { RankChip } from "src/components/RankChip";
 
 import { formatTimeAgo } from "../lib/valorant";
-import { RankChip } from "../components/RankChip";
 import { RoleChip } from "../components/RoleChip";
 import { StatusChip } from "../components/StatusChip";
 
-export function MyLobbiesPage() {
-  const { isLoading: authLoading, isAuthenticated } = useCredentials();
-  const { lobbies } = useInventory();
+export function MyLobbyPage() {
+  const { isAuthenticated } = useCredentials();
+  const { lobbies, setMyLobbies } = useInventory();
+
+  const { data, isLoading: lobbiesLoading } = useGetMyLobbiesQuery(null);
 
   const navigate = useNavigate();
-  const myStatus = "idle";
-  const lobbiesLoading = myStatus === "idle";
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      console.log("/..");
+    if (isAuthenticated && data && data.status) {
+      setMyLobbies(data.data || []);
     }
-  }, [authLoading, isAuthenticated]);
+  }, [isAuthenticated, data, setMyLobbies]);
 
   const handleToggle = async (id: string, currentStatus: string) => {
     try {
@@ -65,32 +69,6 @@ export function MyLobbiesPage() {
       toast.error("Failed to delete lobby.");
     }
   };
-
-  if (authLoading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="60vh"
-      >
-        <Stack alignItems="center" gap={2}>
-          <CircularProgress size={40} sx={{ color: "#FF4655" }} />
-          <Typography
-            sx={{
-              fontFamily: '"Rajdhani", sans-serif',
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              color: "text.secondary",
-              fontSize: "0.8rem",
-            }}
-          >
-            LOADING...
-          </Typography>
-        </Stack>
-      </Box>
-    );
-  }
 
   if (!isAuthenticated) {
     return (
@@ -274,6 +252,10 @@ export function MyLobbiesPage() {
               const playerCount = Number(lobby?.currentPlayers) || 4;
               const maxPlayers = 5;
 
+              const currentRegion = ValorantRegionalServers.find(
+                (r) => r.code === lobby?.region,
+              );
+
               return (
                 <motion.div
                   key={lobby.id}
@@ -351,7 +333,25 @@ export function MyLobbiesPage() {
                       </Box>
 
                       {/* Action buttons */}
-                      <Stack direction="row" gap={1} flexShrink={0}>
+                      <Stack
+                        direction="row"
+                        gap={1}
+                        flexShrink={0}
+                        sx={{ justifyContent: "center", alignItems: "center" }}
+                      >
+                        <RankChip rank={lobby.rankMin} />
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "text.secondary",
+                            alignSelf: "center",
+                            fontSize: "0.65rem",
+                          }}
+                        >
+                          |
+                        </Typography>
+                        <RankChip rank={lobby.rankMax} />
+
                         <Button
                           variant="outlined"
                           size="small"
@@ -408,29 +408,32 @@ export function MyLobbiesPage() {
                       gap={0.75}
                       mb={roles.length > 0 ? 1.25 : 0}
                     >
-                      <RankChip rank={lobby.rankMin} />
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: "text.secondary",
-                          alignSelf: "center",
-                          fontSize: "0.65rem",
-                        }}
-                      >
-                        →
-                      </Typography>
-                      <RankChip rank={lobby.rankMax} />
                       <Chip
-                        label={lobby.region}
+                        icon={<Globe size={12} />}
+                        label={
+                          currentRegion?.label || lobby?.region || "Unknown"
+                        }
                         size="small"
                         sx={{
                           backgroundColor: "rgba(255,255,255,0.06)",
                           color: "text.secondary",
                           border: "1px solid rgba(255,255,255,0.1)",
                           fontFamily: '"Rajdhani", sans-serif',
-                          fontWeight: 700,
-                          fontSize: "0.65rem",
-                          height: 22,
+                          letterSpacing: "0.05em",
+                          "& .MuiChip-icon": { ml: 1, color: "text.secondary" },
+                        }}
+                      />
+                      <Chip
+                        icon={<Server size={12} />}
+                        label={lobby?.server || "Unknown"}
+                        size="small"
+                        sx={{
+                          backgroundColor: "rgba(255,255,255,0.06)",
+                          color: "text.secondary",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          fontFamily: '"Rajdhani", sans-serif',
+                          alignItems: "center",
+                          "& .MuiChip-icon": { ml: 1, color: "text.secondary" },
                         }}
                       />
                     </Stack>

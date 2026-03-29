@@ -25,6 +25,11 @@ export const inventoryApi = createApi({
       providesTags: ["user-recall"],
     }),
 
+    getMyLobbies: builder.query<ResponseType, null>({
+      query: () => `inventory/lobby/me`,
+      providesTags: ["user-recall"],
+    }),
+
     createLobby: builder.mutation<ResponseType, CreateLobbyInput>({
       query: (newUser) => ({
         url: `inventory/lobby/create`,
@@ -54,6 +59,7 @@ export const inventoryApi = createApi({
 
 export const {
   useGetLobbiesQuery,
+  useGetMyLobbiesQuery,
   useCreateLobbyMutation,
   useUpdateLobbyMutation,
   useDeleteLobbyMutation,

@@ -1,19 +1,17 @@
 import { useEffect, useCallback } from "react";
 
-import AXIOS, { endpoints } from "src/utils/axios";
-
 import { useInventory } from "src/core/slices";
+import { useGetLobbiesQuery } from "src/core/apis";
 
 export const useLobbies = () => {
   const { setLobbies, reset: clearLobbies } = useInventory();
 
+  const { data } = useGetLobbiesQuery(null);
+
   const getLobbies = useCallback(async () => {
     try {
-      const res = await AXIOS.get(endpoints.inventory.lobbies);
-
-      const { data, status } = res.data;
-      if (status) {
-        setLobbies(data || []);
+      if (data && data.status) {
+        setLobbies(data.data || []);
       }
     } catch (error) {
       clearLobbies();

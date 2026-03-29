@@ -28,8 +28,7 @@ import { useCredentials } from "src/core/slices";
 
 const navLinks = [
   { label: "BROWSE", path: "/" },
-  { label: "CREATE LOBBY", path: "/create", authOnly: true },
-  { label: "MY LOBBIES", path: "/my-lobbies", authOnly: true },
+  { label: "MY LOBBY", path: "/my-lobby", authOnly: true },
 ];
 
 export function Navbar() {

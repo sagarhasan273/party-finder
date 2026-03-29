@@ -2,10 +2,11 @@ import { Route, Routes, BrowserRouter } from "react-router-dom";
 
 import { Box } from "@mui/material";
 
+import { MyLobbyPage } from "src/pages/MyLobbiesPage";
+
 import { HomePage } from "../pages/HomePage";
 import { Navbar } from "../components/Navbar";
 import { ProfilePage } from "../pages/ProfilePage";
-import { MyLobbiesPage } from "../pages/MyLobbiesPage";
 import { CreateLobbyPage } from "../pages/CreateLobbyPage";
 
 export function AppRouter() {
@@ -20,7 +21,7 @@ export function AppRouter() {
             <Route path="/" element={<HomePage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/create" element={<CreateLobbyPage />} />
-            <Route path="/my-lobbies" element={<MyLobbiesPage />} />
+            <Route path="/my-lobby" element={<MyLobbyPage />} />
           </Routes>
         </Box>
       </Box>

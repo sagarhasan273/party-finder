@@ -10,16 +10,15 @@ import {
   Select,
   Button,
   Avatar,
-  Rating,
   MenuItem,
   TextField,
   Typography,
   InputLabel,
   FormControl,
-  LinearProgress,
 } from "@mui/material";
 
 import { useCredentials } from "src/core/slices";
+import { ValorantRegionalServers } from "src/@mock/constant";
 
 const ranks = [
   "Iron I",
@@ -66,13 +65,13 @@ const agents = [
 export const ProfilePage: React.FC = () => {
   const { user } = useCredentials();
   const [rank, setRank] = useState("Gold II");
-  const [rr, setRr] = useState(64);
-  const [mainRole, setMainRole] = useState("Initiator");
-  const [playstyle, setPlaystyle] = useState("⚖️ Balanced");
-  const [selectedAgents, setSelectedAgents] = useState<string[]>([
-    "Sova",
-    "Breach",
-  ]);
+  const [pickRank, setPickRank] = useState("Platinum I");
+  const [mainRole, setMainRole] = useState("Duelist");
+  const [hostGamename, setHostGamename] = useState("");
+  const [hostTag, setHostTag] = useState("");
+  const [playstyle, setPlaystyle] = useState("😌 Chill");
+  const [selectedRegion, setSelectedRegion] = useState("ap");
+  const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
 
   const handleAgentToggle = (agent: string) => {
     setSelectedAgents((prev) =>
@@ -129,79 +128,10 @@ export const ProfilePage: React.FC = () => {
           <Box sx={{ flex: 1 }}>
             <Typography variant="h5" sx={{ fontWeight: 800 }}>
               {user?.name}
-              <Typography
-                component="span"
-                sx={{ color: "grey.400", fontWeight: 400, ml: 1 }}
-              >
-                {user?.name}
-              </Typography>
             </Typography>
             <Typography variant="body2" sx={{ color: "grey.400", mb: 1 }}>
-              Gold II · 247 matches
+              {rank} - {playstyle} - {mainRole}
             </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-                flexWrap: "wrap",
-              }}
-            >
-              <Chip
-                label={rank}
-                sx={{
-                  bgcolor: `rgba(245, 200, 66, 0.15)`,
-                  color: "#f5c842",
-                  border: 1,
-                  borderColor: "rgba(245, 200, 66, 0.3)",
-                }}
-              />
-              <Box sx={{ flex: 1, maxWidth: 140 }}>
-                <Typography variant="caption" sx={{ color: "grey.400" }}>
-                  {rr} / 100 RR
-                </Typography>
-                <LinearProgress
-                  variant="determinate"
-                  value={rr}
-                  sx={{
-                    height: 6,
-                    borderRadius: 3,
-                    bgcolor: "grey.700",
-                    "& .MuiLinearProgress-bar": {
-                      bgcolor: "linear-gradient(90deg, #ff4655, #f5c842)",
-                    },
-                  }}
-                />
-              </Box>
-              <Box sx={{ textAlign: "right" }}>
-                <Typography variant="caption" sx={{ color: "grey.400" }}>
-                  Karma
-                </Typography>
-                <Rating
-                  value={4}
-                  readOnly
-                  size="small"
-                  sx={{ color: "#f5c842" }}
-                />
-              </Box>
-            </Box>
-            <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-              <Chip
-                label="Great Comms"
-                size="small"
-                sx={{ bgcolor: "rgba(74, 222, 128, 0.1)", color: "#4ade80" }}
-              />
-              <Chip
-                label="Good Entry"
-                size="small"
-                sx={{ bgcolor: "rgba(74, 222, 128, 0.1)", color: "#4ade80" }}
-              />
-              <Chip
-                label="Consistent"
-                size="small"
-                sx={{ bgcolor: "rgba(74, 222, 128, 0.1)", color: "#4ade80" }}
-              />
-            </Box>
           </Box>
         </Box>
       </Paper>
@@ -219,24 +149,9 @@ export const ProfilePage: React.FC = () => {
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
           Valorant Identity
         </Typography>
-        <Stack
-          direction={{ xs: "column", md: "row" }}
-          spacing={2}
-          sx={{ mb: 2 }}
-        >
-          <TextField label="Riot ID" defaultValue="ProPlayer#NA1" fullWidth />
-          <FormControl fullWidth>
-            <InputLabel>Region</InputLabel>
-            <Select label="Region" defaultValue="NA — North America">
-              <MenuItem value="NA — North America">NA — North America</MenuItem>
-              <MenuItem value="EU — Europe">EU — Europe</MenuItem>
-              <MenuItem value="AP — Asia Pacific">AP — Asia Pacific</MenuItem>
-              <MenuItem value="KR — Korea">KR — Korea</MenuItem>
-            </Select>
-          </FormControl>
-        </Stack>
+
         <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-          <FormControl fullWidth>
+          <FormControl size="small" fullWidth>
             <InputLabel>Current Rank</InputLabel>
             <Select
               label="Current Rank"
@@ -250,22 +165,82 @@ export const ProfilePage: React.FC = () => {
               ))}
             </Select>
           </FormControl>
-          <TextField
-            label="RR Points"
-            value={rr}
-            onChange={(e) => setRr(Number(e.target.value))}
-            type="number"
-            fullWidth
-          />
-          <FormControl fullWidth>
+          <FormControl size="small" fullWidth>
             <InputLabel>Peak Rank</InputLabel>
-            <Select label="Peak Rank" defaultValue="Platinum I">
-              <MenuItem value="Silver III">Silver III</MenuItem>
-              <MenuItem value="Platinum I">Platinum I</MenuItem>
-              <MenuItem value="Diamond I">Diamond I</MenuItem>
+            <Select
+              label="Peak Rank"
+              value={pickRank}
+              onChange={(e) => setPickRank(e.target.value)}
+            >
+              {ranks.map((r) => (
+                <MenuItem key={r} value={r}>
+                  {r}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
-          <TextField label="Win Rate (approx)" defaultValue="54%" fullWidth />
+          {/* First Dropdown - Region Selection */}
+          <FormControl size="small" sx={{ minWidth: 110 }} fullWidth>
+            <InputLabel sx={{ fontFamily: '"Rajdhani", sans-serif' }}>
+              Region
+            </InputLabel>
+            <Select
+              value={selectedRegion}
+              label="Region"
+              onChange={(e) => {
+                setSelectedRegion(e.target.value);
+              }}
+            >
+              {ValorantRegionalServers.map((region) => (
+                <MenuItem
+                  key={region.code}
+                  value={region.code}
+                  sx={{
+                    fontFamily: '"Rajdhani", sans-serif',
+                    fontWeight: 700,
+                  }}
+                >
+                  {region.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
+        <Stack direction={{ xs: "column", sm: "row" }} sx={{ mt: 2 }} gap={2}>
+          <TextField
+            size="small"
+            label="Game Name"
+            placeholder="Gamer123"
+            value={hostGamename}
+            onChange={(e) => setHostGamename(e.target.value)}
+            fullWidth
+            inputProps={{ maxLength: 32 }}
+            required
+          />
+          <TextField
+            size="small"
+            label="TagLine"
+            placeholder="V5V5"
+            value={hostTag}
+            onChange={(e) => setHostTag(e.target.value.replace("#", ""))}
+            fullWidth
+            inputProps={{ maxLength: 8 }}
+            InputProps={{
+              startAdornment: (
+                <Typography
+                  sx={{
+                    color: "text.secondary",
+                    mr: 0.25,
+                    fontFamily: '"Rajdhani", sans-serif',
+                    fontWeight: 700,
+                  }}
+                >
+                  #
+                </Typography>
+              ),
+            }}
+            required
+          />
         </Stack>
       </Paper>
 
@@ -345,15 +320,6 @@ export const ProfilePage: React.FC = () => {
             />
           ))}
         </Stack>
-
-        <TextField
-          label="Bio"
-          multiline
-          rows={3}
-          defaultValue="Gold/Plat player, been playing since beta. Initiator main. Good comms, chill vibes. Active on weekends."
-          fullWidth
-          sx={{ mt: 2 }}
-        />
       </Paper>
 
       <Paper
@@ -390,12 +356,6 @@ export const ProfilePage: React.FC = () => {
           startIcon={<span>💾</span>}
         >
           Save Profile
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={() => toast.info("Synced with Riot API")}
-        >
-          Sync with Riot
         </Button>
       </Stack>
     </Container>
