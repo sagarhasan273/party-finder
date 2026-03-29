@@ -1,6 +1,6 @@
-import { Box, Chip } from "@mui/material";
+import type { LobbyStatus } from "src/types/type-inventory";
 
-import type { LobbyStatus } from "../types";
+import { Box, Chip } from "@mui/material";
 
 const STATUS_CONFIG: Record<
   LobbyStatus,
@@ -23,6 +23,12 @@ const STATUS_CONFIG: Record<
     bg: "rgba(120,120,140,0.15)",
     color: "#8a8aaa",
     border: "rgba(120,120,140,0.3)",
+  },
+  "in-progress": {
+    label: "IN-PROGRESS",
+    bg: "rgba(255,195,0,0.12)",
+    color: "#ffc300",
+    border: "rgba(255,195,0,0.3)",
   },
 };
 
@@ -56,10 +62,6 @@ export function StatusChip({ status }: StatusChipProps) {
         color: cfg.color,
         border: `1px solid ${cfg.border}`,
         fontFamily: '"Rajdhani", sans-serif',
-        fontWeight: 700,
-        letterSpacing: "0.06em",
-        fontSize: "0.68rem",
-        height: 22,
         "& .MuiChip-icon": { ml: 0.75 },
         "& .MuiChip-label": { px: 0.75 },
       }}

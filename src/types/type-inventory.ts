@@ -22,7 +22,7 @@ export type ValorantMap =
   | "Split"
   | "Sunset";
 
-export type LobbyStatus = "open" | "full" | "in progress" | "closed";
+export type LobbyStatus = "open" | "full" | "in-progress" | "closed";
 
 export interface LobbyType {
   id: string;

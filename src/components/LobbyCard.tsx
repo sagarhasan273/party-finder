@@ -1,6 +1,8 @@
+import type { LobbyType } from "src/types/type-inventory";
+
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Users, Clock, Globe, MapPin, ExternalLink } from "lucide-react";
+import { Users, Clock, Globe, Server, ExternalLink } from "lucide-react";
 
 import {
   Box,
@@ -15,25 +17,23 @@ import {
 } from "@mui/material";
 
 import { useCredentials } from "src/core/slices";
+import { ValorantRegionalServers } from "src/@mock";
 
 import { RankChip } from "./RankChip";
 import { RoleChip } from "./RoleChip";
 import { StatusChip } from "./StatusChip";
-import { parseRoles, formatTimeAgo } from "../lib/valorant";
-
-import type { Lobby } from "../types";
+import { formatTimeAgo } from "../lib/valorant";
 
 interface LobbyCardProps {
-  lobby: Lobby;
+  lobby: LobbyType;
   index?: number;
 }
 
 export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
   const { isAuthenticated } = useCredentials();
-  const roles = parseRoles(lobby.rolesNeeded);
+  const roles = lobby?.rolesNeeded;
   const playerCount = Number(lobby.currentPlayers) || 4;
-  const maxPlayers = Number(lobby.maxPlayers) || 5;
-  const spotsLeft = maxPlayers - playerCount;
+  const spotsLeft = playerCount;
 
   const handleJoin = () => {
     if (!isAuthenticated) {
@@ -43,10 +43,14 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
       window.open(lobby.discordLink, "_blank", "noopener,noreferrer");
     } else {
       toast.success("Request sent!", {
-        description: `Reached out to ${lobby.hostUsername ?? "host"} to join.`,
+        description: `Reached out to ${lobby?.hostGamename ?? "host"} to join.`,
       });
     }
   };
+
+  const currentRegion = ValorantRegionalServers.find(
+    (r) => r.code === lobby?.region,
+  );
 
   return (
     <motion.div
@@ -111,19 +115,19 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
               >
                 {lobby.title}
               </Typography>
-              {lobby.hostUsername && (
+              {/* {lobby.hostGamename && (
                 <Typography
                   variant="caption"
                   sx={{ color: "text.secondary", fontWeight: 500 }}
                 >
-                  {lobby.hostUsername}
-                  {lobby.hostTag && (
+                  {lobby.hostGamename}
+                  {lobby.hostTagline && (
                     <Box component="span" sx={{ opacity: 0.5 }}>
-                      #{lobby.hostTag}
+                      #{lobby.hostTagline}
                     </Box>
                   )}
                 </Typography>
-              )}
+              )} */}
             </Box>
             {/* Rank range */}
             <Stack direction="row" alignItems="center" gap={0.5} flexShrink={0}>
@@ -132,7 +136,7 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
                 variant="caption"
                 sx={{ color: "text.secondary", fontSize: "0.65rem" }}
               >
-                →
+                |
               </Typography>
               <RankChip rank={lobby.rankMax} />
             </Stack>
@@ -143,13 +147,14 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
             <Typography
               variant="body2"
               sx={{
-                color: "text.secondary",
+                color: "text.primary",
                 fontSize: "0.8rem",
                 lineHeight: 1.5,
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
+                mb: 1,
               }}
             >
               {lobby.description}
@@ -158,39 +163,32 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
 
           {/* Meta row */}
           <Stack direction="row" flexWrap="wrap" gap={0.75}>
-            <StatusChip status={lobby.status} />
-            {lobby.map && lobby.map !== "Any" && (
-              <Chip
-                icon={<MapPin size={9} />}
-                label={lobby.map.toUpperCase()}
-                size="small"
-                sx={{
-                  backgroundColor: "rgba(255,255,255,0.06)",
-                  color: "text.secondary",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  fontFamily: '"Rajdhani", sans-serif',
-                  fontWeight: 700,
-                  fontSize: "0.65rem",
-                  height: 22,
-                  letterSpacing: "0.05em",
-                  "& .MuiChip-icon": { ml: 0.5, color: "text.secondary" },
-                }}
-              />
-            )}
+            <StatusChip status={lobby?.status || "open"} />
+
             <Chip
-              icon={<Globe size={9} />}
-              label={lobby.region}
+              icon={<Globe size={12} />}
+              label={currentRegion?.label || lobby?.region || "Unknown"}
               size="small"
               sx={{
                 backgroundColor: "rgba(255,255,255,0.06)",
                 color: "text.secondary",
                 border: "1px solid rgba(255,255,255,0.1)",
                 fontFamily: '"Rajdhani", sans-serif',
-                fontWeight: 700,
-                fontSize: "0.65rem",
-                height: 22,
                 letterSpacing: "0.05em",
-                "& .MuiChip-icon": { ml: 0.5, color: "text.secondary" },
+                "& .MuiChip-icon": { ml: 1, color: "text.secondary" },
+              }}
+            />
+            <Chip
+              icon={<Server size={12} />}
+              label={lobby?.server || "Unknown"}
+              size="small"
+              sx={{
+                backgroundColor: "rgba(255,255,255,0.06)",
+                color: "text.secondary",
+                border: "1px solid rgba(255,255,255,0.1)",
+                fontFamily: '"Rajdhani", sans-serif',
+                alignItems: "center",
+                "& .MuiChip-icon": { ml: 1, color: "text.secondary" },
               }}
             />
           </Stack>
@@ -223,7 +221,7 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
                     fontSize: "0.8rem",
                   }}
                 >
-                  {playerCount}/{maxPlayers}
+                  {playerCount}/{5}
                 </Typography>
                 {spotsLeft > 0 && lobby.status === "open" && (
                   <Typography
@@ -289,7 +287,7 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
                     },
                   }}
                 >
-                  JOIN
+                  Request to JOIN
                 </Box>
               )}
               {lobby.status === "full" && (

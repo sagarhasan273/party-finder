@@ -1,4 +1,4 @@
-import type { RankTier } from "../types";
+import type { RankTier } from "src/types/type-inventory";
 
 export const RANKS: RankTier[] = [
   "Iron",

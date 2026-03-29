@@ -28,16 +28,16 @@ import {
   CircularProgress,
 } from "@mui/material";
 
-import { useCredentials } from "src/core/slices";
-import { MOCK_LOBBIES } from "src/core/slices/lobbiesSlice";
+import { useInventory, useCredentials } from "src/core/slices";
 
+import { formatTimeAgo } from "../lib/valorant";
 import { RankChip } from "../components/RankChip";
 import { RoleChip } from "../components/RoleChip";
 import { StatusChip } from "../components/StatusChip";
-import { parseRoles, formatTimeAgo } from "../lib/valorant";
 
 export function MyLobbiesPage() {
   const { isLoading: authLoading, isAuthenticated } = useCredentials();
+  const { lobbies } = useInventory();
 
   const navigate = useNavigate();
   const myStatus = "idle";
@@ -184,8 +184,8 @@ export function MyLobbiesPage() {
                   MY LOBBIES
                 </Typography>
                 <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                  {MOCK_LOBBIES.length}{" "}
-                  {MOCK_LOBBIES.length === 1 ? "lobby" : "lobbies"} posted
+                  {lobbies?.length}{" "}
+                  {lobbies?.length === 1 ? "lobby" : "lobbies"} posted
                 </Typography>
               </Box>
             </Stack>
@@ -223,7 +223,7 @@ export function MyLobbiesPage() {
               />
             ))}
           </Stack>
-        ) : MOCK_LOBBIES.length === 0 ? (
+        ) : lobbies?.length === 0 ? (
           <Box
             sx={{
               py: 12,
@@ -269,10 +269,10 @@ export function MyLobbiesPage() {
           </Box>
         ) : (
           <Stack gap={2}>
-            {MOCK_LOBBIES.map((lobby, i) => {
-              const roles = parseRoles(lobby.rolesNeeded);
-              const playerCount = Number(lobby.currentPlayers) || 4;
-              const maxPlayers = Number(lobby.maxPlayers) || 5;
+            {lobbies?.map((lobby, i) => {
+              const roles = lobby?.rolesNeeded;
+              const playerCount = Number(lobby?.currentPlayers) || 4;
+              const maxPlayers = 5;
 
               return (
                 <motion.div
@@ -335,15 +335,15 @@ export function MyLobbiesPage() {
                           </Typography>
                           <StatusChip status={lobby.status} />
                         </Stack>
-                        {lobby.hostUsername && (
+                        {lobby.hostGamename && (
                           <Typography
                             variant="caption"
                             sx={{ color: "text.secondary", fontWeight: 500 }}
                           >
-                            {lobby.hostUsername}
-                            {lobby.hostTag && (
+                            {lobby.hostGamename}
+                            {lobby.hostTagline && (
                               <Box component="span" sx={{ opacity: 0.5 }}>
-                                #{lobby.hostTag}
+                                #{lobby.hostTagline}
                               </Box>
                             )}
                           </Typography>
@@ -433,21 +433,6 @@ export function MyLobbiesPage() {
                           height: 22,
                         }}
                       />
-                      {lobby.map && lobby.map !== "Any" && (
-                        <Chip
-                          label={lobby.map}
-                          size="small"
-                          sx={{
-                            backgroundColor: "rgba(255,255,255,0.06)",
-                            color: "text.secondary",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            fontFamily: '"Rajdhani", sans-serif',
-                            fontWeight: 700,
-                            fontSize: "0.65rem",
-                            height: 22,
-                          }}
-                        />
-                      )}
                     </Stack>
 
                     {/* Roles */}

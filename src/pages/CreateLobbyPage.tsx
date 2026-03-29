@@ -1,3 +1,5 @@
+import type { RankTier } from "src/types/type-inventory";
+
 import { toast } from "sonner";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -27,8 +29,6 @@ import { ValorantRegionalServers } from "src/@mock";
 import { useCreateLobbyMutation } from "src/core/apis/api-inventory";
 
 import { RANKS, ROLES, ROLE_COLORS } from "../lib/valorant";
-
-import type { RankTier } from "../types";
 
 const sectionSx = {
   p: 2,

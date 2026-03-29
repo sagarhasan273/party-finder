@@ -12,18 +12,20 @@ import {
   Typography,
 } from "@mui/material";
 
-import { useCredentials } from "src/core/slices";
-import { MOCK_LOBBIES } from "src/core/slices/lobbiesSlice";
+import { useLobbies } from "src/hooks/use-lobbies";
+
+import { useInventory, useCredentials } from "src/core/slices";
 
 import { LobbyCard } from "../components/LobbyCard";
 import { FilterBar } from "../components/FilterBar";
 
 export function HomePage() {
+  useLobbies();
+
   const { isAuthenticated, isLoading } = useCredentials();
+  const { lobbies } = useInventory();
 
-  const lobbies = MOCK_LOBBIES;
-
-  const openCount = MOCK_LOBBIES.filter((l) => l.open).length;
+  const openCount = lobbies?.length;
 
   return (
     <Box>
@@ -262,7 +264,7 @@ export function HomePage() {
                 color: "text.secondary",
               }}
             >
-              {isLoading ? "LOADING..." : `${MOCK_LOBBIES.length} LOBBIES`}
+              {isLoading ? "LOADING..." : `${lobbies?.length} LOBBIES`}
             </Typography>
             {!isLoading && (
               <Box
@@ -331,7 +333,7 @@ export function HomePage() {
               </Grid>
             ))}
           </Grid>
-        ) : MOCK_LOBBIES.length === 0 ? (
+        ) : lobbies?.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -389,9 +391,9 @@ export function HomePage() {
           </motion.div>
         ) : (
           <Grid container spacing={2}>
-            {MOCK_LOBBIES.map((lobby, i) => (
+            {lobbies.map((lobby, i) => (
               <Grid size={{ xs: 12, md: 6, xl: 4 }} key={lobby.id}>
-                <LobbyCard lobby={lobby} index={i} />
+                <LobbyCard lobby={lobby} />
               </Grid>
             ))}
           </Grid>

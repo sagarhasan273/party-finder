@@ -61,4 +61,10 @@ export const endpoints = {
   user: {
     profile: "/user/profile/update",
   },
+  inventory: {
+    lobbies: "/inventory/lobbies",
+    lobby: "/inventory/lobby",
+    createLobby: "/inventory/lobby/create",
+    updateLobby: "/inventory/lobby/update",
+  },
 };

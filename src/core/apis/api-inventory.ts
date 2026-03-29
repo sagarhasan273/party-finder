@@ -33,9 +33,9 @@ export const inventoryApi = createApi({
       }),
     }),
 
-    updateUser: builder.mutation<ResponseType, Partial<LobbyType>>({
+    updateLobby: builder.mutation<ResponseType, Partial<LobbyType>>({
       query: (body) => ({
-        url: `user/profile/update`,
+        url: `inventory/lobby/update`,
         method: "POST",
         body,
       }),
@@ -55,6 +55,6 @@ export const inventoryApi = createApi({
 export const {
   useGetLobbiesQuery,
   useCreateLobbyMutation,
-  useUpdateUserMutation,
+  useUpdateLobbyMutation,
   useDeleteLobbyMutation,
 } = inventoryApi;
