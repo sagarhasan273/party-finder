@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Plus, LogOut, Layout, Crosshair, ChevronDown } from "lucide-react";
+import {
+  Plus,
+  User,
+  LogOut,
+  Layout,
+  Crosshair,
+  ChevronDown,
+} from "lucide-react";
 
 import {
   Box,
@@ -220,7 +227,7 @@ export function Navbar() {
                   sx={{ gap: 1.5, fontSize: "0.85rem" }}
                 >
                   <ListItemIcon sx={{ minWidth: 0 }}>
-                    <Layout size={15} />
+                    <User size={15} />
                   </ListItemIcon>
                   My Profile
                 </MenuItem>

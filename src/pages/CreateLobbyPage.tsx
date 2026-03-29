@@ -57,9 +57,9 @@ export function CreateLobbyPage() {
   const [rankMax, setRankMax] = useState<RankTier>("Platinum");
   const [rolesNeeded, setRolesNeeded] = useState<string[]>(["Any"]);
   const [discordLink, setDiscordLink] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState(region || "ap");
   const [selectedServer, setSelectedServer] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentRegion = ValorantRegionalServers.find(
     (r) => r.code === selectedRegion,
@@ -246,44 +246,6 @@ export function CreateLobbyPage() {
                   inputProps={{ maxLength: 80 }}
                   required
                 />
-                <Stack direction={{ xs: "column", sm: "row" }} gap={2}>
-                  <TextField
-                    size="small"
-                    label="Game Name"
-                    placeholder="Gamer123"
-                    value={hostUsername}
-                    onChange={(e) => setHostUsername(e.target.value)}
-                    fullWidth
-                    inputProps={{ maxLength: 32 }}
-                    required
-                  />
-                  <TextField
-                    size="small"
-                    label="TagLine *"
-                    placeholder="1234"
-                    value={hostTag}
-                    onChange={(e) =>
-                      setHostTag(e.target.value.replace("#", ""))
-                    }
-                    fullWidth
-                    inputProps={{ maxLength: 8 }}
-                    InputProps={{
-                      startAdornment: (
-                        <Typography
-                          sx={{
-                            color: "text.secondary",
-                            mr: 0.25,
-                            fontFamily: '"Rajdhani", sans-serif',
-                            fontWeight: 700,
-                          }}
-                        >
-                          #
-                        </Typography>
-                      ),
-                    }}
-                    required
-                  />
-                </Stack>
                 <Box>
                   <TextField
                     size="small"
@@ -308,6 +270,53 @@ export function CreateLobbyPage() {
                     {description.length}/300
                   </Typography>
                 </Box>
+                <Typography
+                  sx={{
+                    ...sectionLabel,
+                    py: 0,
+                    my: 0,
+                  }}
+                >
+                  HOST INFO
+                </Typography>
+                <Stack direction={{ xs: "column", sm: "row" }} gap={2}>
+                  <TextField
+                    size="small"
+                    label="Game Name"
+                    placeholder="Gamer123"
+                    value={hostUsername}
+                    onChange={(e) => setHostUsername(e.target.value)}
+                    fullWidth
+                    inputProps={{ maxLength: 32 }}
+                    required
+                  />
+                  <TextField
+                    size="small"
+                    label="TagLine"
+                    placeholder="V5V5"
+                    value={hostTag}
+                    onChange={(e) =>
+                      setHostTag(e.target.value.replace("#", ""))
+                    }
+                    fullWidth
+                    inputProps={{ maxLength: 8 }}
+                    InputProps={{
+                      startAdornment: (
+                        <Typography
+                          sx={{
+                            color: "text.secondary",
+                            mr: 0.25,
+                            fontFamily: '"Rajdhani", sans-serif',
+                            fontWeight: 700,
+                          }}
+                        >
+                          #
+                        </Typography>
+                      ),
+                    }}
+                    required
+                  />
+                </Stack>
               </Stack>
             </Paper>
 
