@@ -1,5 +1,8 @@
+import type { UserType } from "src/types/type-user";
+
 import { toast } from "sonner";
-import React, { useState } from "react";
+import { ArrowUpRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
 
 import { Container } from "@mui/system";
 import {
@@ -18,7 +21,10 @@ import {
 } from "@mui/material";
 
 import { useCredentials } from "src/core/slices";
+import { useUpdateUserMutation } from "src/core/apis";
+import { getTrackerProfileUrl } from "src/lib/valorant";
 import { ValorantRegionalServers } from "src/@mock/constant";
+import valorant_icon from "src/assets/images/valorant_icon.png";
 
 const ranks = [
   "Iron I",
@@ -47,43 +53,121 @@ const ranks = [
   "Immortal III",
   "Radiant",
 ];
-const roles = ["Duelist", "Initiator", "Controller", "Sentinel"];
-const playstyles = ["😌 Chill", "⚖️ Balanced", "🔥 Tryhard"];
-const agents = [
-  "Sova",
-  "Fade",
-  "KAY/O",
+const roles: UserType["mainRole"][] = [
+  "Duelist",
+  "Initiator",
+  "Controller",
+  "Sentinel",
+];
+const playstyles: UserType["playstyle"][] = [
+  "😌 Chill",
+  "⚖️ Balanced",
+  "🔥 Tryhard",
+];
+const agents: UserType["agents"] = [
+  "Astra",
   "Breach",
-  "Jett",
-  "Reyna",
-  "Omen",
+  "Brimstone",
+  "Chamber",
   "Clove",
+  "Cypher",
+  "Deadlock",
+  "Fade",
+  "Gekko",
+  "Harbor",
+  "Iso",
+  "Jett",
+  "KAY/O",
   "Killjoy",
+  "Miks",
+  "Neon",
+  "Omen",
+  "Phoenix",
+  "Raze",
+  "Reyna",
   "Sage",
+  "Skye",
+  "Sova",
+  "Viper",
+  "Vyse",
+  "Yoru",
 ];
 
 export const ProfilePage: React.FC = () => {
-  const { user } = useCredentials();
-  const [rank, setRank] = useState("Gold II");
-  const [pickRank, setPickRank] = useState("Platinum I");
-  const [mainRole, setMainRole] = useState("Duelist");
-  const [hostGamename, setHostGamename] = useState("");
-  const [hostTag, setHostTag] = useState("");
-  const [playstyle, setPlaystyle] = useState("😌 Chill");
-  const [selectedRegion, setSelectedRegion] = useState("ap");
-  const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
+  const { user, region: location } = useCredentials();
 
-  const handleAgentToggle = (agent: string) => {
-    setSelectedAgents((prev) =>
-      prev.includes(agent)
-        ? prev.filter((a) => a !== agent)
-        : [...prev, agent].slice(0, 3),
-    );
+  const [rank, setRank] = useState<UserType["rank"]>(user?.rank || "Gold II");
+  const [pickRank, setPickRank] = useState<UserType["pickRank"]>(
+    user?.pickRank || "Platinum I",
+  );
+  const [mainRole, setMainRole] = useState<UserType["mainRole"]>(
+    user?.mainRole || "Duelist",
+  );
+  const [hostGamename, setHostGamename] = useState<UserType["gamename"]>(
+    user?.gamename || "",
+  );
+  const [hostTagline, setHostTagline] = useState<UserType["tagline"]>(
+    user?.tagline || "",
+  );
+  const [playstyle, setPlaystyle] = useState<UserType["playstyle"]>(
+    user?.playstyle || "😌 Chill",
+  );
+  const [selectedRegion, setSelectedRegion] = useState<UserType["region"]>(
+    user?.region || "ap",
+  );
+  const [selectedAgents, setSelectedAgents] = useState<UserType["agents"]>(
+    user?.agents || [],
+  );
+
+  const [updateUser, { isLoading: userUpdateLoading }] =
+    useUpdateUserMutation();
+
+  const handleAgentToggle = (agent: any) => {
+    setSelectedAgents((prev) => {
+      const currentAgents = prev || [];
+      return currentAgents.includes(agent)
+        ? currentAgents.filter((a) => a !== agent)
+        : [...currentAgents, agent].slice(0, 3);
+    });
   };
 
-  const handleSave = () => {
-    toast.success("Profile saved successfully");
+  const handleSave = async () => {
+    if (!hostGamename || !hostTagline) {
+      toast.error("Please enter both Game Name and TagLine");
+      return;
+    }
+    const response = await updateUser({
+      id: user?.id,
+      country: user?.country || undefined,
+      rank,
+      pickRank,
+      mainRole,
+      playstyle,
+      region: selectedRegion,
+      agents: selectedAgents,
+      gamename: hostGamename,
+      tagline: hostTagline,
+    }).unwrap();
+
+    if (response?.status) {
+      toast.success("Profile saved successfully");
+      return;
+    }
+    toast.error("Failed to update profile. Please try again.");
   };
+
+  useEffect(() => {
+    if (user) {
+      setRank(user.rank || "Gold II");
+      setPickRank(user.pickRank || "Platinum I");
+      setMainRole(user.mainRole || "Duelist");
+      setHostGamename(user.gamename || "");
+      setHostTagline(user.tagline || "");
+      setPlaystyle(user.playstyle || "😌 Chill");
+      setSelectedRegion(user.region || "ap");
+      setSelectedAgents(user.agents || []);
+    }
+  }, [user]);
 
   return (
     <Container maxWidth="md" sx={{ py: 2 }}>
@@ -113,13 +197,17 @@ export const ProfilePage: React.FC = () => {
       >
         <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3 }}>
           <Avatar
+            alt={user?.name}
+            src={valorant_icon}
             sx={{
               width: 72,
               height: 72,
-              bgcolor: "primary.main",
               fontSize: 24,
               fontWeight: 800,
+              padding: 0.5,
               border: 3,
+              bgcolor: "rgba(255,80,80,0.15)",
+              color: "#ff5050",
               borderColor: "primary.main",
             }}
           >
@@ -133,7 +221,46 @@ export const ProfilePage: React.FC = () => {
               {rank} - {playstyle} - {mainRole}
             </Typography>
           </Box>
+          {location?.country && (
+            <Typography
+              variant="h6"
+              sx={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+              }}
+            >
+              Country: {location?.country || "Unknown"}
+            </Typography>
+          )}
         </Box>
+        <Typography variant="h6" sx={{ fontWeight: 700, my: 2 }}>
+          Social Links
+        </Typography>
+        <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+          <TextField
+            size="small"
+            label="Discord Username"
+            defaultValue="proplayer#1234"
+            fullWidth
+          />
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => {
+              if (hostGamename && hostTagline)
+                window.open(
+                  getTrackerProfileUrl(hostGamename, hostTagline),
+                  "_blank",
+                );
+            }}
+            sx={{ whiteSpace: "nowrap", px: 4 }}
+            startIcon={<ArrowUpRight size={18} />}
+            disabled={!hostGamename || !hostTagline}
+          >
+            View Valorant Stats
+          </Button>
+        </Stack>
       </Paper>
 
       <Paper
@@ -221,8 +348,8 @@ export const ProfilePage: React.FC = () => {
             size="small"
             label="TagLine"
             placeholder="V5V5"
-            value={hostTag}
-            onChange={(e) => setHostTag(e.target.value.replace("#", ""))}
+            value={hostTagline}
+            onChange={(e) => setHostTagline(e.target.value.replace("#", ""))}
             fullWidth
             inputProps={{ maxLength: 8 }}
             InputProps={{
@@ -314,15 +441,15 @@ export const ProfilePage: React.FC = () => {
               key={agent}
               label={agent}
               onClick={() => handleAgentToggle(agent)}
-              color={selectedAgents.includes(agent) ? "primary" : "default"}
-              variant={selectedAgents.includes(agent) ? "filled" : "outlined"}
+              color={selectedAgents?.includes(agent) ? "primary" : "default"}
+              variant={selectedAgents?.includes(agent) ? "filled" : "outlined"}
               sx={{ cursor: "pointer" }}
             />
           ))}
         </Stack>
       </Paper>
 
-      <Paper
+      {/* <Paper
         sx={{
           p: 3,
           bgcolor: "background.paper",
@@ -332,28 +459,15 @@ export const ProfilePage: React.FC = () => {
           mb: 3,
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-          Social Links
-        </Typography>
-        <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-          <TextField
-            label="Discord Username"
-            defaultValue="proplayer#1234"
-            fullWidth
-          />
-          <TextField
-            label="Tracker.gg Profile"
-            defaultValue="tracker.gg/valorant/profile/..."
-            fullWidth
-          />
-        </Stack>
-      </Paper>
+        
+      </Paper> */}
 
       <Stack direction="row" spacing={2}>
         <Button
           variant="contained"
           onClick={handleSave}
           startIcon={<span>💾</span>}
+          disabled={userUpdateLoading}
         >
           Save Profile
         </Button>

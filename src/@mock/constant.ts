@@ -1,3 +1,5 @@
+import type { LocationWithRegion } from "src/types/type-user";
+
 interface Region {
   code: string;
   label: string;
@@ -93,109 +95,58 @@ function calculateDistance(
   return R * c;
 }
 
-// Function to detect user's location and return closest region
-export async function detectUserRegion(): Promise<string> {
-  return new Promise((resolve) => {
-    // Default to AP if location detection fails or user denies
-    const defaultRegion = "ap";
+export async function getUserRegionSmart(): Promise<LocationWithRegion> {
+  try {
+    const res = await fetch("http://ip-api.com/json/");
+    const data = await res.json();
 
-    if (!navigator.geolocation) {
-      console.log("Geolocation not supported");
-      resolve(defaultRegion);
-      return;
+    const { country, countryCode, lat, lon } = data;
+
+    // fallback
+    if (!lat || !lon) {
+      return {
+        country,
+        countryCode,
+        region: "ap",
+        regionLabel: "Asia Pacific (AP)",
+      };
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-
-        // Find closest region based on distance
-        let closestRegion = ValorantRegionalServers[0];
-        let minDistance = calculateDistance(
-          latitude,
-          longitude,
-          closestRegion.coordinates.lat,
-          closestRegion.coordinates.lng,
-        );
-
-        ValorantRegionalServers.forEach((region) => {
-          const distance = calculateDistance(
-            latitude,
-            longitude,
-            region.coordinates.lat,
-            region.coordinates.lng,
-          );
-          if (distance < minDistance) {
-            minDistance = distance;
-            closestRegion = region;
-          }
-        });
-
-        console.log(
-          `Detected region: ${closestRegion.label} (${Math.round(minDistance)} km away)`,
-        );
-        resolve(closestRegion.code);
-      },
-      (error) => {
-        console.log("Geolocation error:", error.message);
-        resolve(defaultRegion);
-      },
-      { timeout: 5000 },
+    let closestRegion = ValorantRegionalServers[0];
+    let minDistance = calculateDistance(
+      lat,
+      lon,
+      closestRegion.coordinates.lat,
+      closestRegion.coordinates.lng,
     );
-  });
-}
 
-// Function to detect region from IP (alternative method)
-export async function detectRegionFromIP(): Promise<string> {
-  try {
-    // Using ipapi.co for free IP geolocation
-    const response = await fetch("http://ip-api.com/json/");
-    const data = await response.json();
-    const countryCode = data.country_code;
+    ValorantRegionalServers.forEach((region) => {
+      const dist = calculateDistance(
+        lat,
+        lon,
+        region.coordinates.lat,
+        region.coordinates.lng,
+      );
 
-    // Map country codes to regions
-    const countryToRegion: Record<string, string> = {
-      // North America
-      US: "na",
-      CA: "na",
-      MX: "latam",
-      // Latin America
-      BR: "br",
-      AR: "latam",
-      CO: "latam",
-      CL: "latam",
-      PE: "latam",
-      // Europe
-      GB: "eu",
-      DE: "eu",
-      FR: "eu",
-      ES: "eu",
-      IT: "eu",
-      NL: "eu",
-      SE: "eu",
-      PL: "eu",
-      TR: "eu",
-      AE: "eu",
-      ZA: "eu",
-      // Asia Pacific
-      SG: "ap",
-      MY: "ap",
-      ID: "ap",
-      PH: "ap",
-      TH: "ap",
-      VN: "ap",
-      IN: "ap",
-      HK: "ap",
-      AU: "ap",
-      NZ: "ap",
-      JP: "ap",
-      // Korea
-      KR: "kr",
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestRegion = region;
+      }
+    });
+
+    return {
+      country,
+      countryCode,
+      region: closestRegion.code,
+      regionLabel: closestRegion.label,
     };
-
-    return countryToRegion[countryCode] || "ap";
   } catch (error) {
-    console.log("IP detection failed:", error);
-    return "ap";
+    console.log("Detection failed:", error);
+    return {
+      country: "Unknown",
+      countryCode: "XX",
+      region: "ap",
+      regionLabel: "Asia Pacific (AP)",
+    };
   }
 }

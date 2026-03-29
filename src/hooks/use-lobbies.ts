@@ -17,7 +17,7 @@ export const useLobbies = () => {
       clearLobbies();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [data]);
 
   useEffect(() => {
     getLobbies();

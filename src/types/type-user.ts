@@ -13,3 +13,10 @@ export type UserContextTypes = {
   setUser: Dispatch<SetStateAction<UserType | null>>;
   setLoading: Dispatch<SetStateAction<boolean>>;
 };
+
+export type LocationWithRegion = {
+  country: string;
+  countryCode: string;
+  region: string;
+  regionLabel: string;
+};

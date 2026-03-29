@@ -9,8 +9,8 @@ import { Button, SvgIcon, Typography, CircularProgress } from "@mui/material";
 import AXIOS, { endpoints } from "src/utils/axios";
 
 import { CONFIG } from "src/config-global";
+import { getUserRegionSmart } from "src/@mock";
 import { useCredentials } from "src/core/slices";
-import { detectUserRegion, detectRegionFromIP } from "src/@mock";
 
 // utils/is-mobile.ts
 export const isMobileBrowser = (): boolean =>
@@ -126,18 +126,12 @@ export const GoogleSignIn = ({
     const autoDetectRegion = async () => {
       try {
         // Try IP-based detection first (faster, no permission needed)
-        let detectedRegion = await detectRegionFromIP();
-
-        // If IP detection fails or seems wrong, try GPS
-        if (detectedRegion === "ap") {
-          const gpsRegion = await detectUserRegion();
-          if (gpsRegion) detectedRegion = gpsRegion;
-        }
+        const detectedRegion = await getUserRegionSmart();
 
         setRegion(detectedRegion);
       } catch (error) {
         console.log("Auto-detection failed, using default");
-        setRegion("ap");
+        setRegion(null);
       }
     };
 

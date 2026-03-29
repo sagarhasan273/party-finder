@@ -2,7 +2,7 @@ import { Route, Routes, BrowserRouter } from "react-router-dom";
 
 import { Box } from "@mui/material";
 
-import { MyLobbyPage } from "src/pages/MyLobbiesPage";
+import { MyLobbyPage } from "src/pages/MyLobbyPage";
 
 import { HomePage } from "../pages/HomePage";
 import { Navbar } from "../components/Navbar";

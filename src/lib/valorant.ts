@@ -140,3 +140,9 @@ export function formatTimeAgo(dateStr: string): string {
   const diffDays = Math.floor(diffHours / 24);
   return `${diffDays}d ago`;
 }
+
+export const getTrackerProfileUrl = (name: string, tagline: string) => {
+  const riotId = encodeURIComponent(`${name}#${tagline}`);
+
+  return `https://tracker.gg/valorant/profile/riot/${riotId}/overview?platform=pc&playlist=competitive`;
+};

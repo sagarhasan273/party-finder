@@ -58,7 +58,7 @@ export function CreateLobbyPage() {
   const [rankMax, setRankMax] = useState<RankTier>("Platinum");
   const [rolesNeeded, setRolesNeeded] = useState<string[]>(["Any"]);
   const [discordLink, setDiscordLink] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState(region || "ap");
+  const [selectedRegion, setSelectedRegion] = useState(region?.region || "ap");
   const [selectedServer, setSelectedServer] = useState("");
   const [currentPlayers, setCurrentPlayers] = useState(4);
   const [isSubmitting, setIsSubmitting] = useState(false);

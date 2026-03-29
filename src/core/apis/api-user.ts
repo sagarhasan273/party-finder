@@ -32,7 +32,7 @@ export const userApi = createApi({
 
     updateUser: builder.mutation<ResponseType, Partial<UserType>>({
       query: (body) => ({
-        url: `user/profile/update`,
+        url: `user/update`,
         method: "POST",
         body,
       }),

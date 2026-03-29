@@ -1,5 +1,5 @@
-import type { UserType } from "src/types/type-user";
 import type { PayloadAction } from "@reduxjs/toolkit";
+import type { UserType, LocationWithRegion } from "src/types/type-user";
 
 import { useMemo } from "react";
 import { createSlice } from "@reduxjs/toolkit";
@@ -10,7 +10,7 @@ import type { RootState } from "../types";
 // Define auth state interface
 interface UserState {
   user: UserType;
-  region?: string;
+  region: LocationWithRegion | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -18,7 +18,7 @@ interface UserState {
 // Initial state
 const initialState: UserState = {
   user: {} as UserType,
-  region: undefined,
+  region: {} as LocationWithRegion,
   isAuthenticated: false,
   isLoading: false,
 };
@@ -32,7 +32,7 @@ export const accountSlice = createSlice({
       state.isAuthenticated = !!action.payload;
       state.isLoading = false;
     },
-    setRegion(state, action: PayloadAction<string | undefined>) {
+    setRegion(state, action: PayloadAction<UserState["region"]>) {
       state.region = action.payload;
     },
     setLoading(state, action: PayloadAction<boolean>) {

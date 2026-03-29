@@ -2,6 +2,43 @@
 
 import { z as zod } from "zod";
 
+const AgentEnum = zod.enum([
+  "Astra",
+  "Breach",
+  "Brimstone",
+  "Chamber",
+  "Clove",
+  "Cypher",
+  "Deadlock",
+  "Fade",
+  "Gekko",
+  "Harbor",
+  "Iso",
+  "Jett",
+  "KAY/O",
+  "Killjoy",
+  "Miks",
+  "Neon",
+  "Omen",
+  "Phoenix",
+  "Raze",
+  "Reyna",
+  "Sage",
+  "Skye",
+  "Sova",
+  "Viper",
+  "Vyse",
+  "Yoru",
+]);
+
+const PlaystyleEnum = zod.enum([
+  "😌 Chill",
+  "⚖️ Balanced",
+  "⚔️ Competitive",
+  "🎯 Serious",
+  "🔥 Tryhard",
+]);
+
 // Main User Schema
 export const UserSchema = zod
   .object({
@@ -21,6 +58,28 @@ export const UserSchema = zod
       .url({ message: "Invalid URL for profile photo" }),
     gender: zod.enum(["male", "female", "other", "prefer-not-to-say"]),
     verified: zod.boolean(),
+
+    // 🔥 NEW FIELDS
+
+    country: zod.string().optional(),
+
+    rank: zod.string().optional(),
+
+    pickRank: zod.string().optional(),
+
+    mainRole: zod
+      .enum(["Duelist", "Initiator", "Controller", "Sentinel"])
+      .optional(),
+
+    gamename: zod.string().min(1).optional(),
+
+    tagline: zod.string().optional(),
+
+    playstyle: zod.enum(PlaystyleEnum.options).optional(),
+
+    region: zod.string().optional(),
+
+    agents: zod.array(AgentEnum).optional(),
   })
   .strict();
 
