@@ -15,9 +15,14 @@ import {
   InputAdornment,
 } from "@mui/material";
 
-import { MAPS, RANKS, REGIONS } from "../lib/valorant";
+import { ValorantRegionalServers } from "src/@mock/constant";
+
+import { MAPS, RANKS } from "../lib/valorant";
 
 export function FilterBar() {
+  const [selectedRegion, setSelectedRegion] = useState("ap");
+  const [selectedServer, setSelectedServer] = useState("");
+
   const [filters, setFilters] = useState({
     search: "",
     rankMin: "",
@@ -59,6 +64,12 @@ export function FilterBar() {
       "&.Mui-focused fieldset": { borderColor: "#FF4655" },
     },
   };
+
+  // Get current region's server list
+  const currentRegion = ValorantRegionalServers.find(
+    (r) => r.code === selectedRegion,
+  );
+  const serverList = currentRegion?.servers || [];
 
   return (
     <Paper
@@ -136,18 +147,56 @@ export function FilterBar() {
           </Select>
         </FormControl>
 
-        {/* Region */}
+        {/* First Dropdown - Region Selection */}
         <FormControl size="small" sx={{ ...selectSx, minWidth: 110 }}>
-          <InputLabel>REGION</InputLabel>
+          <InputLabel sx={{ fontFamily: '"Rajdhani", sans-serif' }}>
+            Region
+          </InputLabel>
           <Select
-            value={filters.region}
-            label="REGION"
-            onChange={(e) => update({ region: e.target.value })}
+            value={selectedRegion}
+            label="Region"
+            onChange={(e) => {
+              setSelectedRegion(e.target.value);
+              setSelectedServer(""); // Reset server when region changes
+            }}
+            sx={selectSx}
           >
-            <MenuItem value="">All</MenuItem>
-            {REGIONS.map((r) => (
-              <MenuItem key={r} value={r}>
-                {r}
+            {ValorantRegionalServers.map((region) => (
+              <MenuItem
+                key={region.code}
+                value={region.code}
+                sx={{
+                  fontFamily: '"Rajdhani", sans-serif',
+                  fontWeight: 700,
+                }}
+              >
+                {region.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* Second Dropdown - Server List (depends on selected region) */}
+        <FormControl size="small" sx={{ ...selectSx, minWidth: 110 }}>
+          <InputLabel sx={{ fontFamily: '"Rajdhani", sans-serif' }}>
+            Server {selectedRegion.toUpperCase()}
+          </InputLabel>
+          <Select
+            value={selectedServer}
+            label={`Server ${selectedRegion.toUpperCase()}`}
+            onChange={(e) => setSelectedServer(e.target.value)}
+            sx={selectSx}
+          >
+            {serverList.map((server) => (
+              <MenuItem
+                key={server}
+                value={server}
+                sx={{
+                  fontFamily: '"Rajdhani", sans-serif',
+                  fontWeight: 700,
+                }}
+              >
+                {server}
               </MenuItem>
             ))}
           </Select>
@@ -155,6 +204,7 @@ export function FilterBar() {
 
         {/* Toggle */}
         <ToggleButton
+          size="small"
           value="openOnly"
           selected={filters.openOnly}
           onChange={() => update({ openOnly: !filters.openOnly })}

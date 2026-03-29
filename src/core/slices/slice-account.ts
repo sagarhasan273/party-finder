@@ -10,6 +10,7 @@ import type { RootState } from "../types";
 // Define auth state interface
 interface UserState {
   user: UserType;
+  region?: string;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -17,6 +18,7 @@ interface UserState {
 // Initial state
 const initialState: UserState = {
   user: {} as UserType,
+  region: undefined,
   isAuthenticated: false,
   isLoading: false,
 };
@@ -30,6 +32,9 @@ export const accountSlice = createSlice({
       state.isAuthenticated = !!action.payload;
       state.isLoading = false;
     },
+    setRegion(state, action: PayloadAction<string | undefined>) {
+      state.region = action.payload;
+    },
     setLoading(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
     },
@@ -41,12 +46,13 @@ export const accountSlice = createSlice({
   },
 });
 
-const { setUser, logout, setLoading } = accountSlice.actions;
+const { setUser, logout, setLoading, setRegion } = accountSlice.actions;
 
 const selectIsAuthenticated = (state: RootState) =>
   state.account.isAuthenticated;
 const selectAccount = (state: RootState) => state.account.user;
 const selectIsLoading = (state: RootState) => state.account.isLoading;
+const selectRegion = (state: RootState) => state.account.region;
 
 export const useCredentials = () => {
   const dispatch = useDispatch();
@@ -54,18 +60,21 @@ export const useCredentials = () => {
   const user = useSelector(selectAccount);
   const isLoading = useSelector(selectIsLoading);
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const region = useSelector(selectRegion);
 
   const memoCredentials = useMemo(
     () => ({
       user,
+      region,
       isLoading,
       isAuthenticated,
       setUser: (payload: UserState["user"]) => dispatch(setUser(payload)),
       setLoading: (payload: UserState["isLoading"]) =>
         dispatch(setLoading(payload)),
       logout: () => dispatch(logout()),
+      setRegion: (payload: UserState["region"]) => dispatch(setRegion(payload)),
     }),
-    [isAuthenticated, isLoading, user, dispatch],
+    [isAuthenticated, isLoading, user, region, dispatch],
   );
 
   return memoCredentials;

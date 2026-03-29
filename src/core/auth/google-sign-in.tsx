@@ -10,6 +10,7 @@ import AXIOS, { endpoints } from "src/utils/axios";
 
 import { CONFIG } from "src/config-global";
 import { useCredentials } from "src/core/slices";
+import { detectUserRegion, detectRegionFromIP } from "src/@mock";
 
 // utils/is-mobile.ts
 export const isMobileBrowser = (): boolean =>
@@ -28,7 +29,8 @@ export const GoogleSignIn = ({
   title?: string;
   onSuccess?: () => void;
 }) => {
-  const { setUser, logout } = useCredentials();
+  const { setUser, logout, setRegion } = useCredentials();
+
   const [isLoading, setIsLoading] = useState(false);
 
   // ── Mobile: redirect flow ─────────────────────────────────────────────────
@@ -118,6 +120,29 @@ export const GoogleSignIn = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    // Auto-detect user's location and set region
+    const autoDetectRegion = async () => {
+      try {
+        // Try IP-based detection first (faster, no permission needed)
+        let detectedRegion = await detectRegionFromIP();
+
+        // If IP detection fails or seems wrong, try GPS
+        if (detectedRegion === "ap") {
+          const gpsRegion = await detectUserRegion();
+          if (gpsRegion) detectedRegion = gpsRegion;
+        }
+
+        setRegion(detectedRegion);
+      } catch (error) {
+        console.log("Auto-detection failed, using default");
+        setRegion("ap");
+      }
+    };
+
+    autoDetectRegion();
+  }, [setRegion]);
 
   useEffect(() => {
     checkUserSession();

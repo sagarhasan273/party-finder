@@ -21,14 +21,16 @@ import {
   CircularProgress,
 } from "@mui/material";
 
+import { GoogleSignIn } from "src/core/auth";
 import { useCredentials } from "src/core/slices";
+import { ValorantRegionalServers } from "src/@mock";
 
-import { MAPS, RANKS, ROLES, REGIONS, ROLE_COLORS } from "../lib/valorant";
+import { RANKS, ROLES, ROLE_COLORS } from "../lib/valorant";
 
 import type { RankTier } from "../types";
 
 const sectionSx = {
-  p: 3,
+  p: 2,
   backgroundColor: "rgba(22,25,38,0.9)",
   border: "1px solid rgba(255,255,255,0.07)",
   borderRadius: "8px",
@@ -44,7 +46,7 @@ const sectionLabel = {
 };
 
 export function CreateLobbyPage() {
-  const { user, isLoading, isAuthenticated } = useCredentials();
+  const { user, region, isLoading, isAuthenticated } = useCredentials();
   const navigate = useNavigate();
 
   const [title, setTitle] = useState("");
@@ -53,11 +55,16 @@ export function CreateLobbyPage() {
   const [description, setDescription] = useState("");
   const [rankMin, setRankMin] = useState<RankTier>("Gold");
   const [rankMax, setRankMax] = useState<RankTier>("Platinum");
-  const [map, setMap] = useState("Any");
-  const [region, setRegion] = useState("NA");
   const [rolesNeeded, setRolesNeeded] = useState<string[]>(["Any"]);
   const [discordLink, setDiscordLink] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState(region || "ap");
+  const [selectedServer, setSelectedServer] = useState("");
+
+  const currentRegion = ValorantRegionalServers.find(
+    (r) => r.code === selectedRegion,
+  );
+  const serverList = currentRegion?.servers || [];
 
   const toggleRole = (role: string) => {
     setRolesNeeded((prev) => {
@@ -159,17 +166,7 @@ export function CreateLobbyPage() {
           <Typography sx={{ color: "text.secondary" }}>
             You need to sign in to create a lobby.
           </Typography>
-          <Button
-            variant="contained"
-            onClick={() => {}}
-            sx={{
-              background: "#FF4655",
-              fontFamily: '"Rajdhani", sans-serif',
-              fontWeight: 700,
-            }}
-          >
-            Sign In
-          </Button>
+          <GoogleSignIn />
         </Stack>
       </Box>
     );
@@ -240,7 +237,8 @@ export function CreateLobbyPage() {
               <Typography sx={sectionLabel}>BASIC INFO</Typography>
               <Stack gap={2.5}>
                 <TextField
-                  label="Lobby Title *"
+                  size="small"
+                  label="Lobby Title"
                   placeholder="e.g. Gold-Plat ranked, chill vibes"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -250,8 +248,9 @@ export function CreateLobbyPage() {
                 />
                 <Stack direction={{ xs: "column", sm: "row" }} gap={2}>
                   <TextField
-                    label="Your Username *"
-                    placeholder="NightReaper"
+                    size="small"
+                    label="Game Name"
+                    placeholder="Gamer123"
                     value={hostUsername}
                     onChange={(e) => setHostUsername(e.target.value)}
                     fullWidth
@@ -259,7 +258,8 @@ export function CreateLobbyPage() {
                     required
                   />
                   <TextField
-                    label="Tag"
+                    size="small"
+                    label="TagLine *"
                     placeholder="1234"
                     value={hostTag}
                     onChange={(e) =>
@@ -281,10 +281,12 @@ export function CreateLobbyPage() {
                         </Typography>
                       ),
                     }}
+                    required
                   />
                 </Stack>
                 <Box>
                   <TextField
+                    size="small"
                     label="Description (optional)"
                     placeholder="Tell players about your playstyle, mic requirements, schedule..."
                     value={description}
@@ -314,7 +316,7 @@ export function CreateLobbyPage() {
               <Typography sx={sectionLabel}>RANK & REGION</Typography>
               <Stack gap={2.5}>
                 <Stack direction={{ xs: "column", sm: "row" }} gap={2}>
-                  <FormControl fullWidth>
+                  <FormControl size="small" fullWidth>
                     <InputLabel>Min Rank</InputLabel>
                     <Select
                       value={rankMin}
@@ -336,7 +338,7 @@ export function CreateLobbyPage() {
                       ))}
                     </Select>
                   </FormControl>
-                  <FormControl fullWidth>
+                  <FormControl size="small" fullWidth>
                     <InputLabel>Max Rank</InputLabel>
                     <Select
                       value={rankMax}
@@ -360,46 +362,56 @@ export function CreateLobbyPage() {
                   </FormControl>
                 </Stack>
                 <Stack direction={{ xs: "column", sm: "row" }} gap={2}>
-                  <FormControl fullWidth>
-                    <InputLabel>Map</InputLabel>
+                  {/* First Dropdown - Region Selection */}
+                  <FormControl size="small" fullWidth>
+                    <InputLabel sx={{ fontFamily: '"Rajdhani", sans-serif' }}>
+                      Region
+                    </InputLabel>
                     <Select
-                      value={map}
-                      label="Map"
-                      onChange={(e) => setMap(e.target.value)}
+                      value={selectedRegion}
+                      label="Region"
+                      onChange={(e) => {
+                        setSelectedRegion(e.target.value);
+                        setSelectedServer(""); // Reset server when region changes
+                      }}
                       sx={selectSx}
                     >
-                      {MAPS.map((m) => (
+                      {ValorantRegionalServers.map((rgon) => (
                         <MenuItem
-                          key={m}
-                          value={m}
+                          key={rgon.code}
+                          value={rgon.code}
                           sx={{
                             fontFamily: '"Rajdhani", sans-serif',
                             fontWeight: 700,
                           }}
                         >
-                          {m}
+                          {rgon.label}{" "}
                         </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
-                  <FormControl fullWidth>
-                    <InputLabel>Region</InputLabel>
+
+                  {/* Second Dropdown - Server List (depends on selected region) */}
+                  <FormControl size="small" fullWidth>
+                    <InputLabel sx={{ fontFamily: '"Rajdhani", sans-serif' }}>
+                      Server {selectedRegion.toUpperCase()}
+                    </InputLabel>
                     <Select
-                      value={region}
-                      label="Region"
-                      onChange={(e) => setRegion(e.target.value)}
+                      value={selectedServer}
+                      label={`Server ${selectedRegion.toUpperCase()}`}
+                      onChange={(e) => setSelectedServer(e.target.value)}
                       sx={selectSx}
                     >
-                      {REGIONS.map((r) => (
+                      {serverList.map((server) => (
                         <MenuItem
-                          key={r}
-                          value={r}
+                          key={server}
+                          value={server}
                           sx={{
                             fontFamily: '"Rajdhani", sans-serif',
                             fontWeight: 700,
                           }}
                         >
-                          {r}
+                          {server}
                         </MenuItem>
                       ))}
                     </Select>
@@ -463,6 +475,7 @@ export function CreateLobbyPage() {
             <Paper elevation={0} sx={sectionSx}>
               <Typography sx={sectionLabel}>CONTACT (OPTIONAL)</Typography>
               <TextField
+                size="small"
                 label="Discord Server / Invite Link"
                 placeholder="https://discord.gg/yourserver"
                 value={discordLink}

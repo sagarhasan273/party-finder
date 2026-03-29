@@ -30,8 +30,6 @@ export const MAPS = [
   "Sunset",
 ];
 
-export const REGIONS = ["NA", "EU", "AP", "KR", "BR", "LATAM"];
-
 export const ROLES = ["Any", "Duelist", "Initiator", "Controller", "Sentinel"];
 
 // MUI sx-friendly color tokens per rank
