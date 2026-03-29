@@ -1,14 +1,9 @@
 import type { UserType } from "src/types/type-user";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
-import axios from "axios";
+import { useMemo } from "react";
 import { createSlice } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
-import { useMemo, useEffect, useCallback } from "react";
-
-import { endpoints } from "src/utils/axios";
-
-import { CONFIG } from "src/config-global";
 
 import type { RootState } from "../types";
 
@@ -59,27 +54,6 @@ export const useCredentials = () => {
   const user = useSelector(selectAccount);
   const isLoading = useSelector(selectIsLoading);
   const isAuthenticated = useSelector(selectIsAuthenticated);
-
-  const checkUserSession = useCallback(async () => {
-    try {
-      const accessToken = sessionStorage.getItem(CONFIG.googleAccessToken);
-
-      if (accessToken) {
-        const res = await axios.get(endpoints.auth.me);
-
-        const { data, status } = res.data;
-        if (status) {
-          dispatch(setUser(data));
-        }
-      }
-    } catch (error) {
-      dispatch(logout());
-    }
-  }, [dispatch]);
-
-  useEffect(() => {
-    checkUserSession();
-  }, [checkUserSession]);
 
   const memoCredentials = useMemo(
     () => ({

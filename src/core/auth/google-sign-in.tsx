@@ -1,10 +1,12 @@
 import type { SxProps } from "@mui/material";
 
 import axios from "axios";
-import { useState } from "react";
 import { useGoogleLogin } from "@react-oauth/google";
+import { useState, useEffect, useCallback } from "react";
 
 import { Button, SvgIcon, Typography, CircularProgress } from "@mui/material";
+
+import AXIOS, { endpoints } from "src/utils/axios";
 
 import { CONFIG } from "src/config-global";
 import { useCredentials } from "src/core/slices";
@@ -26,7 +28,7 @@ export const GoogleSignIn = ({
   title?: string;
   onSuccess?: () => void;
 }) => {
-  const { setUser } = useCredentials();
+  const { setUser, logout } = useCredentials();
   const [isLoading, setIsLoading] = useState(false);
 
   // ── Mobile: redirect flow ─────────────────────────────────────────────────
@@ -100,6 +102,28 @@ export const GoogleSignIn = ({
     }
   };
 
+  const checkUserSession = useCallback(async () => {
+    try {
+      const accessToken = sessionStorage.getItem(CONFIG.googleAccessToken);
+      if (accessToken) {
+        const res = await AXIOS.get(endpoints.auth.me);
+
+        const { data, status } = res.data;
+        if (status) {
+          setUser(data);
+        }
+      }
+    } catch (error) {
+      logout();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    checkUserSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <Button
       fullWidth
@@ -118,7 +142,7 @@ export const GoogleSignIn = ({
         fontSize: 14,
         gap: 1.5,
         "&:hover": {
-          backgroundColor: "primary.light",
+          backgroundColor: "primary.lighter",
           boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
         },
         "&:active": { transform: "scale(0.99)" },

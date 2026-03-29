@@ -10,7 +10,7 @@ export const userApi = createApi({
   reducerPath: "userApi",
   baseQuery: fetchBaseQuery({
     baseUrl: CONFIG.serverUrl,
-    prepareHeaders: (headers, { getState }) => {
+    prepareHeaders: (headers) => {
       const accessToken = sessionStorage.getItem(CONFIG.googleAccessToken);
       if (accessToken) {
         headers.set("authorization", `Bearer ${accessToken}`);

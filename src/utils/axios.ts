@@ -6,9 +6,26 @@ import { CONFIG } from "src/config-global";
 
 // ----------------------------------------------------------------------
 
-const axiosInstance = axios.create({ baseURL: CONFIG.serverUrl });
+const AXIOS = axios.create({
+  baseURL: `${CONFIG.serverUrl}`,
+});
 
-axiosInstance.interceptors.response.use(
+// ✅ REQUEST INTERCEPTOR (add token here)
+AXIOS.interceptors.request.use(
+  (config) => {
+    const accessToken = sessionStorage.getItem(CONFIG.googleAccessToken);
+
+    if (accessToken && config.headers) {
+      config.headers.set("Authorization", `Bearer ${accessToken}`);
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
+// ✅ RESPONSE INTERCEPTOR
+AXIOS.interceptors.response.use(
   (response) => response,
   (error) =>
     Promise.reject(
@@ -16,7 +33,7 @@ axiosInstance.interceptors.response.use(
     ),
 );
 
-export default axiosInstance;
+export default AXIOS;
 
 // ----------------------------------------------------------------------
 
@@ -24,7 +41,7 @@ export const fetcher = async (args: string | [string, AxiosRequestConfig]) => {
   try {
     const [url, config] = Array.isArray(args) ? args : [args];
 
-    const res = await axiosInstance.get(url, { ...config });
+    const res = await AXIOS.get(url, { ...config });
 
     return res.data;
   } catch (error) {
@@ -37,7 +54,7 @@ export const fetcher = async (args: string | [string, AxiosRequestConfig]) => {
 
 export const endpoints = {
   auth: {
-    me: "/user/u/me",
+    me: "/user/me",
     signIn: "/user/auth/sign-in",
     signUp: "/user/auth/sign-up",
   },
