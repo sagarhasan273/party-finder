@@ -1,6 +1,6 @@
 // services/inventoryApi.ts
 import type { ResponseType } from "src/types/type-common";
-import type { LobbyType } from "src/types/type-inventory";
+import type { LobbyType, CreateLobbyInput } from "src/types/type-inventory";
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
@@ -25,7 +25,7 @@ export const inventoryApi = createApi({
       providesTags: ["user-recall"],
     }),
 
-    createLobby: builder.mutation<ResponseType, LobbyType>({
+    createLobby: builder.mutation<ResponseType, CreateLobbyInput>({
       query: (newUser) => ({
         url: `inventory/lobby/create`,
         method: "POST",

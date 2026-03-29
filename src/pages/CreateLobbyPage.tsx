@@ -24,6 +24,7 @@ import {
 import { GoogleSignIn } from "src/core/auth";
 import { useCredentials } from "src/core/slices";
 import { ValorantRegionalServers } from "src/@mock";
+import { useCreateLobbyMutation } from "src/core/apis/api-inventory";
 
 import { RANKS, ROLES, ROLE_COLORS } from "../lib/valorant";
 
@@ -59,7 +60,10 @@ export function CreateLobbyPage() {
   const [discordLink, setDiscordLink] = useState("");
   const [selectedRegion, setSelectedRegion] = useState(region || "ap");
   const [selectedServer, setSelectedServer] = useState("");
+  const [currentPlayers, setCurrentPlayers] = useState(4);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [createLobby] = useCreateLobbyMutation();
 
   const currentRegion = ValorantRegionalServers.find(
     (r) => r.code === selectedRegion,
@@ -80,23 +84,60 @@ export function CreateLobbyPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      console.log("..//");
+    if (!isAuthenticated) {
+      toast.error("Please sign in to create a lobby.");
       return;
     }
     if (!title.trim()) {
-      toast.error("Title is required");
+      toast.error("Title is required!");
       return;
     }
     if (!hostUsername.trim()) {
-      toast.error("Username is required");
+      toast.error("Host game name is required!");
+      return;
+    }
+    if (!hostUsername.trim()) {
+      toast.error("Host game name is required!");
+      return;
+    }
+
+    if (!hostTag.trim()) {
+      toast.error("Host tagline is required!");
+      return;
+    }
+
+    if (!selectedRegion.trim()) {
+      toast.error("Region is required!");
+      return;
+    }
+
+    if (!selectedServer.trim()) {
+      toast.error("Server is required!");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      toast.success("Lobby posted! Good luck finding your 5th 🎯");
-      navigate("/");
+      const response = await createLobby({
+        userId: user?.id || "",
+        title,
+        description,
+        rankMin,
+        rankMax,
+        hostGamename: hostUsername,
+        hostTagline: hostTag,
+        rolesNeeded,
+        region: selectedRegion,
+        server: selectedServer,
+        status: "open",
+        currentPlayers,
+        discordLink: discordLink.trim() || undefined,
+      });
+      console.log("Create Lobby Response:", response);
+      if (response?.data?.status) {
+        toast.success("Lobby posted! Good luck finding your 5th 🎯");
+        navigate("/");
+      }
     } catch {
       toast.error("Failed to create lobby. Please try again.");
     } finally {
@@ -432,7 +473,7 @@ export function CreateLobbyPage() {
             {/* ── Roles ── */}
             <Paper elevation={0} sx={sectionSx}>
               <Typography sx={sectionLabel}>ROLES NEEDED</Typography>
-              <Stack direction="row" flexWrap="wrap" gap={1}>
+              <Stack direction="row" flexWrap="wrap" sx={{ gap: 1.5, mb: 2 }}>
                 {ROLES.map((role) => {
                   const isSelected = rolesNeeded.includes(role);
                   const colors = ROLE_COLORS[role] ?? {
@@ -472,12 +513,33 @@ export function CreateLobbyPage() {
                   );
                 })}
               </Stack>
-              <Typography
-                variant="caption"
-                sx={{ color: "text.secondary", display: "block", mt: 1.5 }}
-              >
-                Selected: {rolesNeeded.join(", ")}
-              </Typography>
+
+              <Typography sx={sectionLabel}>PLAYERS IN PARTY</Typography>
+
+              <FormControl size="small" fullWidth>
+                <InputLabel sx={{ fontFamily: '"Rajdhani", sans-serif' }}>
+                  Number of Players
+                </InputLabel>
+                <Select
+                  value={currentPlayers}
+                  label="Number of Players"
+                  onChange={(e) => setCurrentPlayers(Number(e.target.value))}
+                  sx={selectSx}
+                >
+                  {[1, 2, 3, 4, 5].map((num) => (
+                    <MenuItem
+                      key={num}
+                      value={num}
+                      sx={{
+                        fontFamily: '"Rajdhani", sans-serif',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {num}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Paper>
 
             {/* ── Contact ── */}

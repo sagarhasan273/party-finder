@@ -33,10 +33,17 @@ export interface LobbyType {
   rankMax: RankTier;
   hostGamename: string;
   hostTagline: string;
-  rolesNeeded: string;
+  rolesNeeded: string[];
   region: string;
   server: string;
   status: LobbyStatus;
   discordLink?: string;
   currentPlayers?: number;
+  createdAt: string;
+  updatedAt: string;
 }
+
+export type CreateLobbyInput = Omit<
+  LobbyType,
+  "id" | "createdAt" | "updatedAt"
+>;
