@@ -18,8 +18,10 @@ import {
 
 import {
   Box,
+  Fade,
   Stack,
   Paper,
+  Popper,
   Divider,
   Tooltip,
   Typography,
@@ -106,6 +108,8 @@ function useCopyCode(text: string) {
 
 export function PartyCodeBox({ partyCode }: { partyCode: string }) {
   const { copied, copy } = useCopyCode(partyCode);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [open, setOpen] = useState(false);
 
   return (
     <Box
@@ -117,19 +121,40 @@ export function PartyCodeBox({ partyCode }: { partyCode: string }) {
         pr: 0.75,
         py: "5px",
         mb: 1.25,
-        // Valorant diagonal clip — top-right corner
+        ml: "auto",
         borderRadius: "3px",
         clipPath:
           "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
         background: "rgba(34,197,94,0.07)",
         border: "1px solid rgba(34, 197, 94, 0.5)",
         transition: "border-color 0.15s",
-        "&:hover": {
-          borderColor: "rgba(34,197,94,0.38)",
-        },
         position: "relative",
         overflow: "visible",
+        animation: "codepulse 1.5s ease-in-out infinite",
+        "@keyframes codepulse": {
+          "0%": {
+            borderColor: "rgba(34, 197, 94, 0.3)",
+            boxShadow: "0 0 0 0 rgba(34, 197, 94, 0.2)",
+          },
+          "50%": {
+            borderColor: "rgb(34, 197, 94)",
+            boxShadow: "0 0 0 3px rgba(34, 197, 94, 0.4)",
+          },
+          "100%": {
+            borderColor: "rgba(34, 197, 94, 0.3)",
+            boxShadow: "0 0 0 0 rgba(34, 197, 94, 0)",
+          },
+        },
+        "&:hover": {
+          animation: "codepulse 0.8s ease-in-out infinite",
+          borderColor: "rgba(34,197,94,0.7)",
+        },
       }}
+      onMouseEnter={(e) => {
+        setAnchorEl(e.currentTarget);
+        setOpen(true);
+      }}
+      onMouseLeave={() => setOpen(false)}
     >
       <Box
         aria-hidden
@@ -142,7 +167,7 @@ export function PartyCodeBox({ partyCode }: { partyCode: string }) {
           borderStyle: "solid",
           borderWidth: "0 8px 8px 0",
           borderColor:
-            "transparent rgba(13, 255, 102, 0.89) transparent transparent",
+            "transparent rgba(34, 197, 94, 0.89) transparent transparent",
         }}
       />
 
@@ -154,7 +179,7 @@ export function PartyCodeBox({ partyCode }: { partyCode: string }) {
           fontWeight: 700,
           fontSize: "0.62rem",
           letterSpacing: "0.1em",
-          color: "rgba(74,84,112,1)",
+          color: "rgb(193, 199, 218)",
           textTransform: "uppercase",
         }}
       >
@@ -170,38 +195,76 @@ export function PartyCodeBox({ partyCode }: { partyCode: string }) {
           letterSpacing: "0.22em",
           color: "#22c55e",
           userSelect: "all",
+          cursor: "pointer",
+          "&:hover": {
+            opacity: 0.8,
+          },
+        }}
+        onClick={() => {
+          navigator.clipboard.writeText(partyCode);
+          copy(); // If you want to trigger the copied state
         }}
       >
         {partyCode}
       </Typography>
 
       {/* Copy button */}
-      <Tooltip title={copied ? "Copied!" : "Copy"} placement="top" arrow>
-        <IconButton
-          onClick={copy}
-          size="small"
-          disableRipple
-          sx={{
-            ml: 0.25,
-            width: 22,
-            height: 22,
-            borderRadius: "2px",
-            flexShrink: 0,
-            border: copied
-              ? "1px solid rgba(34,197,94,0.45)"
-              : "1px solid rgba(255,255,255,0.08)",
-            color: copied ? "#22c55e" : "rgba(255,255,255,0.22)",
-            transition: "all 0.15s",
-            "&:hover": {
-              border: "1px solid rgba(34,197,94,0.4)",
-              color: "#22c55e",
-              background: "rgba(34,197,94,0.08)",
-            },
-          }}
-        >
-          {copied ? <Check size={11} strokeWidth={2.5} /> : <Copy size={11} />}
-        </IconButton>
-      </Tooltip>
+
+      <IconButton
+        onClick={copy}
+        size="small"
+        disableRipple
+        sx={{
+          ml: 0.25,
+          width: 22,
+          height: 22,
+          borderRadius: "2px",
+          flexShrink: 0,
+          border: copied
+            ? "1px solid rgba(34,197,94,0.45)"
+            : "1px solid rgba(214, 209, 209, 0.61)",
+          color: copied ? "#22c55e" : "rgba(202, 202, 202, 0.98)",
+          transition: "all 0.15s",
+          "&:hover": {
+            border: "1px solid rgba(34,197,94,0.4)",
+            color: "#22c55e",
+            background: "rgba(34,197,94,0.08)",
+          },
+        }}
+      >
+        {copied ? <Check size={11} strokeWidth={2.5} /> : <Copy size={11} />}
+      </IconButton>
+
+      {/* Info message - properly positioned below */}
+      <Popper open={open} anchorEl={anchorEl} placement="top" transition>
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={200}>
+            <Box
+              sx={{
+                mt: 1,
+                background: "rgba(13,15,26,0.98)",
+                border: "1px solid rgba(34, 197, 94, 0.35)",
+                borderRadius: "2px",
+                px: 1.25,
+                py: 0.5,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: RAJ,
+                  fontSize: "0.6rem",
+                  letterSpacing: "0.08em",
+                  color: "#22c55e",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                📋 Copy this code to join the party
+              </Typography>
+            </Box>
+          </Fade>
+        )}
+      </Popper>
     </Box>
   );
 }
@@ -415,6 +478,11 @@ export function LobbyRequestCard({
                 {lobby.title}
               </Typography>
               <StatusChip status={lobby.status} />
+
+              {/* ── Party code — only revealed on acceptance ── */}
+              {requestStatus === "accepted" && lobby.partyCode && (
+                <PartyCodeBox partyCode={lobby.partyCode} />
+              )}
             </Stack>
             {/* ── Description ── */}
             {lobby.description && (
@@ -462,11 +530,6 @@ export function LobbyRequestCard({
                 <RoleChip key={role} role={role} />
               ))}
             </Stack>
-          )}
-
-          {/* ── Party code — only revealed on acceptance ── */}
-          {requestStatus === "accepted" && lobby.partyCode && (
-            <PartyCodeBox partyCode={lobby.partyCode} />
           )}
 
           <Divider sx={{ borderColor: "rgba(255,255,255,0.055)", mb: 1.25 }} />

@@ -1,8 +1,9 @@
 import type { UserType } from "src/types/type-user";
+import type { ApplicantStatus } from "src/types/type-inventory";
 
 import { toast } from "sonner";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -28,6 +29,7 @@ import {
   Container,
   Typography,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 
 import { ValorantRegionalServers } from "src/@mock";
@@ -36,6 +38,8 @@ import { useInventory, useCredentials } from "src/core/slices";
 import {
   useGetMyLobbyQuery,
   useDeleteLobbyMutation,
+  useAcceptJoinRequestMutation,
+  useRejectJoinRequestMutation,
 } from "src/core/apis/api-inventory";
 
 import { RankChip } from "src/components/rank-chip";
@@ -55,13 +59,48 @@ const RAJ = '"Rajdhani", sans-serif';
 
 function ApplicantCard({
   user,
-  onAccept,
-  onReject,
+  lobbyId,
+  status,
 }: {
   user: Partial<UserType>;
-  onAccept: () => void;
-  onReject: () => void;
+  status: ApplicantStatus;
+  lobbyId: string;
 }) {
+  const [acceptJoinRequest, { isLoading: isAccepting }] =
+    useAcceptJoinRequestMutation();
+  const [rejectJoinRequest, { isLoading: isRejecting }] =
+    useRejectJoinRequestMutation();
+
+  const handleAccept = async () => {
+    try {
+      const response = await acceptJoinRequest({
+        lobbyId,
+        userId: user.id as string,
+      }).unwrap();
+      if (response.status) {
+        toast.success("Join request accepted.");
+        // Optionally update local state here to reflect the accepted request
+      }
+    } catch (error) {
+      fErrorCatchToast(error, "Failed to accept join request.");
+    }
+  };
+
+  const handleReject = async () => {
+    try {
+      const response = await rejectJoinRequest({
+        lobbyId,
+        userId: user.id as string,
+      }).unwrap();
+      if (response.status) {
+        toast.success("Join request rejected.");
+        // Optionally update local state here to reflect the rejected request
+      }
+    } catch (error) {
+      fErrorCatchToast(error, "Failed to reject join request.");
+    }
+  };
+
   return (
     <Paper
       elevation={0}
@@ -158,58 +197,102 @@ function ApplicantCard({
       )}
 
       {/* Actions */}
-      <Stack direction="row" gap={0.6} mt={0.25}>
-        <Button
-          size="small"
-          onClick={onAccept}
-          sx={{
-            flex: 1,
-            minWidth: 0,
-            fontSize: "0.62rem",
-            fontFamily: RAJ,
-            fontWeight: 700,
-            letterSpacing: "0.06em",
-            height: 24,
-            borderRadius: "2px",
-            textTransform: "uppercase",
-            background: "rgba(34,197,94,0.15)",
-            color: "#22c55e",
-            border: "1px solid rgba(34,197,94,0.28)",
-            boxShadow: "none",
-            "&:hover": {
-              background: "rgba(34,197,94,0.25)",
+      {status === "pending" && (
+        <Stack direction="row" gap={0.6} mt={0.25}>
+          <Button
+            size="small"
+            onClick={() => handleAccept()}
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              fontSize: "0.62rem",
+              fontFamily: RAJ,
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              height: 24,
+              borderRadius: "2px",
+              textTransform: "uppercase",
+              background: "rgba(34,197,94,0.15)",
+              color: "#22c55e",
+              border: "1px solid rgba(34,197,94,0.28)",
               boxShadow: "none",
-            },
-          }}
-        >
-          Accept
-        </Button>
-        <Button
-          size="small"
-          onClick={onReject}
+              "&:hover": {
+                background: "rgba(34,197,94,0.25)",
+                boxShadow: "none",
+              },
+            }}
+            disabled={isAccepting || isRejecting}
+          >
+            Accept
+          </Button>
+          <Button
+            size="small"
+            onClick={() => handleReject()}
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              fontSize: "0.62rem",
+              fontFamily: RAJ,
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              height: 24,
+              borderRadius: "2px",
+              textTransform: "uppercase",
+              background: "transparent",
+              color: "rgba(90,100,130,1)",
+              border: "1px solid rgba(255,255,255,0.09)",
+              "&:hover": {
+                borderColor: "rgba(255,70,85,0.4)",
+                color: "#FF4655",
+                background: "rgba(255,70,85,0.07)",
+              },
+            }}
+            disabled={isAccepting || isRejecting}
+          >
+            Reject
+          </Button>
+        </Stack>
+      )}
+
+      {status === "accepted" && (
+        <Paper
+          elevation={0}
           sx={{
-            flex: 1,
-            minWidth: 0,
-            fontSize: "0.62rem",
-            fontFamily: RAJ,
-            fontWeight: 700,
-            letterSpacing: "0.06em",
-            height: 24,
+            p: 1.5,
+            background: "rgba(93,202,165,0.08)",
+            border: "1px solid rgba(93,202,165,0.25)",
             borderRadius: "2px",
-            textTransform: "uppercase",
-            background: "transparent",
-            color: "rgba(90,100,130,1)",
-            border: "1px solid rgba(255,255,255,0.09)",
-            "&:hover": {
-              borderColor: "rgba(255,70,85,0.4)",
-              color: "#FF4655",
-              background: "rgba(255,70,85,0.07)",
-            },
           }}
         >
-          Reject
-        </Button>
-      </Stack>
+          <Stack direction="row" alignItems="center" gap={1.5}>
+            <Box sx={{ color: "#5DCAA5" }}>
+              <CircularProgress size={20} sx={{ color: "currentColor" }} />
+            </Box>
+            <Box>
+              <Typography
+                sx={{
+                  fontFamily: RAJ,
+                  fontWeight: 700,
+                  fontSize: "0.8rem",
+                  color: "#5DCAA5",
+                }}
+              >
+                Waiting for applicant response...
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: RAJ,
+                  fontWeight: 500,
+                  fontSize: "0.65rem",
+                  color: "rgba(93,202,165,0.7)",
+                }}
+              >
+                They&lsquo;ll confirm shortly
+              </Typography>
+            </Box>
+          </Stack>
+        </Paper>
+      )}
     </Paper>
   );
 }
@@ -224,7 +307,6 @@ export function MyLobbyPage() {
   const [deleteLobby] = useDeleteLobbyMutation();
 
   const navigate = useNavigate();
-  const deleteLobbyRef = useRef<Boolean>(false);
 
   const handleToggle = async (id: string, currentStatus: string) => {
     try {
@@ -246,7 +328,6 @@ export function MyLobbyPage() {
       if (response?.status) {
         toast.success("Lobby deleted.");
         setMyLobby(null);
-        deleteLobbyRef.current = true;
       } else {
         toast.info(response?.data?.message || "Failed to delete lobby.");
       }
@@ -256,12 +337,7 @@ export function MyLobbyPage() {
   };
 
   useEffect(() => {
-    if (
-      isAuthenticated &&
-      data &&
-      data.status &&
-      deleteLobbyRef.current === false
-    ) {
+    if (isAuthenticated && data && data.status) {
       setMyLobby(data.data || []);
     }
   }, [isAuthenticated, data, setMyLobby]);
@@ -905,12 +981,8 @@ export function MyLobbyPage() {
                       <ApplicantCard
                         key={applicant.user.id}
                         user={applicant.user}
-                        onAccept={() =>
-                          console.log("accept", applicant.user.id)
-                        }
-                        onReject={() =>
-                          console.log("reject", applicant.user.id)
-                        }
+                        lobbyId={myLobby.id}
+                        status={applicant.status}
                       />
                     ))}
                   </Stack>
