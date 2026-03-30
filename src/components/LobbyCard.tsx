@@ -24,6 +24,7 @@ import { useRequestToJoinLobbyMutation } from "src/core/apis/api-inventory";
 
 import { RankChip } from "./RankChip";
 import { RoleChip } from "./RoleChip";
+import { MetaChip } from "./meta-chip";
 import { StatusChip } from "./StatusChip";
 import { formatTimeAgo } from "../lib/valorant";
 
@@ -112,6 +113,17 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
             gap: 1.5,
           }}
         >
+          {/* ── Meta: region + server ── */}
+          <Stack direction="row" flexWrap="wrap" gap={0.6} mb={1}>
+            <MetaChip
+              icon={<Globe size={10} />}
+              label={currentRegion?.label || String(lobby.region)}
+            />
+            {lobby.server && (
+              <MetaChip icon={<Server size={10} />} label={lobby.server} />
+            )}
+          </Stack>
+
           {/* Header */}
           <Stack
             direction="row"
@@ -119,6 +131,7 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
             alignItems="flex-start"
             gap={1}
           >
+            <StatusChip status={lobby?.status || "open"} />
             <Box flex={1} minWidth={0}>
               <Typography
                 variant="h6"
@@ -136,19 +149,6 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
               >
                 {lobby.title}
               </Typography>
-              {/* {lobby.hostGamename && (
-                <Typography
-                  variant="caption"
-                  sx={{ color: "text.secondary", fontWeight: 500 }}
-                >
-                  {lobby.hostGamename}
-                  {lobby.hostTagline && (
-                    <Box component="span" sx={{ opacity: 0.5 }}>
-                      #{lobby.hostTagline}
-                    </Box>
-                  )}
-                </Typography>
-              )} */}
             </Box>
             {/* Rank range */}
             <Stack direction="row" alignItems="center" gap={0.5} flexShrink={0}>
@@ -157,7 +157,7 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
                 variant="caption"
                 sx={{ color: "text.secondary", fontSize: "0.65rem" }}
               >
-                |
+                →
               </Typography>
               <RankChip rank={lobby.rankMax} />
             </Stack>
@@ -181,38 +181,6 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
               {lobby.description}
             </Typography>
           )}
-
-          {/* Meta row */}
-          <Stack direction="row" flexWrap="wrap" gap={0.75}>
-            <StatusChip status={lobby?.status || "open"} />
-
-            <Chip
-              icon={<Globe size={12} />}
-              label={currentRegion?.label || lobby?.region || "Unknown"}
-              size="small"
-              sx={{
-                backgroundColor: "rgba(255,255,255,0.06)",
-                color: "text.secondary",
-                border: "1px solid rgba(255,255,255,0.1)",
-                fontFamily: '"Rajdhani", sans-serif',
-                letterSpacing: "0.05em",
-                "& .MuiChip-icon": { ml: 1, color: "text.secondary" },
-              }}
-            />
-            <Chip
-              icon={<Server size={12} />}
-              label={lobby?.server || "Unknown"}
-              size="small"
-              sx={{
-                backgroundColor: "rgba(255,255,255,0.06)",
-                color: "rgba(255, 255, 255, 0.79)",
-                border: "1px solid rgb(255, 255, 255)",
-                fontFamily: '"Rajdhani", sans-serif',
-                alignItems: "center",
-                "& .MuiChip-icon": { ml: 1, color: "rgb(255, 255, 255)" },
-              }}
-            />
-          </Stack>
 
           {/* Roles */}
           {roles.length > 0 && (

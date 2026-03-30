@@ -22,6 +22,7 @@ export function RoleChip({ role, size = "small" }: RoleChipProps) {
       label={role?.toUpperCase()}
       size={size}
       sx={{
+        borderRadius: "2px",
         backgroundColor: colors.bg,
         color: colors.color,
         border: `1px solid ${colors.border}`,

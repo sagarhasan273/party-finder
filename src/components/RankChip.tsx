@@ -18,6 +18,7 @@ export function RankChip({ rank, size = "small" }: RankChipProps) {
       label={rank?.toUpperCase()}
       size={size}
       sx={{
+        borderRadius: "2px",
         backgroundColor: colors.bg,
         color: colors.color,
         border: `1px solid ${colors.border}`,

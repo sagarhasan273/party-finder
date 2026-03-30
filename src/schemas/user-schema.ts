@@ -68,7 +68,7 @@ export const UserSchema = zod
     pickRank: zod.string().optional(),
 
     mainRole: zod
-      .enum(["Duelist", "Initiator", "Controller", "Sentinel"])
+      .enum(["Any", "Duelist", "Initiator", "Controller", "Sentinel"])
       .optional(),
 
     gamename: zod.string().min(1).optional(),

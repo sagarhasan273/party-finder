@@ -58,6 +58,7 @@ export function StatusChip({ status }: StatusChipProps) {
       label={cfg.label}
       size="small"
       sx={{
+        borderRadius: "2px",
         backgroundColor: cfg.bg,
         color: cfg.color,
         border: `1px solid ${cfg.border}`,

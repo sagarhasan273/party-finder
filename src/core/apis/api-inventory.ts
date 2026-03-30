@@ -30,6 +30,11 @@ export const inventoryApi = createApi({
       providesTags: ["inventory-recall"],
     }),
 
+    getJoinRequestedLobbies: builder.query<ResponseType, null>({
+      query: () => `inventory/lobby/join-requests`,
+      providesTags: ["inventory-recall"],
+    }),
+
     createLobby: builder.mutation<ResponseType, CreateLobbyInput>({
       query: (newUser) => ({
         url: `inventory/lobby/create`,
@@ -86,6 +91,7 @@ export const inventoryApi = createApi({
 export const {
   useGetLobbiesQuery,
   useGetMyLobbyQuery,
+  useGetJoinRequestedLobbiesQuery,
   useCreateLobbyMutation,
   useUpdateLobbyMutation,
   useDeleteLobbyMutation,

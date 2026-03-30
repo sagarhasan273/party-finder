@@ -13,14 +13,12 @@ import {
   Trash2,
   Layout,
   Server,
-  Shield,
   RefreshCw,
   ChevronLeft,
 } from "lucide-react";
 
 import {
   Box,
-  Chip,
   Stack,
   Paper,
   Button,
@@ -41,22 +39,20 @@ import {
 } from "src/core/apis/api-inventory";
 
 import { RankChip } from "src/components/RankChip";
+import { MetaChip } from "src/components/meta-chip";
 
 import { formatTimeAgo } from "../lib/valorant";
 import { RoleChip } from "../components/RoleChip";
 import { StatusChip } from "../components/StatusChip";
 
-// ─── Shared sx tokens ────────────────────────────────────────────────────────
+// ─── Tokens ───────────────────────────────────────────────────────────────────
 
-const CARD_BG = "rgba(22,25,38,0.95)";
+const CARD_BG = "rgba(13,15,26,0.97)";
 const BORDER = "rgba(255,255,255,0.07)";
-const HOVER_BORDER = "rgba(255,255,255,0.14)";
+const RAJ = '"Rajdhani", sans-serif';
 
-const rajdhani = '"Rajdhani", sans-serif';
+// ─── ApplicantCard ────────────────────────────────────────────────────────────
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
-
-/** Compact applicant card shown in the join-requests section */
 function ApplicantCard({
   user,
   onAccept,
@@ -72,65 +68,89 @@ function ApplicantCard({
       sx={{
         flex: "1 1 148px",
         minWidth: 148,
-        maxWidth: 210,
-        p: "11px 14px",
+        maxWidth: 200,
+        p: "11px 13px",
         background: "rgba(255,255,255,0.025)",
         border: `1px solid ${BORDER}`,
-        borderRadius: "8px",
+        // Valorant diagonal clip on top-right
+        borderRadius: "4px",
+        clipPath:
+          "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)",
         display: "flex",
         flexDirection: "column",
         gap: 0.75,
-        transition: "border-color 0.2s",
-        "&:hover": { borderColor: HOVER_BORDER },
+        position: "relative",
+        overflow: "hidden",
+        transition: "border-color 0.2s, box-shadow 0.2s",
+        "&:hover": {
+          borderColor: "rgba(255,255,255,0.13)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+        },
+        // Micro left bar
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: 2,
+          height: "100%",
+          background: "rgba(255,70,85,0.4)",
+        },
       }}
     >
+      {/* Corner triangle ornament */}
+      <Box
+        aria-hidden
+        sx={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          width: 0,
+          height: 0,
+          borderStyle: "solid",
+          borderWidth: "0 10px 10px 0",
+          borderColor:
+            "transparent rgba(255,70,85,0.25) transparent transparent",
+          zIndex: 1,
+        }}
+      />
+
       {/* Name */}
       <Typography
         sx={{
           fontSize: "0.78rem",
           fontWeight: 700,
-          fontFamily: rajdhani,
-          color: "text.primary",
-          letterSpacing: "0.03em",
+          fontFamily: RAJ,
+          letterSpacing: "0.04em",
+          color: "#edf0f4",
+          textTransform: "uppercase",
         }}
       >
         {user.gamename}
-        <Box component="span" sx={{ opacity: 0.4, fontWeight: 400 }}>
+        <Box
+          component="span"
+          sx={{ opacity: 0.35, fontWeight: 400, textTransform: "none" }}
+        >
           #{user.tagline}
         </Box>
       </Typography>
 
-      {/* Rank + Role chips */}
+      {/* Rank + Role */}
       <Stack direction="row" gap={0.5} flexWrap="wrap">
         {user?.rank && <RankChip rank={user.rank} />}
-        {user?.mainRole && (
-          <Chip
-            icon={<Shield size={9} />}
-            label={user.mainRole.toUpperCase()}
-            size="small"
-            sx={{
-              fontFamily: rajdhani,
-              fontWeight: 700,
-              fontSize: "0.62rem",
-              letterSpacing: "0.04em",
-              height: 20,
-              backgroundColor: "rgba(255,255,255,0.05)",
-              color: "text.secondary",
-              border: `1px solid ${BORDER}`,
-              "& .MuiChip-icon": { ml: 0.5, color: "text.secondary" },
-              "& .MuiChip-label": { px: 0.75 },
-            }}
-          />
-        )}
+        {user?.mainRole && <RoleChip role={user.mainRole} size="small" />}
       </Stack>
 
       {/* Playstyle */}
       {user?.playstyle && (
         <Typography
           sx={{
-            fontSize: "0.7rem",
-            color: "text.secondary",
-            lineHeight: 1.45,
+            fontSize: "0.68rem",
+            fontFamily: RAJ,
+            fontWeight: 500,
+            letterSpacing: "0.02em",
+            color: "rgba(74,84,112,1)",
+            lineHeight: 1.4,
           }}
         >
           {user.playstyle}
@@ -138,25 +158,26 @@ function ApplicantCard({
       )}
 
       {/* Actions */}
-      <Stack direction="row" gap={0.75} mt={0.25}>
+      <Stack direction="row" gap={0.6} mt={0.25}>
         <Button
           size="small"
-          variant="contained"
           onClick={onAccept}
           sx={{
             flex: 1,
             minWidth: 0,
-            fontSize: "0.68rem",
-            fontFamily: rajdhani,
+            fontSize: "0.62rem",
+            fontFamily: RAJ,
             fontWeight: 700,
-            letterSpacing: "0.05em",
-            height: 26,
-            background: "rgba(34,197,94,0.18)",
+            letterSpacing: "0.06em",
+            height: 24,
+            borderRadius: "2px",
+            textTransform: "uppercase",
+            background: "rgba(34,197,94,0.15)",
             color: "#22c55e",
-            border: "1px solid rgba(34,197,94,0.3)",
+            border: "1px solid rgba(34,197,94,0.28)",
             boxShadow: "none",
             "&:hover": {
-              background: "rgba(34,197,94,0.28)",
+              background: "rgba(34,197,94,0.25)",
               boxShadow: "none",
             },
           }}
@@ -165,22 +186,24 @@ function ApplicantCard({
         </Button>
         <Button
           size="small"
-          variant="outlined"
           onClick={onReject}
           sx={{
             flex: 1,
             minWidth: 0,
-            fontSize: "0.68rem",
-            fontFamily: rajdhani,
+            fontSize: "0.62rem",
+            fontFamily: RAJ,
             fontWeight: 700,
-            letterSpacing: "0.05em",
-            height: 26,
-            borderColor: "rgba(255,255,255,0.1)",
-            color: "text.secondary",
+            letterSpacing: "0.06em",
+            height: 24,
+            borderRadius: "2px",
+            textTransform: "uppercase",
+            background: "transparent",
+            color: "rgba(90,100,130,1)",
+            border: "1px solid rgba(255,255,255,0.09)",
             "&:hover": {
-              borderColor: "rgba(255,70,85,0.35)",
+              borderColor: "rgba(255,70,85,0.4)",
               color: "#FF4655",
-              background: "rgba(255,70,85,0.06)",
+              background: "rgba(255,70,85,0.07)",
             },
           }}
         >
@@ -191,7 +214,7 @@ function ApplicantCard({
   );
 }
 
-// ─── Page ────────────────────────────────────────────────────────────────────
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function MyLobbyPage() {
   const { isAuthenticated, user } = useCredentials();
@@ -201,7 +224,6 @@ export function MyLobbyPage() {
   const [deleteLobby] = useDeleteLobbyMutation();
 
   const navigate = useNavigate();
-
   const deleteLobbyRef = useRef<Boolean>(false);
 
   const handleToggle = async (id: string, currentStatus: string) => {
@@ -253,7 +275,15 @@ export function MyLobbyPage() {
     (r) => r.code === myLobby?.region,
   );
 
-  // ── Auth guard ──
+  // Status-driven accent color for the main card
+  const statusAccent =
+    myLobby?.status === "open"
+      ? "#22c55e"
+      : myLobby?.status === "full"
+        ? "#FF4655"
+        : "rgba(255,255,255,0.18)";
+
+  // ── Auth guard ──────────────────────────────────────────────────────────────
   if (!isAuthenticated) {
     return (
       <Box
@@ -265,9 +295,11 @@ export function MyLobbyPage() {
         <Stack alignItems="center" gap={2.5} textAlign="center">
           <Box
             sx={{
-              width: 56,
-              height: 56,
-              borderRadius: "12px",
+              width: 52,
+              height: 52,
+              borderRadius: "4px",
+              clipPath:
+                "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)",
               background: "rgba(255,70,85,0.1)",
               border: "1px solid rgba(255,70,85,0.25)",
               display: "flex",
@@ -275,16 +307,24 @@ export function MyLobbyPage() {
               justifyContent: "center",
             }}
           >
-            <Lock size={26} color="#FF4655" />
+            <Lock size={22} color="#FF4655" />
           </Box>
           <Box>
             <Typography
               variant="h4"
-              sx={{ fontFamily: rajdhani, fontWeight: 900, mb: 0.5 }}
+              sx={{
+                fontFamily: RAJ,
+                fontWeight: 900,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                mb: 0.5,
+              }}
             >
-              SIGN IN REQUIRED
+              Sign In Required
             </Typography>
-            <Typography sx={{ color: "text.secondary", fontSize: "0.88rem" }}>
+            <Typography
+              sx={{ color: "rgba(74,84,112,1)", fontSize: "0.88rem" }}
+            >
               You need to be signed in to manage your lobbies.
             </Typography>
           </Box>
@@ -293,10 +333,15 @@ export function MyLobbyPage() {
             onClick={() => {}}
             sx={{
               background: "#FF4655",
-              fontFamily: rajdhani,
+              fontFamily: RAJ,
               fontWeight: 700,
-              letterSpacing: "0.06em",
-              "&:hover": { background: "#ff6b77" },
+              letterSpacing: "0.07em",
+              textTransform: "uppercase",
+              borderRadius: "3px",
+              "&:hover": {
+                background: "#ff6b77",
+                boxShadow: "0 0 18px rgba(255,70,85,0.4)",
+              },
             }}
           >
             Sign In
@@ -313,22 +358,23 @@ export function MyLobbyPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        {/* ── Page header ── */}
+        {/* ── Page header ─────────────────────────────────────────────────── */}
         <Box mb={4}>
           <Button
             component={Link}
             to="/"
-            startIcon={<ChevronLeft size={15} />}
+            startIcon={<ChevronLeft size={14} />}
             size="small"
             sx={{
-              fontFamily: rajdhani,
+              fontFamily: RAJ,
               fontWeight: 700,
-              fontSize: "0.72rem",
-              letterSpacing: "0.07em",
-              color: "text.secondary",
+              fontSize: "0.65rem",
+              letterSpacing: "0.09em",
+              color: "rgba(74,84,112,1)",
               mb: 2,
               textTransform: "uppercase",
-              "&:hover": { color: "text.primary" },
+              borderRadius: "2px",
+              "&:hover": { color: "#edf0f4" },
             }}
           >
             Back to Browse
@@ -340,11 +386,14 @@ export function MyLobbyPage() {
             alignItems="center"
           >
             <Stack direction="row" alignItems="center" gap={1.5}>
+              {/* Icon with diagonal clip */}
               <Box
                 sx={{
                   width: 40,
                   height: 40,
-                  borderRadius: "8px",
+                  borderRadius: "4px",
+                  clipPath:
+                    "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
                   background: "rgba(255,70,85,0.12)",
                   border: "1px solid rgba(255,70,85,0.25)",
                   display: "flex",
@@ -353,40 +402,41 @@ export function MyLobbyPage() {
                   flexShrink: 0,
                 }}
               >
-                <Layout size={18} color="#FF4655" />
+                <Layout size={17} color="#FF4655" />
               </Box>
-              <Box>
-                <Typography
-                  variant="h3"
-                  sx={{
-                    fontFamily: rajdhani,
-                    fontWeight: 900,
-                    fontSize: "1.9rem",
-                    letterSpacing: "0.04em",
-                    lineHeight: 1,
-                    color: "text.primary",
-                  }}
-                >
-                  MY LOBBIES
-                </Typography>
-              </Box>
+              <Typography
+                variant="h3"
+                sx={{
+                  fontFamily: RAJ,
+                  fontWeight: 900,
+                  fontSize: "1.85rem",
+                  letterSpacing: "0.06em",
+                  lineHeight: 1,
+                  color: "#edf0f4",
+                  textTransform: "uppercase",
+                }}
+              >
+                My Lobbies
+              </Typography>
             </Stack>
 
             <Button
               component={Link}
               to="/create"
               variant="contained"
-              startIcon={<Plus size={15} />}
+              startIcon={<Plus size={14} />}
               sx={{
                 background: "#FF4655",
-                fontFamily: rajdhani,
+                fontFamily: RAJ,
                 fontWeight: 700,
-                letterSpacing: "0.06em",
-                fontSize: "0.8rem",
-                height: 36,
+                letterSpacing: "0.07em",
+                fontSize: "0.75rem",
+                height: 34,
+                borderRadius: "3px",
+                textTransform: "uppercase",
                 "&:hover": {
                   background: "#ff6b77",
-                  boxShadow: "0 0 18px rgba(255,70,85,0.35)",
+                  boxShadow: "0 0 18px rgba(255,70,85,0.4)",
                 },
               }}
             >
@@ -395,7 +445,7 @@ export function MyLobbyPage() {
           </Stack>
         </Box>
 
-        {/* ── Loading skeletons ── */}
+        {/* ── Loading skeletons ─────────────────────────────────────────────── */}
         {lobbiesLoading && (
           <Stack gap={2}>
             {[1, 2, 3].map((i) => (
@@ -404,7 +454,7 @@ export function MyLobbyPage() {
                 variant="rectangular"
                 height={160}
                 sx={{
-                  borderRadius: "8px",
+                  borderRadius: "4px",
                   bgcolor: "rgba(255,255,255,0.04)",
                   animationDelay: `${i * 80}ms`,
                 }}
@@ -413,24 +463,26 @@ export function MyLobbyPage() {
           </Stack>
         )}
 
-        {/* ── Empty state ── */}
+        {/* ── Empty state ───────────────────────────────────────────────────── */}
         {!lobbiesLoading && !myLobby && (
           <Box
             sx={{
               py: 12,
               textAlign: "center",
-              border: "1px dashed rgba(255,255,255,0.08)",
-              borderRadius: "10px",
-              background: "rgba(255,255,255,0.015)",
+              border: "1px dashed rgba(255,255,255,0.07)",
+              borderRadius: "4px",
+              background: "rgba(255,255,255,0.012)",
             }}
           >
             <Box
               sx={{
-                width: 52,
-                height: 52,
-                borderRadius: "10px",
-                background: "rgba(255,70,85,0.08)",
-                border: "1px solid rgba(255,70,85,0.18)",
+                width: 50,
+                height: 50,
+                borderRadius: "4px",
+                clipPath:
+                  "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)",
+                background: "rgba(255,70,85,0.07)",
+                border: "1px solid rgba(255,70,85,0.15)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -438,21 +490,23 @@ export function MyLobbyPage() {
                 mb: 2,
               }}
             >
-              <Layout size={22} color="rgba(255,70,85,0.5)" />
+              <Layout size={20} color="rgba(255,70,85,0.45)" />
             </Box>
             <Typography
               sx={{
-                fontFamily: rajdhani,
+                fontFamily: RAJ,
                 fontWeight: 700,
-                fontSize: "1.1rem",
-                letterSpacing: "0.06em",
-                mb: 1,
+                fontSize: "1rem",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "#edf0f4",
+                mb: 0.75,
               }}
             >
-              NO LOBBIES YET
+              No Lobbies Yet
             </Typography>
             <Typography
-              sx={{ color: "text.secondary", fontSize: "0.88rem", mb: 3 }}
+              sx={{ color: "rgba(74,84,112,1)", fontSize: "0.85rem", mb: 3 }}
             >
               You haven&apos;t posted any lobbies. Create one to find your 5th!
             </Typography>
@@ -461,9 +515,11 @@ export function MyLobbyPage() {
               variant="contained"
               sx={{
                 background: "#FF4655",
-                fontFamily: rajdhani,
+                fontFamily: RAJ,
                 fontWeight: 700,
-                letterSpacing: "0.06em",
+                letterSpacing: "0.07em",
+                textTransform: "uppercase",
+                borderRadius: "3px",
                 "&:hover": { background: "#ff6b77" },
               }}
             >
@@ -472,7 +528,7 @@ export function MyLobbyPage() {
           </Box>
         )}
 
-        {/* ── Lobby card ── */}
+        {/* ── Lobby card ───────────────────────────────────────────────────── */}
         {!lobbiesLoading && myLobby && (
           <Stack gap={2.5}>
             <motion.div
@@ -486,15 +542,18 @@ export function MyLobbyPage() {
                 sx={{
                   backgroundColor: CARD_BG,
                   border: `1px solid ${BORDER}`,
-                  borderRadius: "10px",
+                  // Signature Valorant diagonal clip — top-right corner
+                  borderRadius: "4px",
+                  clipPath:
+                    "polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)",
                   position: "relative",
                   overflow: "hidden",
                   transition: "border-color 0.2s, box-shadow 0.2s",
                   "&:hover": {
-                    borderColor: HOVER_BORDER,
-                    boxShadow: "0 4px 28px rgba(0,0,0,0.25)",
+                    borderColor: "rgba(255,255,255,0.13)",
+                    boxShadow: `0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px ${statusAccent}22`,
                   },
-                  // Left accent bar — color matches status
+                  // Left accent bar — driven by lobby status
                   "&::before": {
                     content: '""',
                     position: "absolute",
@@ -502,110 +561,94 @@ export function MyLobbyPage() {
                     left: 0,
                     width: 3,
                     height: "100%",
-                    background:
-                      myLobby.status === "open"
-                        ? "#22c55e"
-                        : myLobby.status === "full"
-                          ? "#FF4655"
-                          : "rgba(255,255,255,0.12)",
-                    borderRadius: "10px 0 0 10px",
+                    background: statusAccent,
+                    zIndex: 2,
                   },
-                  // Subtle top highlight line
+                  // Top edge tint
                   "&::after": {
                     content: '""',
                     position: "absolute",
                     top: 0,
                     left: 3,
                     right: 0,
-                    height: "1px",
-                    background:
-                      myLobby.status === "open"
-                        ? "linear-gradient(90deg, rgba(34,197,94,0.4), transparent)"
-                        : myLobby.status === "full"
-                          ? "linear-gradient(90deg, rgba(255,70,85,0.4), transparent)"
-                          : "transparent",
+                    height: "2px",
+                    background: `linear-gradient(90deg, ${statusAccent}88, transparent 55%)`,
+                    zIndex: 2,
                   },
                 }}
               >
-                <Box sx={{ p: "20px 22px 20px 28px" }}>
-                  {/* ── Top row: title + actions ── */}
+                {/* Corner triangle ornament */}
+                <Box
+                  aria-hidden
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    width: 0,
+                    height: 0,
+                    borderStyle: "solid",
+                    borderWidth: "0 16px 16px 0",
+                    borderColor: `transparent ${statusAccent}44 transparent transparent`,
+                    zIndex: 3,
+                  }}
+                />
+
+                <Box
+                  sx={{
+                    p: "18px 20px 16px 24px",
+                    position: "relative",
+                    zIndex: 1,
+                  }}
+                >
+                  {/* ── Top control row: meta chips + rank + actions ── */}
                   <Stack
                     direction="row"
                     justifyContent="space-between"
-                    alignItems="flex-start"
-                    gap={2}
-                    mb={2}
+                    alignItems="center"
+                    flexWrap="wrap"
+                    gap={1}
+                    mb={1.5}
                   >
-                    {/* Left: title + host */}
-                    <Box flex={1} minWidth={0}>
-                      <Stack
-                        direction="row"
-                        alignItems="center"
-                        gap={1}
-                        flexWrap="wrap"
-                        mb={0.5}
-                      >
-                        <Typography
-                          sx={{
-                            fontFamily: rajdhani,
-                            fontWeight: 700,
-                            fontSize: "1.08rem",
-                            letterSpacing: "0.04em",
-                            lineHeight: 1.2,
-                            color: "text.primary",
-                          }}
-                        >
-                          {myLobby.title}
-                        </Typography>
-                        <StatusChip status={myLobby.status} />
-                      </Stack>
-
-                      {myLobby.hostGamename && (
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: "text.secondary",
-                            fontWeight: 500,
-                            fontSize: "0.75rem",
-                          }}
-                        >
-                          {myLobby.hostGamename}
-                          {myLobby.hostTagline && (
-                            <Box
-                              component="span"
-                              sx={{ opacity: 0.45, fontWeight: 400 }}
-                            >
-                              #{myLobby.hostTagline}
-                            </Box>
-                          )}
-                        </Typography>
+                    {/* Left: region + server */}
+                    <Stack direction="row" flexWrap="wrap" gap={0.6}>
+                      <MetaChip
+                        icon={<Globe size={10} />}
+                        label={currentRegion?.label || String(myLobby.region)}
+                      />
+                      {myLobby.server && (
+                        <MetaChip
+                          icon={<Server size={10} />}
+                          label={myLobby.server}
+                        />
                       )}
-                    </Box>
+                    </Stack>
 
-                    {/* Right: rank range + action buttons */}
+                    {/* Right: ranks + divider + actions */}
                     <Stack
                       direction="row"
                       alignItems="center"
-                      gap={1}
+                      gap={0.75}
                       flexShrink={0}
                     >
                       <RankChip rank={myLobby.rankMin} />
                       <Typography
-                        variant="caption"
                         sx={{
-                          color: "text.secondary",
-                          fontSize: "0.65rem",
-                          opacity: 0.6,
+                          color: "rgba(255,255,255,0.18)",
+                          fontSize: "0.62rem",
+                          lineHeight: 1,
                         }}
                       >
-                        |
+                        →
                       </Typography>
                       <RankChip rank={myLobby.rankMax} />
 
                       <Divider
                         orientation="vertical"
                         flexItem
-                        sx={{ mx: 0.25, borderColor: "rgba(255,255,255,0.08)" }}
+                        sx={{
+                          mx: 0.25,
+                          borderColor: "rgba(255,255,255,0.07)",
+                        }}
                       />
 
                       <Button
@@ -613,25 +656,26 @@ export function MyLobbyPage() {
                         size="small"
                         startIcon={
                           myLobby.status === "open" ? (
-                            <Lock size={12} />
+                            <Lock size={11} />
                           ) : (
-                            <RefreshCw size={12} />
+                            <RefreshCw size={11} />
                           )
                         }
                         onClick={() => handleToggle(myLobby.id, myLobby.status)}
                         sx={{
-                          fontFamily: rajdhani,
+                          fontFamily: RAJ,
                           fontWeight: 700,
-                          fontSize: "0.68rem",
-                          letterSpacing: "0.05em",
-                          height: 28,
-                          px: 1.25,
-                          borderColor: "rgba(255,255,255,0.1)",
-                          color: "text.secondary",
+                          fontSize: "0.62rem",
+                          letterSpacing: "0.07em",
+                          height: 26,
+                          px: 1,
+                          borderRadius: "2px",
                           textTransform: "uppercase",
+                          borderColor: "rgba(255,255,255,0.09)",
+                          color: "rgba(90,100,130,1)",
                           "&:hover": {
-                            borderColor: "rgba(255,255,255,0.22)",
-                            color: "text.primary",
+                            borderColor: "rgba(255,255,255,0.2)",
+                            color: "#edf0f4",
                             background: "rgba(255,255,255,0.04)",
                           },
                         }}
@@ -644,10 +688,11 @@ export function MyLobbyPage() {
                           onClick={() => handleDelete(myLobby.id)}
                           size="small"
                           sx={{
-                            width: 28,
-                            height: 28,
+                            width: 26,
+                            height: 26,
+                            borderRadius: "2px",
                             border: "1px solid rgba(255,70,85,0.18)",
-                            color: "rgba(255,70,85,0.5)",
+                            color: "rgba(255,70,85,0.45)",
                             transition: "all 0.15s",
                             "&:hover": {
                               background: "rgba(255,70,85,0.1)",
@@ -656,66 +701,70 @@ export function MyLobbyPage() {
                             },
                           }}
                         >
-                          <Trash2 size={12} />
+                          <Trash2 size={11} />
                         </IconButton>
                       </Tooltip>
                     </Stack>
                   </Stack>
 
-                  {/* ── Meta chips: region + server ── */}
-                  <Stack
-                    direction="row"
-                    flexWrap="wrap"
-                    gap={0.75}
-                    mb={roles?.length > 0 ? 1.25 : 1.5}
-                  >
-                    <Chip
-                      icon={<Globe size={11} />}
-                      label={
-                        currentRegion?.label || myLobby?.region || "Unknown"
-                      }
-                      size="small"
-                      sx={{
-                        backgroundColor: "rgba(255,255,255,0.05)",
-                        color: "text.secondary",
-                        border: `1px solid ${BORDER}`,
-                        fontFamily: rajdhani,
-                        fontWeight: 600,
-                        fontSize: "0.7rem",
-                        letterSpacing: "0.04em",
-                        height: 22,
-                        "& .MuiChip-icon": {
-                          ml: 0.75,
-                          color: "text.secondary",
-                        },
-                        "& .MuiChip-label": { px: 0.75 },
-                      }}
-                    />
-                    <Chip
-                      icon={<Server size={11} />}
-                      label={myLobby?.server || "Unknown"}
-                      size="small"
-                      sx={{
-                        backgroundColor: "rgba(255,255,255,0.05)",
-                        color: "text.secondary",
-                        border: `1px solid ${BORDER}`,
-                        fontFamily: rajdhani,
-                        fontWeight: 600,
-                        fontSize: "0.7rem",
-                        letterSpacing: "0.04em",
-                        height: 22,
-                        "& .MuiChip-icon": {
-                          ml: 0.75,
-                          color: "text.secondary",
-                        },
-                        "& .MuiChip-label": { px: 0.75 },
-                      }}
-                    />
-                  </Stack>
+                  {/* ── Title + status + host ── */}
+                  <Box mb={1.5}>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      gap={0.75}
+                      flexWrap="wrap"
+                      mb={0.4}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: RAJ,
+                          fontWeight: 700,
+                          fontSize: "1.05rem",
+                          letterSpacing: "0.05em",
+                          lineHeight: 1.2,
+                          color: "#edf0f4",
+                          textTransform: "uppercase",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          maxWidth: { xs: 200, sm: 420 },
+                        }}
+                      >
+                        {myLobby.title}
+                      </Typography>
+                      <StatusChip status={myLobby.status} />
+                    </Stack>
 
-                  {/* ── Role chips ── */}
+                    {myLobby.hostGamename && (
+                      <Typography
+                        sx={{
+                          fontFamily: RAJ,
+                          fontSize: "0.7rem",
+                          fontWeight: 500,
+                          letterSpacing: "0.03em",
+                          color: "rgba(74,84,112,1)",
+                        }}
+                      >
+                        hosted by{" "}
+                        <Box
+                          component="span"
+                          sx={{ color: "#8892aa", fontWeight: 600 }}
+                        >
+                          {myLobby.hostGamename}
+                        </Box>
+                        {myLobby.hostTagline && (
+                          <Box component="span" sx={{ opacity: 0.4 }}>
+                            #{myLobby.hostTagline}
+                          </Box>
+                        )}
+                      </Typography>
+                    )}
+                  </Box>
+
+                  {/* ── Roles ── */}
                   {roles?.length > 0 && (
-                    <Stack direction="row" flexWrap="wrap" gap={0.75} mb={1.5}>
+                    <Stack direction="row" flexWrap="wrap" gap={0.6} mb={1.25}>
                       {roles.map((role) => {
                         if (!role) return null;
                         return <RoleChip key={role} role={role} />;
@@ -728,14 +777,17 @@ export function MyLobbyPage() {
                     <Typography
                       variant="body2"
                       sx={{
-                        color: "text.secondary",
-                        fontSize: "0.83rem",
-                        lineHeight: 1.55,
+                        fontFamily: RAJ,
+                        fontWeight: 500,
+                        color: "rgba(74,84,112,1)",
+                        fontSize: "0.78rem",
+                        letterSpacing: "0.02em",
+                        lineHeight: 1.5,
                         display: "-webkit-box",
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: "vertical",
                         overflow: "hidden",
-                        mb: 1.75,
+                        mb: 1.5,
                       }}
                     >
                       {myLobby.description}
@@ -743,34 +795,38 @@ export function MyLobbyPage() {
                   )}
 
                   <Divider
-                    sx={{ borderColor: "rgba(255,255,255,0.06)", mb: 1.5 }}
+                    sx={{ borderColor: "rgba(255,255,255,0.055)", mb: 1.25 }}
                   />
 
-                  {/* ── Footer: player count + time ── */}
+                  {/* ── Footer ── */}
                   <Stack
                     direction="row"
                     justifyContent="space-between"
                     alignItems="center"
                   >
-                    <Stack direction="row" gap={2} alignItems="center">
+                    <Stack direction="row" gap={1.75} alignItems="center">
                       {/* Players */}
-                      <Stack direction="row" alignItems="center" gap={0.6}>
-                        <Users size={13} color="#7a8499" />
+                      <Stack direction="row" alignItems="center" gap={0.5}>
+                        <Users size={12} color="rgba(58,64,96,1)" />
                         <Typography
-                          variant="caption"
                           sx={{
-                            fontFamily: rajdhani,
+                            fontFamily: RAJ,
                             fontWeight: 700,
-                            color: "text.primary",
-                            fontSize: "0.8rem",
+                            color: "#8892aa",
+                            fontSize: "0.78rem",
+                            letterSpacing: "0.03em",
                           }}
                         >
                           {playerCount}/{maxPlayers}
                         </Typography>
                         {spotsLeft > 0 && myLobby.status === "open" && (
                           <Typography
-                            variant="caption"
-                            sx={{ color: "#22c55e", fontSize: "0.72rem" }}
+                            sx={{
+                              color: "#22c55e",
+                              fontSize: "0.68rem",
+                              fontFamily: RAJ,
+                              fontWeight: 600,
+                            }}
                           >
                             ({spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left)
                           </Typography>
@@ -779,10 +835,14 @@ export function MyLobbyPage() {
 
                       {/* Time */}
                       <Stack direction="row" alignItems="center" gap={0.5}>
-                        <Clock size={11} color="#7a8499" />
+                        <Clock size={11} color="rgba(58,64,96,1)" />
                         <Typography
-                          variant="caption"
-                          sx={{ color: "text.secondary", fontSize: "0.72rem" }}
+                          sx={{
+                            color: "rgba(74,84,112,1)",
+                            fontSize: "0.68rem",
+                            fontFamily: RAJ,
+                            fontWeight: 600,
+                          }}
                         >
                           {formatTimeAgo(myLobby.createdAt)}
                         </Typography>
@@ -793,7 +853,7 @@ export function MyLobbyPage() {
               </Paper>
             </motion.div>
 
-            {/* ── Join requests section ── */}
+            {/* ── Join requests ─────────────────────────────────────────────── */}
             {myLobby?.applicants && myLobby.applicants.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
@@ -801,38 +861,37 @@ export function MyLobbyPage() {
                 transition={{ delay: 0.1, duration: 0.35 }}
               >
                 <Box>
-                  {/* Section label */}
+                  {/* Section label + count */}
                   <Stack direction="row" alignItems="center" gap={1} mb={1.25}>
                     <Typography
                       sx={{
-                        fontSize: "0.7rem",
+                        fontSize: "0.62rem",
                         fontWeight: 700,
-                        fontFamily: rajdhani,
-                        letterSpacing: "0.1em",
-                        color: "text.secondary",
+                        fontFamily: RAJ,
+                        letterSpacing: "0.12em",
+                        color: "rgba(74,84,112,1)",
                         textTransform: "uppercase",
                       }}
                     >
                       Join Requests
                     </Typography>
-                    {/* Count badge */}
                     <Box
                       sx={{
-                        px: 0.9,
-                        py: 0.1,
-                        borderRadius: "4px",
-                        background: "rgba(255,70,85,0.12)",
+                        px: 0.85,
+                        py: "1px",
+                        borderRadius: "2px",
+                        background: "rgba(255,70,85,0.1)",
                         border: "1px solid rgba(255,70,85,0.25)",
                       }}
                     >
                       <Typography
                         sx={{
-                          fontSize: "0.65rem",
+                          fontSize: "0.6rem",
                           fontWeight: 700,
-                          fontFamily: rajdhani,
-                          letterSpacing: "0.06em",
+                          fontFamily: RAJ,
+                          letterSpacing: "0.08em",
                           color: "#FF4655",
-                          lineHeight: 1.6,
+                          lineHeight: 1.7,
                         }}
                       >
                         {myLobby.applicants.length}
@@ -840,18 +899,18 @@ export function MyLobbyPage() {
                     </Box>
                   </Stack>
 
-                  {/* Applicant cards grid */}
-                  <Stack direction="row" gap={1.25} flexWrap="wrap">
+                  {/* Cards grid */}
+                  <Stack direction="row" gap={1} flexWrap="wrap">
                     {myLobby.applicants.map((applicant) => (
                       <ApplicantCard
                         key={applicant.user.id}
                         user={applicant.user}
-                        onAccept={() => {
-                          console.log("accept", applicant.user.id);
-                        }}
-                        onReject={() => {
-                          console.log("reject", applicant.user.id);
-                        }}
+                        onAccept={() =>
+                          console.log("accept", applicant.user.id)
+                        }
+                        onReject={() =>
+                          console.log("reject", applicant.user.id)
+                        }
                       />
                     ))}
                   </Stack>

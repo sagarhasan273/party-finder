@@ -28,6 +28,7 @@ import { useCredentials } from "src/core/slices";
 
 const navLinks = [
   { label: "BROWSE", path: "/" },
+  { label: "APPLIED LOBBIES", path: "/applied-lobbies", authOnly: true },
   { label: "MY LOBBY", path: "/my-lobby", authOnly: true },
 ];
 
@@ -244,6 +245,18 @@ export function Navbar() {
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
+                    navigate("/applied-lobbies");
+                    setAnchorEl(null);
+                  }}
+                  sx={{ gap: 1.5, fontSize: "0.85rem" }}
+                >
+                  <ListItemIcon sx={{ minWidth: 0 }}>
+                    <Layout size={15} />
+                  </ListItemIcon>
+                  Applied Lobbies
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
                     navigate("/create");
                     setAnchorEl(null);
                   }}
@@ -282,7 +295,7 @@ export function Navbar() {
             display: { xs: "flex", md: "none" },
             borderTop: "1px solid rgba(255,255,255,0.06)",
             px: 2,
-            pb: 1,
+            py: 1,
             gap: 0.5,
             overflowX: "auto",
           }}

@@ -10,6 +10,7 @@ import type { RootState } from "../types";
 // Define auth state interface
 interface InventoryState {
   lobbies: LobbyType[];
+  appliedLobbies: LobbyType[];
   myLobby: LobbyType | null;
   isLoading: boolean;
 }
@@ -17,6 +18,7 @@ interface InventoryState {
 // Initial state
 const initialState: InventoryState = {
   lobbies: [],
+  appliedLobbies: [],
   myLobby: null,
   isLoading: false,
 };
@@ -33,20 +35,32 @@ export const inventorySlice = createSlice({
       state.myLobby = action.payload ?? null;
     },
 
+    setAppliedLobbies(
+      state,
+      action: PayloadAction<InventoryState["appliedLobbies"]>,
+    ) {
+      state.appliedLobbies = action.payload;
+    },
+
     setLoading(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
     },
+
     reset(state) {
       state.lobbies = [];
+      state.appliedLobbies = [];
       state.isLoading = false;
     },
   },
 });
 
-const { setLobbies, setMyLobby, reset, setLoading } = inventorySlice.actions;
+const { setLobbies, setMyLobby, setAppliedLobbies, reset, setLoading } =
+  inventorySlice.actions;
 
 const selectLobbies = (state: RootState) => state.inventory.lobbies;
 const selectMyLobby = (state: RootState) => state.inventory.myLobby;
+const selectAppliedLobbies = (state: RootState) =>
+  state.inventory.appliedLobbies;
 const selectIsLoading = (state: RootState) => state.inventory.isLoading;
 
 export const useInventory = () => {
@@ -54,6 +68,7 @@ export const useInventory = () => {
 
   const lobbies = useSelector(selectLobbies);
   const myLobby = useSelector(selectMyLobby);
+  const appliedLobbies = useSelector(selectAppliedLobbies);
 
   const isLoading = useSelector(selectIsLoading);
 
@@ -61,16 +76,19 @@ export const useInventory = () => {
     () => ({
       lobbies,
       myLobby,
+      appliedLobbies,
       isLoading,
       setLobbies: (payload: InventoryState["lobbies"]) =>
         dispatch(setLobbies(payload)),
       setMyLobby: (payload: InventoryState["myLobby"]) =>
         dispatch(setMyLobby(payload)),
+      setAppliedLobbies: (payload: InventoryState["appliedLobbies"]) =>
+        dispatch(setAppliedLobbies(payload)),
       setLoading: (payload: InventoryState["isLoading"]) =>
         dispatch(setLoading(payload)),
       reset: () => dispatch(reset()),
     }),
-    [lobbies, myLobby, isLoading, dispatch],
+    [lobbies, myLobby, appliedLobbies, isLoading, dispatch],
   );
 
   return memoCredentials;
