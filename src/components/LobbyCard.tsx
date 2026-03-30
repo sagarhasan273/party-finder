@@ -9,6 +9,7 @@ import {
   Card,
   Chip,
   Stack,
+  Button,
   Divider,
   Tooltip,
   Typography,
@@ -18,6 +19,8 @@ import {
 
 import { useCredentials } from "src/core/slices";
 import { ValorantRegionalServers } from "src/@mock";
+import { fErrorCatchToast } from "src/lib/error-catch";
+import { useRequestToJoinLobbyMutation } from "src/core/apis/api-inventory";
 
 import { RankChip } from "./RankChip";
 import { RoleChip } from "./RoleChip";
@@ -30,27 +33,45 @@ interface LobbyCardProps {
 }
 
 export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
-  const { isAuthenticated } = useCredentials();
+  const { isAuthenticated, user } = useCredentials();
+
+  const [requestToJoinLobby] = useRequestToJoinLobbyMutation();
+
   const roles = lobby?.rolesNeeded;
   const playerCount = Number(lobby.currentPlayers) || 4;
   const spotsLeft = playerCount;
 
-  const handleJoin = () => {
+  const handleJoin = async () => {
     if (!isAuthenticated) {
       return;
     }
-    if (lobby.discordLink) {
-      window.open(lobby.discordLink, "_blank", "noopener,noreferrer");
-    } else {
-      toast.success("Request sent!", {
-        description: `Reached out to ${lobby?.hostGamename ?? "host"} to join.`,
-      });
+    try {
+      const response = await requestToJoinLobby({
+        lobbyId: lobby?.id,
+        userId: user?.id || "",
+      }).unwrap();
+
+      if (response?.status) {
+        toast.success("Request sent!", {
+          description: `Reached out to ${lobby?.hostGamename ?? "host"} to join.`,
+        });
+      } else {
+        toast.info(response?.message || "Failed to send request.");
+      }
+    } catch (error) {
+      fErrorCatchToast(error, "Failed to send join request.");
     }
   };
 
   const currentRegion = ValorantRegionalServers.find(
     (r) => r.code === lobby?.region,
   );
+
+  const haveYouRequestedToJoin = lobby?.applicants?.some(
+    (applicant) => applicant.user === user?.id,
+  );
+
+  const areYouTheHost = lobby?.userId === user?.id;
 
   return (
     <motion.div
@@ -184,11 +205,11 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
               size="small"
               sx={{
                 backgroundColor: "rgba(255,255,255,0.06)",
-                color: "text.secondary",
-                border: "1px solid rgba(255,255,255,0.1)",
+                color: "rgba(255, 255, 255, 0.79)",
+                border: "1px solid rgb(255, 255, 255)",
                 fontFamily: '"Rajdhani", sans-serif',
                 alignItems: "center",
-                "& .MuiChip-icon": { ml: 1, color: "text.secondary" },
+                "& .MuiChip-icon": { ml: 1, color: "rgb(255, 255, 255)" },
               }}
             />
           </Stack>
@@ -265,7 +286,7 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
                 </Tooltip>
               )}
               {lobby.status === "open" && (
-                <Box
+                <Button
                   component="button"
                   onClick={handleJoin}
                   sx={{
@@ -286,9 +307,14 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
                       boxShadow: "0 0 14px rgba(255,70,85,0.4)",
                     },
                   }}
+                  disabled={haveYouRequestedToJoin || areYouTheHost}
                 >
-                  Request to JOIN
-                </Box>
+                  {haveYouRequestedToJoin
+                    ? "Requested"
+                    : areYouTheHost
+                      ? "Your Lobby"
+                      : "Request to JOIN"}
+                </Button>
               )}
               {lobby.status === "full" && (
                 <Chip

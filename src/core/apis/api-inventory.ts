@@ -47,10 +47,14 @@ export const inventoryApi = createApi({
       invalidatesTags: ["inventory-recall"],
     }),
 
-    deleteLobby: builder.mutation<ResponseType, string>({
-      query: (lobbyId) => ({
-        url: `inventory/lobby/delete/${lobbyId}`,
-        method: "DELETE",
+    deleteLobby: builder.mutation<
+      ResponseType,
+      { lobbyId: string; userId: string }
+    >({
+      query: ({ lobbyId, userId }) => ({
+        url: `inventory/lobby/delete`,
+        method: "POST",
+        body: { lobbyId, userId },
       }),
       invalidatesTags: ["inventory-recall"],
     }),

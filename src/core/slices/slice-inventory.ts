@@ -10,14 +10,14 @@ import type { RootState } from "../types";
 // Define auth state interface
 interface InventoryState {
   lobbies: LobbyType[];
-  myLobby: LobbyType;
+  myLobby: LobbyType | null;
   isLoading: boolean;
 }
 
 // Initial state
 const initialState: InventoryState = {
   lobbies: [],
-  myLobby: {} as LobbyType,
+  myLobby: null,
   isLoading: false,
 };
 
@@ -30,7 +30,7 @@ export const inventorySlice = createSlice({
     },
 
     setMyLobby(state, action: PayloadAction<InventoryState["myLobby"]>) {
-      state.myLobby = action.payload;
+      state.myLobby = action.payload ?? null;
     },
 
     setLoading(state, action: PayloadAction<boolean>) {

@@ -1,8 +1,8 @@
 import type { UserType } from "src/types/type-user";
 
 import { toast } from "sonner";
-import { useEffect } from "react";
 import { motion } from "framer-motion";
+import { useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -33,8 +33,12 @@ import {
 } from "@mui/material";
 
 import { ValorantRegionalServers } from "src/@mock";
+import { fErrorCatchToast } from "src/lib/error-catch";
 import { useInventory, useCredentials } from "src/core/slices";
-import { useGetMyLobbyQuery } from "src/core/apis/api-inventory";
+import {
+  useGetMyLobbyQuery,
+  useDeleteLobbyMutation,
+} from "src/core/apis/api-inventory";
 
 import { RankChip } from "src/components/RankChip";
 
@@ -190,18 +194,15 @@ function ApplicantCard({
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export function MyLobbyPage() {
-  const { isAuthenticated } = useCredentials();
+  const { isAuthenticated, user } = useCredentials();
   const { myLobby, setMyLobby } = useInventory();
 
   const { data, isLoading: lobbiesLoading } = useGetMyLobbyQuery(null);
+  const [deleteLobby] = useDeleteLobbyMutation();
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (isAuthenticated && data && data.status) {
-      setMyLobby(data.data || []);
-    }
-  }, [isAuthenticated, data, setMyLobby]);
+  const deleteLobbyRef = useRef<Boolean>(false);
 
   const handleToggle = async (id: string, currentStatus: string) => {
     try {
@@ -214,13 +215,34 @@ export function MyLobbyPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this lobby?")) return;
     try {
-      toast.success("Lobby deleted.");
-    } catch {
-      toast.error("Failed to delete lobby.");
+      const response = await deleteLobby({
+        lobbyId: id,
+        userId: user?.id || "",
+      }).unwrap();
+
+      if (response?.status) {
+        toast.success("Lobby deleted.");
+        setMyLobby(null);
+        deleteLobbyRef.current = true;
+      } else {
+        toast.info(response?.data?.message || "Failed to delete lobby.");
+      }
+    } catch (error) {
+      fErrorCatchToast(error, "Failed to delete lobby.");
     }
   };
+
+  useEffect(() => {
+    if (
+      isAuthenticated &&
+      data &&
+      data.status &&
+      deleteLobbyRef.current === false
+    ) {
+      setMyLobby(data.data || []);
+    }
+  }, [isAuthenticated, data, setMyLobby]);
 
   const roles = myLobby?.rolesNeeded ?? [];
   const playerCount = Number(myLobby?.currentPlayers) || 4;
