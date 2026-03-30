@@ -38,12 +38,12 @@ import {
   useDeleteLobbyMutation,
 } from "src/core/apis/api-inventory";
 
-import { RankChip } from "src/components/RankChip";
+import { RankChip } from "src/components/rank-chip";
 import { MetaChip } from "src/components/meta-chip";
 
 import { formatTimeAgo } from "../lib/valorant";
-import { RoleChip } from "../components/RoleChip";
-import { StatusChip } from "../components/StatusChip";
+import { RoleChip } from "../components/role-chip";
+import { StatusChip } from "../components/status-chip";
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
 

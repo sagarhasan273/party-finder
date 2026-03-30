@@ -504,7 +504,7 @@ export const ProfilePage: React.FC = () => {
             sx={{
               width: 68,
               height: 68,
-              borderRadius: "4px",
+              borderRadius: 2,
               border: "2px solid rgba(255,70,85,0.4)",
               bgcolor: "rgba(255,70,85,0.1)",
               padding: 0.5,

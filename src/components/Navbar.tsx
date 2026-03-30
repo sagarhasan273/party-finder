@@ -224,7 +224,7 @@ export function Navbar() {
                     navigate("/profile");
                     setAnchorEl(null);
                   }}
-                  sx={{ gap: 1.5, fontSize: "0.85rem" }}
+                  sx={{ fontSize: "0.85rem" }}
                 >
                   <ListItemIcon sx={{ minWidth: 0 }}>
                     <User size={15} />
@@ -236,7 +236,7 @@ export function Navbar() {
                     navigate("/my-lobby");
                     setAnchorEl(null);
                   }}
-                  sx={{ gap: 1.5, fontSize: "0.85rem" }}
+                  sx={{ fontSize: "0.85rem" }}
                 >
                   <ListItemIcon sx={{ minWidth: 0 }}>
                     <Layout size={15} />
@@ -248,7 +248,7 @@ export function Navbar() {
                     navigate("/applied-lobbies");
                     setAnchorEl(null);
                   }}
-                  sx={{ gap: 1.5, fontSize: "0.85rem" }}
+                  sx={{ fontSize: "0.85rem" }}
                 >
                   <ListItemIcon sx={{ minWidth: 0 }}>
                     <Layout size={15} />
@@ -260,7 +260,7 @@ export function Navbar() {
                     navigate("/create");
                     setAnchorEl(null);
                   }}
-                  sx={{ gap: 1.5, fontSize: "0.85rem" }}
+                  sx={{ fontSize: "0.85rem" }}
                 >
                   <ListItemIcon sx={{ minWidth: 0 }}>
                     <Plus size={15} />
@@ -273,7 +273,7 @@ export function Navbar() {
                     logout();
                     setAnchorEl(null);
                   }}
-                  sx={{ gap: 1.5, fontSize: "0.85rem", color: "#FF4655" }}
+                  sx={{ fontSize: "0.85rem", color: "#FF4655" }}
                 >
                   <ListItemIcon sx={{ minWidth: 0, color: "#FF4655" }}>
                     <LogOut size={15} />

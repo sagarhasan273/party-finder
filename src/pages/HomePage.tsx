@@ -16,8 +16,8 @@ import { useLobbies } from "src/hooks/use-lobbies";
 
 import { useInventory, useCredentials } from "src/core/slices";
 
-import { LobbyCard } from "../components/LobbyCard";
-import { FilterBar } from "../components/FilterBar";
+import { LobbyCard } from "../components/lobby-card";
+import { FilterBar } from "../components/filter-bar";
 
 export function HomePage() {
   useLobbies();

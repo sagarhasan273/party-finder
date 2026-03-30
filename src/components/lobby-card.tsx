@@ -22,10 +22,10 @@ import { ValorantRegionalServers } from "src/@mock";
 import { fErrorCatchToast } from "src/lib/error-catch";
 import { useRequestToJoinLobbyMutation } from "src/core/apis/api-inventory";
 
-import { RankChip } from "./RankChip";
-import { RoleChip } from "./RoleChip";
+import { RoleChip } from "./role-chip";
+import { RankChip } from "./rank-chip";
 import { MetaChip } from "./meta-chip";
-import { StatusChip } from "./StatusChip";
+import { StatusChip } from "./status-chip";
 import { formatTimeAgo } from "../lib/valorant";
 
 interface LobbyCardProps {
