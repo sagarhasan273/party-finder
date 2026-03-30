@@ -15,7 +15,7 @@ export function RankChip({ rank, size = "small" }: RankChipProps) {
   };
   return (
     <Chip
-      label={rank.toUpperCase()}
+      label={rank?.toUpperCase()}
       size={size}
       sx={{
         backgroundColor: colors.bg,

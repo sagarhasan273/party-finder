@@ -1,3 +1,5 @@
+import type { UserType } from "./type-user";
+
 export type RankTier =
   | "Iron"
   | "Bronze"
@@ -41,6 +43,10 @@ export interface LobbyType {
   currentPlayers?: number;
   createdAt: string;
   updatedAt: string;
+  applicants?: {
+    user: Partial<UserType>;
+    status: "pending" | "accepted" | "rejected";
+  }[];
 }
 
 export type CreateLobbyInput = Omit<

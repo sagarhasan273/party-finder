@@ -15,10 +15,11 @@ export function RoleChip({ role, size = "small" }: RoleChipProps) {
     color: "#a0a0c0",
     border: "rgba(100,100,130,0.3)",
   };
+
   return (
     <Chip
       icon={<Shield size={10} style={{ color: colors.color }} />}
-      label={role.toUpperCase()}
+      label={role?.toUpperCase()}
       size={size}
       sx={{
         backgroundColor: colors.bg,
