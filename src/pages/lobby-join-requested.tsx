@@ -1,5 +1,5 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Lock, Layout, ChevronLeft } from "lucide-react";
 
@@ -12,8 +12,12 @@ import {
   Typography,
 } from "@mui/material";
 
+import { fErrorCatchToast } from "src/lib/error-catch";
 import { useInventory, useCredentials } from "src/core/slices";
-import { useGetJoinRequestedLobbiesQuery } from "src/core/apis/api-inventory";
+import {
+  useCancelJoinRequestMutation,
+  useGetJoinRequestedLobbiesQuery,
+} from "src/core/apis/api-inventory";
 
 import { LobbyRequestCard } from "src/components/lobby-request-card";
 
@@ -29,16 +33,12 @@ export function LobbyJoinRequested() {
   const { data, isLoading: lobbiesLoading } =
     useGetJoinRequestedLobbiesQuery(null);
 
-  const cancelRequestRef = useRef(false);
+  const [cancelRequest] = useCancelJoinRequestMutation();
 
   const navigate = useNavigate();
+
   useEffect(() => {
-    if (
-      isAuthenticated &&
-      data &&
-      data.status &&
-      cancelRequestRef.current === false
-    ) {
+    if (isAuthenticated && data && data.status) {
       setAppliedLobbies(data.data || []);
     }
   }, [isAuthenticated, data, setAppliedLobbies]);
@@ -249,8 +249,30 @@ export function LobbyJoinRequested() {
             lobby={lobby}
             currentUserId={user.id} // to find your application in applicants[]
             index={i}
-            onCancelRequest={(lobbyId, applicationId) => {
+            onCancelRequest={async (lobbyId, applicationId) => {
               // call your cancel API here
+              try {
+                const response = await cancelRequest({
+                  lobbyId,
+                  userId: applicationId,
+                }).unwrap();
+                if (response.status) {
+                  setAppliedLobbies(
+                    appliedLobbies.filter((l) => l.id !== lobbyId),
+                  );
+                } else {
+                  // handle error (e.g. show toast)
+                  console.error(
+                    "Failed to cancel join request:",
+                    response.message,
+                  );
+                }
+              } catch (err) {
+                fErrorCatchToast(
+                  err,
+                  "Failed to cancel join request. Please try again.",
+                );
+              }
             }}
           />
         ))}
