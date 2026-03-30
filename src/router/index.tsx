@@ -7,9 +7,9 @@ import { LobbyJoinRequested } from "src/pages/lobby-join-requested";
 
 import { Navbar } from "src/components/Navbar";
 
-import { HomePage } from "../pages/HomePage";
+import { HomePage } from "../pages/home-page";
 import { ProfilePage } from "../pages/profile-page";
-import { CreateLobbyPage } from "../pages/CreateLobbyPage";
+import { CreateLobbyPage } from "../pages/create-lobby-page";
 
 export function AppRouter() {
   return (
