@@ -232,7 +232,7 @@ export function Navbar() {
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
-                    navigate("/my-lobbies");
+                    navigate("/my-lobby");
                     setAnchorEl(null);
                   }}
                   sx={{ gap: 1.5, fontSize: "0.85rem" }}
@@ -240,7 +240,7 @@ export function Navbar() {
                   <ListItemIcon sx={{ minWidth: 0 }}>
                     <Layout size={15} />
                   </ListItemIcon>
-                  My Lobbies
+                  My Lobby
                 </MenuItem>
                 <MenuItem
                   onClick={() => {

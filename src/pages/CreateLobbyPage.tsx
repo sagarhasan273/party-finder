@@ -54,6 +54,7 @@ export function CreateLobbyPage() {
   const [hostUsername, setHostUsername] = useState("");
   const [hostTag, setHostTag] = useState("");
   const [description, setDescription] = useState("");
+  const [partyCode, setPartyCode] = useState("");
   const [rankMin, setRankMin] = useState<RankTier>("Gold");
   const [rankMax, setRankMax] = useState<RankTier>("Platinum");
   const [rolesNeeded, setRolesNeeded] = useState<string[]>(["Any"]);
@@ -122,6 +123,7 @@ export function CreateLobbyPage() {
         userId: user?.id || "",
         title,
         description,
+        partyCode,
         rankMin,
         rankMax,
         hostGamename: hostUsername,
@@ -311,6 +313,7 @@ export function CreateLobbyPage() {
                     {description.length}/300
                   </Typography>
                 </Box>
+
                 <Typography
                   sx={{
                     ...sectionLabel,
@@ -358,6 +361,24 @@ export function CreateLobbyPage() {
                     required
                   />
                 </Stack>
+                <Typography
+                  sx={{
+                    ...sectionLabel,
+                    py: 0,
+                    my: 0,
+                  }}
+                >
+                  PARTY CODE FOR PLAYERS TO JOIN
+                </Typography>
+                <TextField
+                  size="small"
+                  label="Party Code"
+                  placeholder="Enter a unique code for your party"
+                  value={partyCode}
+                  onChange={(e) => setPartyCode(e.target.value)}
+                  fullWidth
+                  required
+                />
               </Stack>
             </Paper>
 

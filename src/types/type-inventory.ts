@@ -31,6 +31,7 @@ export interface LobbyType {
   userId: string;
   title: string;
   description?: string;
+  partyCode: string;
   rankMin: RankTier;
   rankMax: RankTier;
   hostGamename: string;

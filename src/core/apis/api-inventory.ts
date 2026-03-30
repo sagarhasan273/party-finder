@@ -18,16 +18,16 @@ export const inventoryApi = createApi({
       return headers;
     },
   }), // your REST API base
-  tagTypes: ["user-recall"],
+  tagTypes: ["inventory-recall"],
   endpoints: (builder) => ({
     getLobbies: builder.query<ResponseType, null>({
       query: () => `inventory/lobbies`,
-      providesTags: ["user-recall"],
+      providesTags: ["inventory-recall"],
     }),
 
     getMyLobby: builder.query<ResponseType, null>({
       query: () => `inventory/lobby/me`,
-      providesTags: ["user-recall"],
+      providesTags: ["inventory-recall"],
     }),
 
     createLobby: builder.mutation<ResponseType, CreateLobbyInput>({
@@ -44,7 +44,7 @@ export const inventoryApi = createApi({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["user-recall"],
+      invalidatesTags: ["inventory-recall"],
     }),
 
     deleteLobby: builder.mutation<ResponseType, string>({
@@ -52,7 +52,29 @@ export const inventoryApi = createApi({
         url: `inventory/lobby/delete/${lobbyId}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["user-recall"],
+      invalidatesTags: ["inventory-recall"],
+    }),
+
+    requestToJoinLobby: builder.mutation<
+      ResponseType,
+      { lobbyId: string; userId: string }
+    >({
+      query: ({ lobbyId, userId }) => ({
+        url: `inventory/lobby/request-to-join`,
+        method: "POST",
+        body: { lobbyId, userId },
+      }),
+    }),
+
+    acceptJoinRequest: builder.mutation<
+      ResponseType,
+      { lobbyId: string; userId: string }
+    >({
+      query: ({ lobbyId, userId }) => ({
+        url: `inventory/lobby/accept-join-request`,
+        method: "POST",
+        body: { lobbyId, userId },
+      }),
     }),
   }),
 });
@@ -63,4 +85,6 @@ export const {
   useCreateLobbyMutation,
   useUpdateLobbyMutation,
   useDeleteLobbyMutation,
+  useRequestToJoinLobbyMutation,
+  useAcceptJoinRequestMutation,
 } = inventoryApi;
