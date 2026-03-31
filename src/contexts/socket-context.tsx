@@ -75,7 +75,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
       reconnectionDelayMax: 5000,
       timeout: 20000,
       query: {
-        userId: user.id, // Pass user ID to server immediately
+        userId: user.id,
       },
     });
 
