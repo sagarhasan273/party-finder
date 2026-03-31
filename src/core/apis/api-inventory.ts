@@ -30,7 +30,7 @@ export const inventoryApi = createApi({
     }),
 
     getMyLobby: builder.query<ResponseType, null>({
-      query: () => `inventory/lobby/me`,
+      query: () => `inventory/my-lobby`,
       providesTags: ["inventory-my-lobby-recall"],
     }),
 
@@ -66,6 +66,7 @@ export const inventoryApi = createApi({
         method: "POST",
         body,
       }),
+      invalidatesTags: ["inventory-my-lobby-recall"],
     }),
 
     deleteLobby: builder.mutation<
@@ -82,48 +83,48 @@ export const inventoryApi = createApi({
 
     requestToJoinLobby: builder.mutation<
       ResponseType,
-      { lobbyId: string; userId: string }
+      { lobbyId: string; applicantId: string }
     >({
-      query: ({ lobbyId, userId }) => ({
+      query: ({ lobbyId, applicantId }) => ({
         url: `inventory/lobby/request-to-join`,
         method: "POST",
-        body: { lobbyId, userId },
+        body: { lobbyId, applicantId },
       }),
       invalidatesTags: ["inventory-requested-lobbies-recall"],
     }),
 
     acceptJoinRequest: builder.mutation<
       ResponseType,
-      { lobbyId: string; userId: string }
+      { lobbyId: string; applicantId: string }
     >({
-      query: ({ lobbyId, userId }) => ({
+      query: ({ lobbyId, applicantId }) => ({
         url: `inventory/lobby/accept-join-request`,
         method: "POST",
-        body: { lobbyId, userId },
+        body: { lobbyId, applicantId },
       }),
       invalidatesTags: ["inventory-my-lobby-recall"],
     }),
 
     rejectJoinRequest: builder.mutation<
       ResponseType,
-      { lobbyId: string; userId: string }
+      { lobbyId: string; applicantId: string }
     >({
-      query: ({ lobbyId, userId }) => ({
+      query: ({ lobbyId, applicantId }) => ({
         url: `inventory/lobby/reject-join-request`,
         method: "POST",
-        body: { lobbyId, userId },
+        body: { lobbyId, applicantId },
       }),
       invalidatesTags: ["inventory-my-lobby-recall"],
     }),
 
     cancelJoinRequest: builder.mutation<
       ResponseType,
-      { lobbyId: string; userId: string }
+      { lobbyId: string; applicantId: string }
     >({
-      query: ({ lobbyId, userId }) => ({
+      query: ({ lobbyId, applicantId }) => ({
         url: `inventory/lobby/cancel-join-request`,
         method: "POST",
-        body: { lobbyId, userId },
+        body: { lobbyId, applicantId },
       }),
       invalidatesTags: ["inventory-requested-lobbies-recall"],
     }),

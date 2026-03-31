@@ -254,7 +254,7 @@ export function LobbyJoinRequested() {
               try {
                 const response = await cancelRequest({
                   lobbyId,
-                  userId: applicationId,
+                  applicantId: applicationId,
                 }).unwrap();
                 if (response.status) {
                   setAppliedLobbies(

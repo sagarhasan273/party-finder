@@ -49,7 +49,7 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
     try {
       const response = await requestToJoinLobby({
         lobbyId: lobby?.id,
-        userId: user?.id || "",
+        applicantId: user?.id || "",
       }).unwrap();
 
       if (response?.status) {

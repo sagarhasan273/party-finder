@@ -3,7 +3,6 @@ import type { ApplicantStatus } from "src/types/type-inventory";
 
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -36,7 +35,6 @@ import { ValorantRegionalServers } from "src/@mock";
 import { fErrorCatchToast } from "src/lib/error-catch";
 import { useInventory, useCredentials } from "src/core/slices";
 import {
-  useGetMyLobbyQuery,
   useDeleteLobbyMutation,
   useLobbyStatusMutation,
   useAcceptJoinRequestMutation,
@@ -76,11 +74,10 @@ function ApplicantCard({
     try {
       const response = await acceptJoinRequest({
         lobbyId,
-        userId: user.id as string,
+        applicantId: user.id as string,
       }).unwrap();
       if (response.status) {
-        toast.success("Join request accepted.");
-        // Optionally update local state here to reflect the accepted request
+        toast.success(response?.message || "Join request accepted.");
       }
     } catch (error) {
       fErrorCatchToast(error, "Failed to accept join request.");
@@ -91,11 +88,10 @@ function ApplicantCard({
     try {
       const response = await rejectJoinRequest({
         lobbyId,
-        userId: user.id as string,
+        applicantId: user.id as string,
       }).unwrap();
       if (response.status) {
-        toast.success("Join request rejected.");
-        // Optionally update local state here to reflect the rejected request
+        toast.success(response?.message || "Join request rejected.");
       }
     } catch (error) {
       fErrorCatchToast(error, "Failed to reject join request.");
@@ -328,15 +324,12 @@ function ApplicantCard({
 
 export function MyLobbyPage() {
   const { isAuthenticated, user } = useCredentials();
-  const { myLobby, setMyLobby } = useInventory();
+  const { myLobby, setMyLobby, myLobbyLoading } = useInventory();
 
-  const { data, isLoading: lobbiesLoading, refetch } = useGetMyLobbyQuery(null);
   const [deleteLobby] = useDeleteLobbyMutation();
   const [lobbyStatus] = useLobbyStatusMutation();
 
   const navigate = useNavigate();
-
-  const myLobbyRef = useRef(false);
 
   const handleToggle = async () => {
     try {
@@ -369,7 +362,6 @@ export function MyLobbyPage() {
       if (response?.status) {
         toast.success("Lobby deleted.");
         setMyLobby(null);
-        refetch();
       } else {
         toast.info(response?.data?.message || "Failed to delete lobby.");
         setMyLobby(null);
@@ -378,19 +370,6 @@ export function MyLobbyPage() {
       fErrorCatchToast(error, "Failed to delete lobby.");
     }
   };
-
-  useEffect(() => {
-    if (
-      isAuthenticated &&
-      data &&
-      data.status &&
-      data.data &&
-      !myLobbyRef.current
-    ) {
-      setMyLobby(data.data || null);
-      myLobbyRef.current = true;
-    }
-  }, [isAuthenticated, data, setMyLobby]);
 
   const roles = myLobby?.rolesNeeded ?? [];
   const playerCount = Number(myLobby?.currentPlayers) || 4;
@@ -572,7 +551,7 @@ export function MyLobbyPage() {
         </Box>
 
         {/* ── Loading skeletons ─────────────────────────────────────────────── */}
-        {lobbiesLoading && (
+        {myLobbyLoading && (
           <Stack gap={2}>
             {[1, 2, 3].map((i) => (
               <Skeleton
@@ -590,7 +569,7 @@ export function MyLobbyPage() {
         )}
 
         {/* ── Empty state ───────────────────────────────────────────────────── */}
-        {!lobbiesLoading && !myLobby && (
+        {!myLobbyLoading && !myLobby && (
           <Box
             sx={{
               py: 12,
@@ -655,7 +634,7 @@ export function MyLobbyPage() {
         )}
 
         {/* ── Lobby card ───────────────────────────────────────────────────── */}
-        {!lobbiesLoading && myLobby && (
+        {!myLobbyLoading && myLobby && (
           <Stack gap={2.5}>
             <motion.div
               key={myLobby.id}

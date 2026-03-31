@@ -12,6 +12,8 @@ interface InventoryState {
   lobbies: LobbyType[];
   appliedLobbies: LobbyType[];
   myLobby: LobbyType | null;
+  myLobbyLoading: boolean;
+  appliedLobbiesLoading: boolean;
   isLoading: boolean;
 }
 
@@ -20,6 +22,8 @@ const initialState: InventoryState = {
   lobbies: [],
   appliedLobbies: [],
   myLobby: null,
+  myLobbyLoading: false,
+  appliedLobbiesLoading: false,
   isLoading: false,
 };
 
@@ -33,6 +37,14 @@ export const inventorySlice = createSlice({
 
     setMyLobby(state, action: PayloadAction<InventoryState["myLobby"]>) {
       state.myLobby = action.payload ?? null;
+    },
+
+    setMyLobbyLoading(state, action: PayloadAction<boolean>) {
+      state.myLobbyLoading = action.payload;
+    },
+
+    setAppliedLobbiesLoading(state, action: PayloadAction<boolean>) {
+      state.appliedLobbiesLoading = action.payload;
     },
 
     setAppliedLobbies(
@@ -54,41 +66,68 @@ export const inventorySlice = createSlice({
   },
 });
 
-const { setLobbies, setMyLobby, setAppliedLobbies, reset, setLoading } =
-  inventorySlice.actions;
+const {
+  setLobbies,
+  setMyLobby,
+  setAppliedLobbies,
+  reset,
+  setLoading,
+  setMyLobbyLoading,
+  setAppliedLobbiesLoading,
+} = inventorySlice.actions;
 
 const selectLobbies = (state: RootState) => state.inventory.lobbies;
 const selectMyLobby = (state: RootState) => state.inventory.myLobby;
 const selectAppliedLobbies = (state: RootState) =>
   state.inventory.appliedLobbies;
 const selectIsLoading = (state: RootState) => state.inventory.isLoading;
+const selectMyLobbyLoading = (state: RootState) =>
+  state.inventory.myLobbyLoading;
+const selectAppliedLobbiesLoading = (state: RootState) =>
+  state.inventory.appliedLobbiesLoading;
 
 export const useInventory = () => {
   const dispatch = useDispatch();
 
   const lobbies = useSelector(selectLobbies);
-  const myLobby = useSelector(selectMyLobby);
-  const appliedLobbies = useSelector(selectAppliedLobbies);
-
   const isLoading = useSelector(selectIsLoading);
+  const myLobby = useSelector(selectMyLobby);
+  const myLobbyLoading = useSelector(selectMyLobbyLoading);
+  const appliedLobbies = useSelector(selectAppliedLobbies);
+  const appliedLobbiesLoading = useSelector(selectAppliedLobbiesLoading);
 
   const memoCredentials = useMemo(
     () => ({
       lobbies,
-      myLobby,
-      appliedLobbies,
       isLoading,
+      myLobby,
+      myLobbyLoading,
+      appliedLobbies,
+      appliedLobbiesLoading,
       setLobbies: (payload: InventoryState["lobbies"]) =>
         dispatch(setLobbies(payload)),
       setMyLobby: (payload: InventoryState["myLobby"]) =>
         dispatch(setMyLobby(payload)),
       setAppliedLobbies: (payload: InventoryState["appliedLobbies"]) =>
         dispatch(setAppliedLobbies(payload)),
+      setMyLobbyLoading: (payload: InventoryState["myLobbyLoading"]) =>
+        dispatch(setMyLobbyLoading(payload)),
+      setAppliedLobbiesLoading: (
+        payload: InventoryState["appliedLobbiesLoading"],
+      ) => dispatch(setAppliedLobbiesLoading(payload)),
       setLoading: (payload: InventoryState["isLoading"]) =>
         dispatch(setLoading(payload)),
       reset: () => dispatch(reset()),
     }),
-    [lobbies, myLobby, appliedLobbies, isLoading, dispatch],
+    [
+      lobbies,
+      myLobby,
+      appliedLobbies,
+      isLoading,
+      myLobbyLoading,
+      appliedLobbiesLoading,
+      dispatch,
+    ],
   );
 
   return memoCredentials;

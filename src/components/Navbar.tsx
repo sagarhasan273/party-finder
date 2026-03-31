@@ -24,6 +24,9 @@ import {
   ListItemIcon,
 } from "@mui/material";
 
+import { useLoadInventory } from "src/hooks/use-load-inventory";
+import { useSocketListeners } from "src/hooks/use-socket-listeners";
+
 import { GoogleSignIn } from "src/core/auth";
 import { useCredentials } from "src/core/slices";
 import { useSocket } from "src/contexts/socket-context";
@@ -35,6 +38,9 @@ const navLinks = [
 ];
 
 export function Navbar() {
+  useLoadInventory();
+  useSocketListeners();
+
   const { isConnected } = useSocket();
 
   const { user, isAuthenticated, logout } = useCredentials();
