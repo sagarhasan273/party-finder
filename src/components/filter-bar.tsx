@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { X, Search, SlidersHorizontal } from "lucide-react";
+import { X, SlidersHorizontal } from "lucide-react";
 
 import {
   Stack,
@@ -7,17 +7,14 @@ import {
   Select,
   Button,
   MenuItem,
-  TextField,
   InputLabel,
   Typography,
   FormControl,
-  ToggleButton,
-  InputAdornment,
 } from "@mui/material";
 
 import { ValorantRegionalServers } from "src/@mock/constant";
 
-import { MAPS, RANKS } from "../lib/valorant";
+import { RANKS } from "../lib/valorant";
 
 export function FilterBar() {
   const [selectedRegion, setSelectedRegion] = useState("ap");
@@ -99,7 +96,7 @@ export function FilterBar() {
 
       <Stack direction="row" flexWrap="wrap" gap={1.25} alignItems="center">
         {/* Search */}
-        <TextField
+        {/* <TextField
           size="small"
           placeholder="Search lobbies..."
           value={filters.search}
@@ -111,41 +108,7 @@ export function FilterBar() {
               </InputAdornment>
             ),
           }}
-        />
-
-        {/* Rank */}
-        <FormControl size="small" sx={{ ...selectSx, minWidth: 120 }}>
-          <InputLabel>MIN RANK</InputLabel>
-          <Select
-            value={filters.rankMin}
-            label="MIN RANK"
-            onChange={(e) => update({ rankMin: e.target.value })}
-          >
-            <MenuItem value="">All</MenuItem>
-            {RANKS.map((r) => (
-              <MenuItem key={r} value={r}>
-                {r}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Map */}
-        <FormControl size="small" sx={{ ...selectSx, minWidth: 110 }}>
-          <InputLabel>MAP</InputLabel>
-          <Select
-            value={filters.map}
-            label="MAP"
-            onChange={(e) => update({ map: e.target.value })}
-          >
-            <MenuItem value="">All</MenuItem>
-            {MAPS.map((m) => (
-              <MenuItem key={m} value={m}>
-                {m}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        /> */}
 
         {/* First Dropdown - Region Selection */}
         <FormControl size="small" sx={{ ...selectSx, minWidth: 110 }}>
@@ -202,15 +165,22 @@ export function FilterBar() {
           </Select>
         </FormControl>
 
-        {/* Toggle */}
-        <ToggleButton
-          size="small"
-          value="openOnly"
-          selected={filters.openOnly}
-          onChange={() => update({ openOnly: !filters.openOnly })}
-        >
-          OPEN ONLY
-        </ToggleButton>
+        {/* Rank */}
+        <FormControl size="small" sx={{ ...selectSx, minWidth: 120 }}>
+          <InputLabel>MIN RANK</InputLabel>
+          <Select
+            value={filters.rankMin}
+            label="MIN RANK"
+            onChange={(e) => update({ rankMin: e.target.value })}
+          >
+            <MenuItem value="">All</MenuItem>
+            {RANKS.map((r) => (
+              <MenuItem key={r} value={r}>
+                {r}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Stack>
     </Paper>
   );
