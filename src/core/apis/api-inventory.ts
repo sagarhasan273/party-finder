@@ -54,7 +54,6 @@ export const inventoryApi = createApi({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["inventory-my-lobby-recall"],
     }),
 
     lobbyStatus: builder.mutation<
@@ -66,7 +65,6 @@ export const inventoryApi = createApi({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["inventory-my-lobby-recall"],
     }),
 
     deleteLobby: builder.mutation<
@@ -78,7 +76,6 @@ export const inventoryApi = createApi({
         method: "POST",
         body: { lobbyId, userId },
       }),
-      invalidatesTags: ["inventory-my-lobby-recall"],
     }),
 
     requestToJoinLobby: builder.mutation<
@@ -90,7 +87,6 @@ export const inventoryApi = createApi({
         method: "POST",
         body: { lobbyId, applicantId },
       }),
-      invalidatesTags: ["inventory-requested-lobbies-recall"],
     }),
 
     acceptJoinRequest: builder.mutation<
@@ -102,7 +98,6 @@ export const inventoryApi = createApi({
         method: "POST",
         body: { lobbyId, applicantId },
       }),
-      invalidatesTags: ["inventory-my-lobby-recall"],
     }),
 
     rejectJoinRequest: builder.mutation<
@@ -114,7 +109,6 @@ export const inventoryApi = createApi({
         method: "POST",
         body: { lobbyId, applicantId },
       }),
-      invalidatesTags: ["inventory-my-lobby-recall"],
     }),
 
     cancelJoinRequest: builder.mutation<
@@ -126,7 +120,6 @@ export const inventoryApi = createApi({
         method: "POST",
         body: { lobbyId, applicantId },
       }),
-      invalidatesTags: ["inventory-requested-lobbies-recall"],
     }),
   }),
 });

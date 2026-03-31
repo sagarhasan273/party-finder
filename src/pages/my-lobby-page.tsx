@@ -333,20 +333,10 @@ export function MyLobbyPage() {
 
   const handleToggle = async () => {
     try {
-      const response = await lobbyStatus({
+      await lobbyStatus({
         userId: user.id,
         lobbyId: myLobby?.id as string,
       }).unwrap();
-      if (response?.status && myLobby) {
-        toast.success(
-          response?.data === "open" ? "Lobby closed." : "Lobby reopened!",
-        );
-        setMyLobby({
-          ...myLobby,
-          id: myLobby.id,
-          status: response?.data ?? myLobby.status,
-        });
-      }
     } catch {
       toast.error("Failed to update lobby status.");
     }

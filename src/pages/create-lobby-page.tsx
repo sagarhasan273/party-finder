@@ -226,17 +226,17 @@ export function CreateLobbyPage() {
   const { user, region, isLoading, isAuthenticated } = useCredentials();
   const navigate = useNavigate();
 
-  const [title, setTitle] = useState("");
-  const [hostUsername, setHostUsername] = useState("");
-  const [hostTag, setHostTag] = useState("");
-  const [description, setDescription] = useState("");
-  const [partyCode, setPartyCode] = useState("");
+  const [title, setTitle] = useState("sdfs");
+  const [hostUsername, setHostUsername] = useState("sdfs");
+  const [hostTag, setHostTag] = useState("sdfs");
+  const [description, setDescription] = useState("sdf");
+  const [partyCode, setPartyCode] = useState("sdfs");
   const [rankMin, setRankMin] = useState<RankTier>("Gold");
   const [rankMax, setRankMax] = useState<RankTier>("Platinum");
   const [rolesNeeded, setRolesNeeded] = useState<string[]>(["Any"]);
   const [discordLink, setDiscordLink] = useState("");
   const [selectedRegion, setSelectedRegion] = useState(region?.region || "ap");
-  const [selectedServer, setSelectedServer] = useState("");
+  const [selectedServer, setSelectedServer] = useState("Mumbai");
   const [currentPlayers, setCurrentPlayers] = useState(4);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

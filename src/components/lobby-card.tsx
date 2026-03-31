@@ -1,6 +1,5 @@
 import type { LobbyType } from "src/types/type-inventory";
 
-import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Users, Clock, Globe, Server, ExternalLink } from "lucide-react";
 
@@ -47,18 +46,10 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
       return;
     }
     try {
-      const response = await requestToJoinLobby({
+      await requestToJoinLobby({
         lobbyId: lobby?.id,
         applicantId: user?.id || "",
       }).unwrap();
-
-      if (response?.status) {
-        toast.success("Request sent!", {
-          description: `Reached out to ${lobby?.hostGamename ?? "host"} to join.`,
-        });
-      } else {
-        toast.info(response?.message || "Failed to send request.");
-      }
     } catch (error) {
       fErrorCatchToast(error, "Failed to send join request.");
     }

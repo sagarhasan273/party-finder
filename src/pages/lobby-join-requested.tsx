@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { Lock, Layout, ChevronLeft } from "lucide-react";
@@ -14,10 +13,7 @@ import {
 
 import { fErrorCatchToast } from "src/lib/error-catch";
 import { useInventory, useCredentials } from "src/core/slices";
-import {
-  useCancelJoinRequestMutation,
-  useGetJoinRequestedLobbiesQuery,
-} from "src/core/apis/api-inventory";
+import { useCancelJoinRequestMutation } from "src/core/apis/api-inventory";
 
 import { LobbyRequestCard } from "src/components/lobby-request-card";
 
@@ -28,20 +24,12 @@ const rajdhani = '"Rajdhani", sans-serif';
 
 export function LobbyJoinRequested() {
   const { isAuthenticated, user } = useCredentials();
-  const { appliedLobbies, setAppliedLobbies } = useInventory();
-
-  const { data, isLoading: lobbiesLoading } =
-    useGetJoinRequestedLobbiesQuery(null);
+  const { appliedLobbies, appliedLobbiesLoading, setAppliedLobbies } =
+    useInventory();
 
   const [cancelRequest] = useCancelJoinRequestMutation();
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (isAuthenticated && data && data.status) {
-      setAppliedLobbies(data.data || []);
-    }
-  }, [isAuthenticated, data, setAppliedLobbies]);
 
   // ── Auth guard ──
   if (!isAuthenticated) {
@@ -165,7 +153,7 @@ export function LobbyJoinRequested() {
         </Box>
 
         {/* ── Loading skeletons ── */}
-        {lobbiesLoading && (
+        {appliedLobbiesLoading && (
           <Stack gap={2}>
             {[1, 2, 3].map((i) => (
               <Skeleton
@@ -183,7 +171,7 @@ export function LobbyJoinRequested() {
         )}
 
         {/* ── Empty state ── */}
-        {!lobbiesLoading && !appliedLobbies.length && (
+        {!appliedLobbiesLoading && !appliedLobbies.length && (
           <Box
             sx={{
               py: 12,

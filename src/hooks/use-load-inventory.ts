@@ -58,6 +58,7 @@ export const useLoadInventory = () => {
   useEffect(() => {
     if (isAuthenticated && lobby && lobby.status && !lobbyRef.current) {
       setMyLobby(lobby.data || null);
+      lobbyRef.current = true;
     }
   }, [isAuthenticated, lobby, setMyLobby]);
 
@@ -84,6 +85,4 @@ export const useLoadInventory = () => {
   useEffect(() => {
     setAppliedLobbiesLoading(appliedLobbiesLoading);
   }, [appliedLobbiesLoading, setAppliedLobbiesLoading]);
-
-  console.log("render check");
 };

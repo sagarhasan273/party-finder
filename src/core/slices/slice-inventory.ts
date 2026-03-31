@@ -1,5 +1,5 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { LobbyType } from "src/types/type-inventory";
+import type { LobbyType, ApplicantStatus } from "src/types/type-inventory";
 
 import { useMemo } from "react";
 import { createSlice } from "@reduxjs/toolkit";
@@ -39,6 +39,27 @@ export const inventorySlice = createSlice({
       state.myLobby = action.payload ?? null;
     },
 
+    setMyLobbyStatus(state, action: PayloadAction<LobbyType["status"]>) {
+      if (state.myLobby) state.myLobby.status = action.payload ?? "open";
+      console.log(action.payload);
+    },
+
+    setMyLobbyApplicantStatus(
+      state,
+      action: PayloadAction<{ applicantId: string; status: ApplicantStatus }>,
+    ) {
+      if (!state.myLobby) return;
+
+      const applicants = state.myLobby.applicants?.map((applicant) => {
+        if (applicant.user.id === action.payload.applicantId) {
+          return { ...applicant, status: action.payload.status };
+        }
+        return applicant;
+      });
+
+      state.myLobby.applicants = applicants;
+    },
+
     setMyLobbyLoading(state, action: PayloadAction<boolean>) {
       state.myLobbyLoading = action.payload;
     },
@@ -52,6 +73,23 @@ export const inventorySlice = createSlice({
       action: PayloadAction<InventoryState["appliedLobbies"]>,
     ) {
       state.appliedLobbies = action.payload;
+    },
+
+    setAppliedLobbiesStatus(
+      state,
+      action: PayloadAction<{ lobbyId: string; status: LobbyType["status"] }>,
+    ) {
+      const { lobbyId, status } = action.payload;
+
+      if (!state.appliedLobbies) {
+        state.appliedLobbies = [];
+        return;
+      }
+
+      const lobby = state.appliedLobbies.find((l) => l.id === lobbyId);
+      if (lobby) {
+        lobby.status = status;
+      }
     },
 
     setLoading(state, action: PayloadAction<boolean>) {
@@ -70,6 +108,9 @@ const {
   setLobbies,
   setMyLobby,
   setAppliedLobbies,
+  setMyLobbyStatus,
+  setMyLobbyApplicantStatus,
+  setAppliedLobbiesStatus,
   reset,
   setLoading,
   setMyLobbyLoading,
@@ -106,17 +147,36 @@ export const useInventory = () => {
       appliedLobbiesLoading,
       setLobbies: (payload: InventoryState["lobbies"]) =>
         dispatch(setLobbies(payload)),
+
       setMyLobby: (payload: InventoryState["myLobby"]) =>
         dispatch(setMyLobby(payload)),
+
+      setMyLobbyStatus: (payload: LobbyType["status"]) =>
+        dispatch(setMyLobbyStatus(payload)),
+
+      setMyLobbyApplicantStatus: (payload: {
+        applicantId: string;
+        status: ApplicantStatus;
+      }) => dispatch(setMyLobbyApplicantStatus(payload)),
+
+      setAppliedLobbiesStatus: (payload: {
+        lobbyId: string;
+        status: LobbyType["status"];
+      }) => dispatch(setAppliedLobbiesStatus(payload)),
+
       setAppliedLobbies: (payload: InventoryState["appliedLobbies"]) =>
         dispatch(setAppliedLobbies(payload)),
+
       setMyLobbyLoading: (payload: InventoryState["myLobbyLoading"]) =>
         dispatch(setMyLobbyLoading(payload)),
+
       setAppliedLobbiesLoading: (
         payload: InventoryState["appliedLobbiesLoading"],
       ) => dispatch(setAppliedLobbiesLoading(payload)),
+
       setLoading: (payload: InventoryState["isLoading"]) =>
         dispatch(setLoading(payload)),
+
       reset: () => dispatch(reset()),
     }),
     [

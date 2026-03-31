@@ -12,16 +12,12 @@ import {
   Typography,
 } from "@mui/material";
 
-import { useLobbies } from "src/hooks/use-lobbies";
-
 import { useInventory, useCredentials } from "src/core/slices";
 
 import { LobbyCard } from "../components/lobby-card";
 import { FilterBar } from "../components/filter-bar";
 
 export function HomePage() {
-  useLobbies();
-
   const { isAuthenticated, isLoading } = useCredentials();
   const { lobbies } = useInventory();
 

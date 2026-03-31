@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { useEffect, useCallback } from "react";
 
+import { useInventory } from "src/core/slices";
 import { useSocket } from "src/contexts/socket-context";
 
 // toaster style -------------
@@ -64,6 +65,8 @@ const getIcon = (type: string) => {
 export const useSocketListeners = () => {
   const { on, off, isConnected } = useSocket();
 
+  const { setMyLobbyStatus, setAppliedLobbiesStatus } = useInventory();
+
   // Memoize handlers to prevent unnecessary re-renders
   const handleReceiveJoinRequest = useCallback((data: any) => {
     toast.info(data?.message || "New join request received!", {
@@ -89,6 +92,18 @@ export const useSocketListeners = () => {
     });
   }, []);
 
+  const handleReceiveLobbyStatus = useCallback(
+    (data: any) => {
+      if (data?.sentTo === "host") setMyLobbyStatus(data?.status);
+      if (data?.sentTo === "applicant")
+        setAppliedLobbiesStatus({
+          lobbyId: data?.lobbyId,
+          status: data?.status,
+        });
+    },
+    [setMyLobbyStatus, setAppliedLobbiesStatus],
+  );
+
   useEffect(() => {
     if (!isConnected) {
       return undefined;
@@ -97,17 +112,20 @@ export const useSocketListeners = () => {
     // Register listeners
     on("receive-join-request", handleReceiveJoinRequest);
     on("receive-request-reject", handleReceiveRequestReject);
+    on("receive-lobby-status", handleReceiveLobbyStatus);
 
     // Cleanup function
     return () => {
       off("receive-join-request", handleReceiveJoinRequest);
       off("receive-request-reject", handleReceiveRequestReject);
+      off("receive-lobby-status", handleReceiveLobbyStatus);
     };
   }, [
+    isConnected,
     on,
     off,
-    isConnected,
     handleReceiveJoinRequest,
     handleReceiveRequestReject,
+    handleReceiveLobbyStatus,
   ]);
 };
