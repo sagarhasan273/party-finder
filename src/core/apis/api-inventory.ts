@@ -45,6 +45,7 @@ export const inventoryApi = createApi({
         method: "POST",
         body: newUser,
       }),
+      invalidatesTags: ["inventory-my-lobby-recall"],
     }),
 
     updateLobby: builder.mutation<ResponseType, Partial<LobbyType>>({
@@ -54,6 +55,17 @@ export const inventoryApi = createApi({
         body,
       }),
       invalidatesTags: ["inventory-my-lobby-recall"],
+    }),
+
+    lobbyStatus: builder.mutation<
+      ResponseType,
+      { lobbyId: string; userId: string }
+    >({
+      query: (body) => ({
+        url: `inventory/lobby/status`,
+        method: "POST",
+        body,
+      }),
     }),
 
     deleteLobby: builder.mutation<
@@ -124,6 +136,7 @@ export const {
   useGetJoinRequestedLobbiesQuery,
   useCreateLobbyMutation,
   useUpdateLobbyMutation,
+  useLobbyStatusMutation,
   useDeleteLobbyMutation,
   useRequestToJoinLobbyMutation,
   useAcceptJoinRequestMutation,

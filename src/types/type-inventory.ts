@@ -26,7 +26,7 @@ export type ValorantMap =
 
 export type LobbyStatus = "open" | "full" | "in-progress" | "closed";
 
-export type ApplicantStatus = "pending" | "accepted" | "rejected";
+export type ApplicantStatus = "pending" | "accepted" | "rejected" | "in-party";
 
 export interface LobbyType {
   id: string;

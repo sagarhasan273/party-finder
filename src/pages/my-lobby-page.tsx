@@ -2,8 +2,8 @@ import type { UserType } from "src/types/type-user";
 import type { ApplicantStatus } from "src/types/type-inventory";
 
 import { toast } from "sonner";
-import { useEffect } from "react";
 import { motion } from "framer-motion";
+import { useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -38,6 +38,7 @@ import { useInventory, useCredentials } from "src/core/slices";
 import {
   useGetMyLobbyQuery,
   useDeleteLobbyMutation,
+  useLobbyStatusMutation,
   useAcceptJoinRequestMutation,
   useRejectJoinRequestMutation,
 } from "src/core/apis/api-inventory";
@@ -106,8 +107,8 @@ function ApplicantCard({
       elevation={0}
       sx={{
         flex: "1 1 148px",
-        minWidth: 148,
-        maxWidth: 200,
+        minWidth: 250,
+        maxWidth: { xs: 1, sm: 300 },
         p: "11px 13px",
         background: "rgba(255,255,255,0.025)",
         border: `1px solid ${BORDER}`,
@@ -293,6 +294,32 @@ function ApplicantCard({
           </Stack>
         </Paper>
       )}
+      {status === "rejected" && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1,
+            background: "rgba(93,202,165,0.08)",
+            border: "1px solid rgba(202, 93, 93, 0.95)",
+            borderRadius: "2px",
+          }}
+        >
+          <Stack direction="row" alignItems="center" gap={1.5}>
+            <Box>
+              <Typography
+                sx={{
+                  fontFamily: RAJ,
+                  fontWeight: 700,
+                  fontSize: "0.8rem",
+                  color: "#fd5151",
+                }}
+              >
+                Applicant has been rejected!
+              </Typography>
+            </Box>
+          </Stack>
+        </Paper>
+      )}
     </Paper>
   );
 }
@@ -303,16 +330,30 @@ export function MyLobbyPage() {
   const { isAuthenticated, user } = useCredentials();
   const { myLobby, setMyLobby } = useInventory();
 
-  const { data, isLoading: lobbiesLoading } = useGetMyLobbyQuery(null);
+  const { data, isLoading: lobbiesLoading, refetch } = useGetMyLobbyQuery(null);
   const [deleteLobby] = useDeleteLobbyMutation();
+  const [lobbyStatus] = useLobbyStatusMutation();
 
   const navigate = useNavigate();
 
-  const handleToggle = async (id: string, currentStatus: string) => {
+  const myLobbyRef = useRef(false);
+
+  const handleToggle = async () => {
     try {
-      toast.success(
-        currentStatus === "open" ? "Lobby closed." : "Lobby reopened!",
-      );
+      const response = await lobbyStatus({
+        userId: user.id,
+        lobbyId: myLobby?.id as string,
+      }).unwrap();
+      if (response?.status && myLobby) {
+        toast.success(
+          response?.data === "open" ? "Lobby closed." : "Lobby reopened!",
+        );
+        setMyLobby({
+          ...myLobby,
+          id: myLobby.id,
+          status: response?.data ?? myLobby.status,
+        });
+      }
     } catch {
       toast.error("Failed to update lobby status.");
     }
@@ -328,8 +369,10 @@ export function MyLobbyPage() {
       if (response?.status) {
         toast.success("Lobby deleted.");
         setMyLobby(null);
+        refetch();
       } else {
         toast.info(response?.data?.message || "Failed to delete lobby.");
+        setMyLobby(null);
       }
     } catch (error) {
       fErrorCatchToast(error, "Failed to delete lobby.");
@@ -337,8 +380,15 @@ export function MyLobbyPage() {
   };
 
   useEffect(() => {
-    if (isAuthenticated && data && data.status) {
-      setMyLobby(data.data || []);
+    if (
+      isAuthenticated &&
+      data &&
+      data.status &&
+      data.data &&
+      !myLobbyRef.current
+    ) {
+      setMyLobby(data.data || null);
+      myLobbyRef.current = true;
     }
   }, [isAuthenticated, data, setMyLobby]);
 
@@ -737,7 +787,7 @@ export function MyLobbyPage() {
                             <RefreshCw size={11} />
                           )
                         }
-                        onClick={() => handleToggle(myLobby.id, myLobby.status)}
+                        onClick={() => handleToggle()}
                         sx={{
                           fontFamily: RAJ,
                           fontWeight: 700,
@@ -747,8 +797,14 @@ export function MyLobbyPage() {
                           px: 1,
                           borderRadius: "2px",
                           textTransform: "uppercase",
-                          borderColor: "rgba(255,255,255,0.09)",
-                          color: "rgba(90,100,130,1)",
+                          borderColor:
+                            myLobby.status === "open"
+                              ? "rgba(255,255,255,0.09)"
+                              : "rgba(255, 255, 255, 0.42)",
+                          color:
+                            myLobby.status === "open"
+                              ? "rgba(90,100,130,1)"
+                              : "rgb(182, 182, 182)",
                           "&:hover": {
                             borderColor: "rgba(255,255,255,0.2)",
                             color: "#edf0f4",
