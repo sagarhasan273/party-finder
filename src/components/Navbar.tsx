@@ -13,6 +13,7 @@ import {
   Box,
   Menu,
   Stack,
+  Badge,
   AppBar,
   Button,
   Avatar,
@@ -25,6 +26,7 @@ import {
 
 import { GoogleSignIn } from "src/core/auth";
 import { useCredentials } from "src/core/slices";
+import { useSocket } from "src/contexts/socket-context";
 
 const navLinks = [
   { label: "BROWSE", path: "/" },
@@ -33,10 +35,13 @@ const navLinks = [
 ];
 
 export function Navbar() {
+  const { isConnected } = useSocket();
+
   const { user, isAuthenticated, logout } = useCredentials();
 
   const location = useLocation();
   const navigate = useNavigate();
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const isActive = (path: string) => location.pathname === path;
@@ -165,18 +170,34 @@ export function Navbar() {
                   "&:hover": { background: "rgba(255,255,255,0.05)" },
                 }}
               >
-                <Avatar
+                <Badge
+                  overlap="circular"
+                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                  variant="dot"
                   sx={{
-                    width: 28,
-                    height: 28,
-                    background: "#FF4655",
-                    fontFamily: '"Rajdhani", sans-serif',
-                    fontWeight: 700,
-                    fontSize: "0.8rem",
+                    "& .MuiBadge-badge": {
+                      backgroundColor: isConnected ? "#22c55e" : "#6b7280",
+                      color: isConnected ? "#22c55e" : "#6b7280",
+                      boxShadow: "0 0 0 2px #0f172a", // border ring
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                    },
                   }}
                 >
-                  {(user?.name?.[0] ?? user?.email?.[0] ?? "U").toUpperCase()}
-                </Avatar>
+                  <Avatar
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      background: "#FF4655",
+                      fontFamily: '"Rajdhani", sans-serif',
+                      fontWeight: 700,
+                      fontSize: "0.8rem",
+                    }}
+                  >
+                    {(user?.name?.[0] ?? user?.email?.[0] ?? "U").toUpperCase()}
+                  </Avatar>
+                </Badge>
                 <Typography
                   sx={{
                     display: { xs: "none", sm: "block" },

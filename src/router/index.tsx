@@ -5,7 +5,7 @@ import { Box } from "@mui/material";
 import { MyLobbyPage } from "src/pages/my-lobby-page";
 import { LobbyJoinRequested } from "src/pages/lobby-join-requested";
 
-import { Navbar } from "src/components/Navbar";
+import { Navbar } from "src/components/navbar";
 
 import { HomePage } from "../pages/home-page";
 import { ProfilePage } from "../pages/profile-page";
