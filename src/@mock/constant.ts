@@ -1,11 +1,11 @@
 import type { LocationWithRegion } from "src/types/type-user";
 
-interface Region {
-  code: string;
+export type Region = {
+  code: "ap" | "na" | "latam" | "br" | "eu" | "kr";
   label: string;
   servers: string[];
   coordinates: { lat: number; lng: number };
-}
+};
 
 export const ValorantRegionalServers: Region[] = [
   {
@@ -95,58 +95,91 @@ function calculateDistance(
   return R * c;
 }
 
-export async function getUserRegionSmart(): Promise<LocationWithRegion> {
-  try {
-    const res = await fetch("http://ip-api.com/json/");
-    const data = await res.json();
-
-    const { country, countryCode, lat, lon } = data;
-
-    // fallback
-    if (!lat || !lon) {
-      return {
-        country,
-        countryCode,
-        region: "ap",
-        regionLabel: "Asia Pacific (AP)",
-      };
+export const getUserRegionSmart = (): Promise<LocationWithRegion | null> =>
+  new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      console.log("Geolocation not supported");
+      resolve(null);
+      return;
     }
 
-    let closestRegion = ValorantRegionalServers[0];
-    let minDistance = calculateDistance(
-      lat,
-      lon,
-      closestRegion.coordinates.lat,
-      closestRegion.coordinates.lng,
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        let country = "Detected";
+        let countryCode = "XX";
+
+        // Try to get country from coordinates
+        try {
+          // Try OpenStreetMap first (free, no API key)
+          const osmResponse = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=3&addressdetails=1`,
+          );
+          const osmData = await osmResponse.json();
+
+          if (osmData.address?.country) {
+            const { country: osmCountry, country_code } = osmData.address;
+            country = osmCountry;
+            countryCode = country_code?.toUpperCase() || "XX";
+          }
+        } catch (error) {
+          console.log("OSM geocoding failed, trying fallback");
+
+          // Fallback to BigDataCloud
+          try {
+            const bdcResponse = await fetch(
+              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
+            );
+            const bdcData = await bdcResponse.json();
+
+            if (bdcData.countryName) {
+              country = bdcData.countryName;
+              countryCode = bdcData.countryCode || "XX";
+            }
+          } catch (fallbackError) {
+            console.log("All geocoding attempts failed");
+          }
+        }
+
+        // Find closest region
+        let closestRegion = ValorantRegionalServers[0];
+        let minDistance = calculateDistance(
+          latitude,
+          longitude,
+          closestRegion.coordinates.lat,
+          closestRegion.coordinates.lng,
+        );
+
+        ValorantRegionalServers.forEach((region) => {
+          const dist = calculateDistance(
+            latitude,
+            longitude,
+            region.coordinates.lat,
+            region.coordinates.lng,
+          );
+
+          if (dist < minDistance) {
+            minDistance = dist;
+            closestRegion = region;
+          }
+        });
+
+        resolve({
+          country,
+          countryCode,
+          region: closestRegion.code,
+          regionLabel: closestRegion.label,
+        });
+      },
+      (error) => {
+        console.log("Geolocation error:", error.message);
+        resolve(null);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      },
     );
-
-    ValorantRegionalServers.forEach((region) => {
-      const dist = calculateDistance(
-        lat,
-        lon,
-        region.coordinates.lat,
-        region.coordinates.lng,
-      );
-
-      if (dist < minDistance) {
-        minDistance = dist;
-        closestRegion = region;
-      }
-    });
-
-    return {
-      country,
-      countryCode,
-      region: closestRegion.code,
-      regionLabel: closestRegion.label,
-    };
-  } catch (error) {
-    console.log("Detection failed:", error);
-    return {
-      country: "Unknown",
-      countryCode: "XX",
-      region: "ap",
-      regionLabel: "Asia Pacific (AP)",
-    };
-  }
-}
+  });

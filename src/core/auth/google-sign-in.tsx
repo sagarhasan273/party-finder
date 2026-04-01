@@ -29,7 +29,7 @@ export const GoogleSignIn = ({
   title?: string;
   onSuccess?: () => void;
 }) => {
-  const { setUser, logout, setRegion } = useCredentials();
+  const { setUser, logout, region, setRegion } = useCredentials();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -127,7 +127,6 @@ export const GoogleSignIn = ({
       try {
         // Try IP-based detection first (faster, no permission needed)
         const detectedRegion = await getUserRegionSmart();
-
         setRegion(detectedRegion);
       } catch (error) {
         console.log("Auto-detection failed, using default");
@@ -135,8 +134,8 @@ export const GoogleSignIn = ({
       }
     };
 
-    autoDetectRegion();
-  }, [setRegion]);
+    if (region === null) autoDetectRegion();
+  }, [region, setRegion]);
 
   useEffect(() => {
     checkUserSession();

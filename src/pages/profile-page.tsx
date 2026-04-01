@@ -97,6 +97,8 @@ export const ValorantAgents: UserType["agents"] = [
   "Viper",
   "Vyse",
   "Yoru",
+  "Waylay",
+  "Miks",
 ];
 
 // ─── Design tokens ────────────────────────────────────────────────────────────

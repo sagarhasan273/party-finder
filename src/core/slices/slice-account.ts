@@ -20,7 +20,7 @@ interface UserState {
 const initialState: UserState = {
   user: {} as UserType,
   isProfileUpdated: true,
-  region: {} as LocationWithRegion,
+  region: null,
   isAuthenticated: false,
   isLoading: false,
 };

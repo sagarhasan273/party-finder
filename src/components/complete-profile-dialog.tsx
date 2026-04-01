@@ -67,6 +67,8 @@ const roles: UserType["mainRole"][] = [
 const playstyles: UserType["playstyle"][] = [
   "😌 Chill",
   "⚖️ Balanced",
+  "⚔️ Competitive",
+  "🎯 Serious",
   "🔥 Tryhard",
 ];
 
@@ -116,6 +118,16 @@ const PS_COLORS: Record<string, { bg: string; border: string; color: string }> =
       bg: "rgba(55,138,221,0.12)",
       border: "rgba(55,138,221,0.35)",
       color: "#85b7eb",
+    },
+    "⚔️ Competitive": {
+      bg: "rgba(150, 152, 155, 0.12)",
+      border: "rgba(202, 202, 202, 0.73)",
+      color: "#949399",
+    },
+    "🎯 Serious": {
+      bg: "rgba(253, 154, 62, 0.26)",
+      border: "rgba(221, 121, 55, 0.35)",
+      color: "#ebb685",
     },
     "🔥 Tryhard": {
       bg: "rgba(255,70,85,0.14)",
@@ -493,7 +505,7 @@ const STEP_META = [
       "Pick your main role and playstyle so the right lobbies find you.",
   },
   {
-    title: "How do you play?",
+    title: "What do you play?",
     subtitle: "Pick three main agents so the right lobbies find you.",
   },
 ];
@@ -511,7 +523,7 @@ export const CompleteProfileDialog: React.FC<CompleteProfileDialogProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const { user, setIsProfileUpdated } = useCredentials();
+  const { user, region: currentRegion, setUser } = useCredentials();
   const [updateUser, { isLoading }] = useUpdateUserMutation();
 
   const [step, setStep] = useState(0);
@@ -519,7 +531,10 @@ export const CompleteProfileDialog: React.FC<CompleteProfileDialogProps> = ({
 
   const [gamename, setGamename] = useState(user?.gamename || "");
   const [tagline, setTagline] = useState(user?.tagline || "");
-  const [region, setRegion] = useState(user?.region || "ap");
+  const [region, setRegion] = useState(
+    user?.region || currentRegion?.region || "na",
+  );
+
   const [rank, setRank] = useState(user?.rank || "Gold II");
   const [pickRank, setPickRank] = useState(user?.pickRank || "Platinum I");
   const [mainRole, setMainRole] = useState(user?.mainRole || "Duelist");
@@ -545,7 +560,7 @@ export const CompleteProfileDialog: React.FC<CompleteProfileDialogProps> = ({
     if (user) {
       setGamename(user.gamename || "");
       setTagline(user.tagline || "");
-      setRegion(user.region || "ap");
+      setRegion(user.region || "na");
       setRank(user.rank || "Gold II");
       setPickRank(user.pickRank || "Platinum I");
       setMainRole(user.mainRole || "Duelist");
@@ -577,7 +592,7 @@ export const CompleteProfileDialog: React.FC<CompleteProfileDialogProps> = ({
     try {
       const response = await updateUser({
         id: user?.id,
-        country: user?.country || undefined,
+        country: user?.country || currentRegion?.country || undefined,
         rank,
         pickRank,
         mainRole,
@@ -585,12 +600,23 @@ export const CompleteProfileDialog: React.FC<CompleteProfileDialogProps> = ({
         region,
         gamename,
         tagline,
+        agents: selectedAgents,
       }).unwrap();
 
       if (response?.status) {
         toast.success("Profile set up! Let's find you a lobby.");
         navigate("/");
-        setIsProfileUpdated(true);
+        setUser({
+          ...user,
+          rank,
+          pickRank,
+          mainRole,
+          playstyle,
+          region,
+          gamename,
+          tagline,
+          agents: selectedAgents,
+        });
         onClose?.();
       } else {
         toast.error("Something went wrong. Please try again.");

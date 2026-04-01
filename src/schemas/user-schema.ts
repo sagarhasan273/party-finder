@@ -29,6 +29,7 @@ const AgentEnum = zod.enum([
   "Viper",
   "Vyse",
   "Yoru",
+  "Waylay",
 ]);
 
 const PlaystyleEnum = zod.enum([

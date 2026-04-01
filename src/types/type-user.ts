@@ -1,4 +1,5 @@
 import type { z as zod } from "zod";
+import type { Region } from "src/@mock";
 import type { Dispatch, SetStateAction } from "react";
 import type { UserSchema } from "src/schemas/user-schema";
 
@@ -17,6 +18,6 @@ export type UserContextTypes = {
 export type LocationWithRegion = {
   country: string;
   countryCode: string;
-  region: string;
-  regionLabel: string;
+  region: Region["code"];
+  regionLabel: Region["label"];
 };
