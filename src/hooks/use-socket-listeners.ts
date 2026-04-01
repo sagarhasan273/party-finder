@@ -1,8 +1,8 @@
 import { toast } from "sonner";
 import { useEffect, useCallback } from "react";
 
-import { useInventory } from "src/core/slices";
 import { useSocket } from "src/contexts/socket-context";
+import { useInventory, useCredentials } from "src/core/slices";
 
 // toaster style -------------
 
@@ -71,6 +71,8 @@ const getIcon = (type: string) => {
 };
 
 export const useSocketListeners = () => {
+  const { user } = useCredentials();
+
   const { on, off, isConnected } = useSocket();
 
   const {
@@ -92,15 +94,20 @@ export const useSocketListeners = () => {
 
   const handleReceiveDeletedLobby = useCallback(
     (data: any) => {
-      toast.info(data?.message || "Lobby Deleted!", {
-        duration: 4000,
-        position: "top-right",
-        icon: getIcon("delete"),
-        style: {
-          ...toastStyles.base,
-          ...toastStyles.request,
+      toast.info(
+        data?.hostId === user.id
+          ? "Lobby Deleted!"
+          : data?.message || "Lobby Deleted!",
+        {
+          duration: 4000,
+          position: "top-right",
+          icon: getIcon("delete"),
+          style: {
+            ...toastStyles.base,
+            ...toastStyles.request,
+          },
         },
-      });
+      );
 
       if (data?.lobbyId) {
         setAppliedLobbies(
@@ -109,7 +116,7 @@ export const useSocketListeners = () => {
         setLobbies(lobbies.filter((lobby) => lobby.id !== data?.lobbyId));
       }
     },
-    [lobbies, appliedLobbies, setAppliedLobbies, setLobbies],
+    [user.id, lobbies, appliedLobbies, setAppliedLobbies, setLobbies],
   );
 
   const handleReceiveJoinRequest = useCallback((data: any) => {
