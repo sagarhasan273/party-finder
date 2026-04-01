@@ -31,6 +31,8 @@ import { GoogleSignIn } from "src/core/auth";
 import { useCredentials } from "src/core/slices";
 import { useSocket } from "src/contexts/socket-context";
 
+import { CompleteProfileDialog } from "./complete-profile-dialog";
+
 const navLinks = [
   { label: "BROWSE", path: "/" },
   { label: "APPLIED LOBBIES", path: "/applied-lobbies", authOnly: true },
@@ -43,7 +45,7 @@ export function Navbar() {
 
   const { isConnected } = useSocket();
 
-  const { user, isAuthenticated, logout } = useCredentials();
+  const { user, isAuthenticated, isProfileUpdated, logout } = useCredentials();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -355,6 +357,7 @@ export function Navbar() {
             ))}
         </Box>
       )}
+      <CompleteProfileDialog open={!isProfileUpdated} />
     </AppBar>
   );
 }

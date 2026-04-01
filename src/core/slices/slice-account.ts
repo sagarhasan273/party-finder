@@ -10,6 +10,7 @@ import type { RootState } from "../types";
 // Define auth state interface
 interface UserState {
   user: UserType;
+  isProfileUpdated: boolean;
   region: LocationWithRegion | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -18,6 +19,7 @@ interface UserState {
 // Initial state
 const initialState: UserState = {
   user: {} as UserType,
+  isProfileUpdated: true,
   region: {} as LocationWithRegion,
   isAuthenticated: false,
   isLoading: false,
@@ -31,6 +33,9 @@ export const accountSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = !!action.payload;
       state.isLoading = false;
+      state.isProfileUpdated = !(
+        !action.payload.gamename || !action.payload.tagline
+      );
     },
     setRegion(state, action: PayloadAction<UserState["region"]>) {
       state.region = action.payload;
@@ -38,15 +43,22 @@ export const accountSlice = createSlice({
     setLoading(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
     },
+
+    setIsProfileUpdated(state, action: PayloadAction<boolean>) {
+      state.isProfileUpdated = action.payload;
+    },
+
     logout(state) {
       state.user = {} as UserType;
       state.isAuthenticated = false;
       state.isLoading = false;
+      state.isProfileUpdated = true;
     },
   },
 });
 
-const { setUser, logout, setLoading, setRegion } = accountSlice.actions;
+const { setUser, logout, setLoading, setRegion, setIsProfileUpdated } =
+  accountSlice.actions;
 
 const selectIsAuthenticated = (state: RootState) =>
   state.account.isAuthenticated;
@@ -61,6 +73,9 @@ export const useCredentials = () => {
   const isLoading = useSelector(selectIsLoading);
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const region = useSelector(selectRegion);
+  const isProfileUpdated = useSelector(
+    (state: RootState) => state.account.isProfileUpdated,
+  );
 
   const memoCredentials = useMemo(
     () => ({
@@ -68,13 +83,16 @@ export const useCredentials = () => {
       region,
       isLoading,
       isAuthenticated,
+      isProfileUpdated,
       setUser: (payload: UserState["user"]) => dispatch(setUser(payload)),
       setLoading: (payload: UserState["isLoading"]) =>
         dispatch(setLoading(payload)),
       logout: () => dispatch(logout()),
       setRegion: (payload: UserState["region"]) => dispatch(setRegion(payload)),
+      setIsProfileUpdated: (payload: UserState["isProfileUpdated"]) =>
+        dispatch(setIsProfileUpdated(payload)),
     }),
-    [isAuthenticated, isLoading, user, region, dispatch],
+    [isAuthenticated, isLoading, user, region, isProfileUpdated, dispatch],
   );
 
   return memoCredentials;

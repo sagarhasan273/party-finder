@@ -28,16 +28,16 @@ export const useLoadInventory = () => {
   const appliedLobbiesRef = useRef(false);
 
   const { data: lobby, isLoading: mylobbyLoading } = useGetMyLobbyQuery(null, {
-    skip: location?.pathname !== "/my-lobby",
+    skip: location?.pathname !== "/my-lobby" || !isAuthenticated,
   });
 
   const { data: appliedLobbies, isLoading: appliedLobbiesLoading } =
     useGetJoinRequestedLobbiesQuery(null, {
-      skip: location?.pathname !== "/applied-lobbies",
+      skip: location?.pathname !== "/applied-lobbies" || !isAuthenticated,
     });
 
   const { data: lobbies, isLoading } = useGetLobbiesQuery(null, {
-    skip: location?.pathname !== "/",
+    skip: location?.pathname !== "/" || !isAuthenticated,
   });
 
   const getLobbies = useCallback(() => {
