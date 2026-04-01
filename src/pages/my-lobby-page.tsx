@@ -50,11 +50,83 @@ import { formatTimeAgo } from "../lib/valorant";
 import { RoleChip } from "../components/role-chip";
 import { StatusChip } from "../components/status-chip";
 
-// ─── Tokens ───────────────────────────────────────────────────────────────────
+// ─── Design tokens ────────────────────────────────────────────────────────────
 
-const CARD_BG = "rgba(255,255,255,0.025)";
-const BORDER = "rgba(255,255,255,0.07)";
-const RAJ = '"Rajdhani", sans-serif';
+const T = {
+  bg: "rgba(22, 23, 34, 0.97)",
+  border: "rgba(255,255,255,0.07)",
+  borderHover: "rgba(255,255,255,0.13)",
+  accent: "#FF4655",
+  accentDim: "rgba(255,70,85,0.12)",
+  accentBorder: "rgba(255,70,85,0.25)",
+  text: "#edf0f4",
+  textMuted: "rgba(74,84,112,1)",
+  textSub: "#8892aa",
+  green: "#22c55e",
+  greenDim: "rgba(34,197,94,0.15)",
+  greenBorder: "rgba(34,197,94,0.28)",
+  teal: "#5DCAA5",
+  tealDim: "rgba(93,202,165,0.08)",
+  tealBorder: "rgba(93,202,165,0.25)",
+  RAJ: '"Rajdhani", sans-serif',
+} as const;
+
+// ─── Shared card shell ────────────────────────────────────────────────────────
+
+function valorantCard(accentColor: string) {
+  return {
+    backgroundColor: T.bg,
+    border: `1px solid ${T.border}`,
+    borderRadius: "4px",
+    clipPath: "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)",
+    position: "relative",
+    overflow: "hidden",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+    "&:hover": {
+      borderColor: T.borderHover,
+      boxShadow: `0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px ${accentColor}22`,
+    },
+    "&::before": {
+      content: '""',
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: 3,
+      height: "100%",
+      background: accentColor,
+      zIndex: 2,
+    },
+    "&::after": {
+      content: '""',
+      position: "absolute",
+      top: 0,
+      left: 3,
+      right: 0,
+      height: "2px",
+      background: `linear-gradient(90deg, ${accentColor}88, transparent 55%)`,
+      zIndex: 2,
+    },
+  } as const;
+}
+
+function CornerOrnament({ color }: { color: string }) {
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        position: "absolute",
+        top: 0,
+        right: 0,
+        width: 0,
+        height: 0,
+        borderStyle: "solid",
+        borderWidth: "0 14px 14px 0",
+        borderColor: `transparent ${color}44 transparent transparent`,
+        zIndex: 3,
+      }}
+    />
+  );
+}
 
 // ─── ApplicantCard ────────────────────────────────────────────────────────────
 
@@ -78,9 +150,8 @@ function ApplicantCard({
         lobbyId,
         applicantId: user.id as string,
       }).unwrap();
-      if (response.status) {
+      if (response.status)
         toast.success(response?.message || "Join request accepted.");
-      }
     } catch (error) {
       fErrorCatchToast(error, "Failed to accept join request.");
     }
@@ -92,9 +163,8 @@ function ApplicantCard({
         lobbyId,
         applicantId: user.id as string,
       }).unwrap();
-      if (response.status) {
+      if (response.status)
         toast.success(response?.message || "Join request rejected.");
-      }
     } catch (error) {
       fErrorCatchToast(error, "Failed to reject join request.");
     }
@@ -107,52 +177,18 @@ function ApplicantCard({
         flex: "1 1 148px",
         minWidth: 250,
         maxWidth: { xs: 1, sm: 300 },
-        p: "11px 13px",
-        background: "rgba(255,255,255,0.025)",
-        border: `1px solid ${BORDER}`,
-        // Valorant diagonal clip on top-right
-        borderRadius: "4px",
-        clipPath:
-          "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)",
+        p: "12px 14px",
         display: "flex",
         flexDirection: "column",
         gap: 0.75,
-        position: "relative",
-        overflow: "hidden",
-        transition: "border-color 0.2s, box-shadow 0.2s",
-        "&:hover": {
-          borderColor: "rgba(255,255,255,0.13)",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
-        },
-        // Micro left bar
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: 2,
-          height: "100%",
-          background: "rgba(255,70,85,0.4)",
-        },
+        ...valorantCard(T.accent),
+        clipPath:
+          "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)",
       }}
     >
-      {/* Corner triangle ornament */}
-      <Box
-        aria-hidden
-        sx={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          width: 0,
-          height: 0,
-          borderStyle: "solid",
-          borderWidth: "0 10px 10px 0",
-          borderColor:
-            "transparent rgba(255,70,85,0.25) transparent transparent",
-          zIndex: 1,
-        }}
-      />
+      <CornerOrnament color={T.accent} />
 
+      {/* Avatar + name */}
       <Stack direction="row" gap={1} mb={0.5}>
         <AvatarUser
           avatarUrl={user?.profilePhoto || ""}
@@ -160,26 +196,24 @@ function ApplicantCard({
           verified={user.verified}
         />
         <Stack>
-          {/* Name */}
           <Typography
             sx={{
               fontSize: "0.8rem",
               fontWeight: 700,
-              fontFamily: RAJ,
+              fontFamily: T.RAJ,
               letterSpacing: "0.04em",
-              color: "#edf0f4",
+              color: T.text,
             }}
           >
             {user.name}
           </Typography>
-          {/* Name */}
           <Typography
             sx={{
               fontSize: "0.78rem",
               fontWeight: 700,
-              fontFamily: RAJ,
+              fontFamily: T.RAJ,
               letterSpacing: "0.04em",
-              color: "#edf0f4",
+              color: T.text,
               textTransform: "uppercase",
             }}
           >
@@ -205,10 +239,10 @@ function ApplicantCard({
         <Typography
           sx={{
             fontSize: "0.68rem",
-            fontFamily: RAJ,
+            fontFamily: T.RAJ,
             fontWeight: 500,
             letterSpacing: "0.02em",
-            color: "rgba(74,84,112,1)",
+            color: T.textMuted,
             lineHeight: 1.4,
           }}
         >
@@ -216,95 +250,94 @@ function ApplicantCard({
         </Typography>
       )}
 
-      {/* Actions */}
+      {/* Actions — pending */}
       {status === "pending" && (
         <Stack direction="row" gap={0.6} mt={0.25}>
           <Button
             size="small"
-            onClick={() => handleAccept()}
+            onClick={handleAccept}
+            disabled={isAccepting || isRejecting}
             sx={{
               flex: 1,
               minWidth: 0,
               fontSize: "0.62rem",
-              fontFamily: RAJ,
+              fontFamily: T.RAJ,
               fontWeight: 700,
               letterSpacing: "0.06em",
               height: 24,
               borderRadius: "2px",
               textTransform: "uppercase",
-              background: "rgba(34,197,94,0.15)",
-              color: "#22c55e",
-              border: "1px solid rgba(34,197,94,0.28)",
+              background: T.greenDim,
+              color: T.green,
+              border: `1px solid ${T.greenBorder}`,
               boxShadow: "none",
               "&:hover": {
                 background: "rgba(34,197,94,0.25)",
                 boxShadow: "none",
               },
             }}
-            disabled={isAccepting || isRejecting}
           >
             Accept
           </Button>
           <Button
             size="small"
-            onClick={() => handleReject()}
+            onClick={handleReject}
+            disabled={isAccepting || isRejecting}
             sx={{
               flex: 1,
               minWidth: 0,
               fontSize: "0.62rem",
-              fontFamily: RAJ,
+              fontFamily: T.RAJ,
               fontWeight: 700,
               letterSpacing: "0.06em",
               height: 24,
               borderRadius: "2px",
               textTransform: "uppercase",
               background: "transparent",
-              color: "rgba(90,100,130,1)",
-              border: "1px solid rgba(255,255,255,0.09)",
+              color: T.textSub,
+              border: `1px solid ${T.border}`,
               "&:hover": {
-                borderColor: "rgba(255,70,85,0.4)",
-                color: "#FF4655",
-                background: "rgba(255,70,85,0.07)",
+                borderColor: T.accentBorder,
+                color: T.accent,
+                background: T.accentDim,
               },
             }}
-            disabled={isAccepting || isRejecting}
           >
             Reject
           </Button>
         </Stack>
       )}
 
+      {/* Status — accepted */}
       {status === "accepted" && (
         <Paper
           elevation={0}
           sx={{
-            p: 1.5,
-            background: "rgba(93,202,165,0.08)",
-            border: "1px solid rgba(93,202,165,0.25)",
+            p: 1.25,
+            background: T.tealDim,
+            border: `1px solid ${T.tealBorder}`,
             borderRadius: "2px",
           }}
         >
-          <Stack direction="row" alignItems="center" gap={1.5}>
-            <Box sx={{ color: "#5DCAA5" }}>
-              <CircularProgress size={20} sx={{ color: "currentColor" }} />
-            </Box>
+          <Stack direction="row" alignItems="center" gap={1.25}>
+            <CircularProgress size={16} sx={{ color: T.teal, flexShrink: 0 }} />
             <Box>
               <Typography
                 sx={{
-                  fontFamily: RAJ,
+                  fontFamily: T.RAJ,
                   fontWeight: 700,
-                  fontSize: "0.8rem",
-                  color: "#5DCAA5",
+                  fontSize: "0.78rem",
+                  color: T.teal,
                 }}
               >
-                Waiting for applicant response...
+                Waiting for applicant…
               </Typography>
               <Typography
                 sx={{
-                  fontFamily: RAJ,
+                  fontFamily: T.RAJ,
                   fontWeight: 500,
-                  fontSize: "0.65rem",
-                  color: "rgba(93,202,165,0.7)",
+                  fontSize: "0.62rem",
+                  color: "rgba(93,202,165,0.6)",
                 }}
               >
                 They&lsquo;ll confirm shortly
@@ -313,30 +346,28 @@ function ApplicantCard({
           </Stack>
         </Paper>
       )}
+
+      {/* Status — rejected */}
       {status === "rejected" && (
         <Paper
           elevation={0}
           sx={{
             p: 1,
-            background: "rgba(93,202,165,0.08)",
-            border: "1px solid rgba(202, 93, 93, 0.95)",
+            background: "rgba(255,70,85,0.07)",
+            border: `1px solid rgba(255,70,85,0.3)`,
             borderRadius: "2px",
           }}
         >
-          <Stack direction="row" alignItems="center" gap={1.5}>
-            <Box>
-              <Typography
-                sx={{
-                  fontFamily: RAJ,
-                  fontWeight: 700,
-                  fontSize: "0.8rem",
-                  color: "#fd5151",
-                }}
-              >
-                Applicant has been rejected!
-              </Typography>
-            </Box>
-          </Stack>
+          <Typography
+            sx={{
+              fontFamily: T.RAJ,
+              fontWeight: 700,
+              fontSize: "0.78rem",
+              color: T.accent,
+            }}
+          >
+            Applicant rejected
+          </Typography>
         </Paper>
       )}
     </Paper>
@@ -348,10 +379,8 @@ function ApplicantCard({
 export function MyLobbyPage() {
   const { isAuthenticated, user } = useCredentials();
   const { myLobby, setMyLobby, myLobbyLoading } = useInventory();
-
   const [deleteLobby] = useDeleteLobbyMutation();
   const [lobbyStatus] = useLobbyStatusMutation();
-
   const navigate = useNavigate();
 
   const handleToggle = async () => {
@@ -370,13 +399,9 @@ export function MyLobbyPage() {
       const response = await deleteLobby({
         lobbyId: id,
         hostId: user?.id || "",
-        applicantIds: [
-          ...(myLobby?.applicants?.map(
-            (applicant) => applicant?.user?.id as string,
-          ) || []),
-        ],
+        applicantIds:
+          myLobby?.applicants?.map((a) => a?.user?.id as string) || [],
       }).unwrap();
-
       if (response?.status) {
         toast.success("Lobby deleted.");
         setMyLobby(null);
@@ -391,19 +416,16 @@ export function MyLobbyPage() {
 
   const roles = myLobby?.rolesNeeded ?? [];
   const playerCount = Number(myLobby?.currentPlayers) || 4;
-  const maxPlayers = 5;
-  const spotsLeft = maxPlayers - playerCount;
-
+  const spotsLeft = 5 - playerCount;
   const currentRegion = ValorantRegionalServers.find(
     (r) => r.code === myLobby?.region,
   );
 
-  // Status-driven accent color for the main card
   const statusAccent =
     myLobby?.status === "open"
-      ? "#22c55e"
+      ? T.green
       : myLobby?.status === "full"
-        ? "#FF4655"
+        ? T.accent
         : "rgba(255,255,255,0.18)";
 
   // ── Auth guard ──────────────────────────────────────────────────────────────
@@ -423,31 +445,30 @@ export function MyLobbyPage() {
               borderRadius: "4px",
               clipPath:
                 "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)",
-              background: "rgba(255,70,85,0.1)",
-              border: "1px solid rgba(255,70,85,0.25)",
+              background: T.accentDim,
+              border: `1px solid ${T.accentBorder}`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Lock size={22} color="#FF4655" />
+            <Lock size={22} color={T.accent} />
           </Box>
           <Box>
             <Typography
               variant="h4"
               sx={{
-                fontFamily: RAJ,
+                fontFamily: T.RAJ,
                 fontWeight: 900,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
+                color: T.text,
                 mb: 0.5,
               }}
             >
-              Sign In Required
+              Sign in required
             </Typography>
-            <Typography
-              sx={{ color: "rgba(74,84,112,1)", fontSize: "0.88rem" }}
-            >
+            <Typography sx={{ color: T.textMuted, fontSize: "0.88rem" }}>
               You need to be signed in to manage your lobbies.
             </Typography>
           </Box>
@@ -464,7 +485,7 @@ export function MyLobbyPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        {/* ── Page header ─────────────────────────────────────────────────── */}
+        {/* ── Page header ── */}
         <Box mb={4}>
           <Button
             component={Link}
@@ -472,18 +493,18 @@ export function MyLobbyPage() {
             startIcon={<ChevronLeft size={14} />}
             size="small"
             sx={{
-              fontFamily: RAJ,
+              fontFamily: T.RAJ,
               fontWeight: 700,
               fontSize: "0.65rem",
               letterSpacing: "0.09em",
-              color: "rgba(74,84,112,1)",
+              color: T.textMuted,
               mb: 2,
               textTransform: "uppercase",
               borderRadius: "2px",
-              "&:hover": { color: "#edf0f4" },
+              "&:hover": { color: T.text },
             }}
           >
-            Back to Browse
+            Back to browse
           </Button>
 
           <Stack
@@ -492,7 +513,6 @@ export function MyLobbyPage() {
             alignItems="center"
           >
             <Stack direction="row" alignItems="center" gap={1.5}>
-              {/* Icon with diagonal clip */}
               <Box
                 sx={{
                   width: 40,
@@ -500,29 +520,29 @@ export function MyLobbyPage() {
                   borderRadius: "4px",
                   clipPath:
                     "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
-                  background: "rgba(255,70,85,0.12)",
-                  border: "1px solid rgba(255,70,85,0.25)",
+                  background: T.accentDim,
+                  border: `1px solid ${T.accentBorder}`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   flexShrink: 0,
                 }}
               >
-                <Layout size={17} color="#FF4655" />
+                <Layout size={17} color={T.accent} />
               </Box>
               <Typography
                 variant="h3"
                 sx={{
-                  fontFamily: RAJ,
+                  fontFamily: T.RAJ,
                   fontWeight: 900,
                   fontSize: "1.85rem",
                   letterSpacing: "0.06em",
                   lineHeight: 1,
-                  color: "#edf0f4",
+                  color: T.text,
                   textTransform: "uppercase",
                 }}
               >
-                My Lobbies
+                My lobbies
               </Typography>
             </Stack>
 
@@ -532,26 +552,27 @@ export function MyLobbyPage() {
               variant="contained"
               startIcon={<Plus size={14} />}
               sx={{
-                background: "#FF4655",
-                fontFamily: RAJ,
+                background: T.accent,
+                fontFamily: T.RAJ,
                 fontWeight: 700,
                 letterSpacing: "0.07em",
                 fontSize: "0.75rem",
                 height: 34,
                 borderRadius: "3px",
                 textTransform: "uppercase",
+                boxShadow: "none",
                 "&:hover": {
-                  background: "#ff6b77",
-                  boxShadow: "0 0 18px rgba(255,70,85,0.4)",
+                  background: "#e03040",
+                  boxShadow: `0 0 18px rgba(255,70,85,0.35)`,
                 },
               }}
             >
-              New Lobby
+              New lobby
             </Button>
           </Stack>
         </Box>
 
-        {/* ── Loading skeletons ─────────────────────────────────────────────── */}
+        {/* ── Loading skeletons ── */}
         {myLobbyLoading && (
           <Stack gap={2}>
             {[1, 2, 3].map((i) => (
@@ -569,7 +590,7 @@ export function MyLobbyPage() {
           </Stack>
         )}
 
-        {/* ── Empty state ───────────────────────────────────────────────────── */}
+        {/* ── Empty state ── */}
         {!myLobbyLoading && !myLobby && (
           <Box
             sx={{
@@ -584,6 +605,8 @@ export function MyLobbyPage() {
               sx={{
                 width: 50,
                 height: 50,
+                mx: "auto",
+                mb: 2,
                 borderRadius: "4px",
                 clipPath:
                   "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)",
@@ -592,49 +615,46 @@ export function MyLobbyPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                mx: "auto",
-                mb: 2,
               }}
             >
               <Layout size={20} color="rgba(255,70,85,0.45)" />
             </Box>
             <Typography
               sx={{
-                fontFamily: RAJ,
+                fontFamily: T.RAJ,
                 fontWeight: 700,
                 fontSize: "1rem",
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: "#edf0f4",
+                color: T.text,
                 mb: 0.75,
               }}
             >
-              No Lobbies Yet
+              No lobbies yet
             </Typography>
-            <Typography
-              sx={{ color: "rgba(74,84,112,1)", fontSize: "0.85rem", mb: 3 }}
-            >
-              You haven&apos;t posted any lobbies. Create one to find your 5th!
+            <Typography sx={{ color: T.textMuted, fontSize: "0.85rem", mb: 3 }}>
+              You haven&lsquo;t posted any lobbies. Create one to find your 5th!
             </Typography>
             <Button
               onClick={() => navigate("/create")}
               variant="contained"
               sx={{
-                background: "#FF4655",
-                fontFamily: RAJ,
+                background: T.accent,
+                fontFamily: T.RAJ,
                 fontWeight: 700,
                 letterSpacing: "0.07em",
                 textTransform: "uppercase",
                 borderRadius: "3px",
-                "&:hover": { background: "#ff6b77" },
+                boxShadow: "none",
+                "&:hover": { background: "#e03040", boxShadow: "none" },
               }}
             >
-              Post a Lobby
+              Post a lobby
             </Button>
           </Box>
         )}
 
-        {/* ── Lobby card ───────────────────────────────────────────────────── */}
+        {/* ── Lobby card ── */}
         {!myLobbyLoading && myLobby && (
           <Stack gap={2.5}>
             <motion.div
@@ -643,61 +663,8 @@ export function MyLobbyPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35 }}
             >
-              <Paper
-                elevation={0}
-                sx={{
-                  backgroundColor: CARD_BG,
-                  border: `1px solid ${BORDER}`,
-                  // Signature Valorant diagonal clip — top-right corner
-                  borderRadius: "4px",
-                  clipPath:
-                    "polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)",
-                  position: "relative",
-                  overflow: "hidden",
-                  transition: "border-color 0.2s, box-shadow 0.2s",
-                  "&:hover": {
-                    borderColor: "rgba(255,255,255,0.13)",
-                    boxShadow: `0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px ${statusAccent}22`,
-                  },
-                  // Left accent bar — driven by lobby status
-                  "&::before": {
-                    content: '""',
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: 3,
-                    height: "100%",
-                    background: statusAccent,
-                    zIndex: 2,
-                  },
-                  // Top edge tint
-                  "&::after": {
-                    content: '""',
-                    position: "absolute",
-                    top: 0,
-                    left: 3,
-                    right: 0,
-                    height: "2px",
-                    background: `linear-gradient(90deg, ${statusAccent}88, transparent 55%)`,
-                    zIndex: 2,
-                  },
-                }}
-              >
-                {/* Corner triangle ornament */}
-                <Box
-                  aria-hidden
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    width: 0,
-                    height: 0,
-                    borderStyle: "solid",
-                    borderWidth: "0 16px 16px 0",
-                    borderColor: `transparent ${statusAccent}44 transparent transparent`,
-                    zIndex: 3,
-                  }}
-                />
+              <Paper elevation={0} sx={valorantCard(statusAccent)}>
+                <CornerOrnament color={statusAccent} />
 
                 <Box
                   sx={{
@@ -706,7 +673,7 @@ export function MyLobbyPage() {
                     zIndex: 1,
                   }}
                 >
-                  {/* ── Top control row: meta chips + rank + actions ── */}
+                  {/* Top row */}
                   <Stack
                     direction="row"
                     justifyContent="space-between"
@@ -715,20 +682,26 @@ export function MyLobbyPage() {
                     gap={1}
                     mb={1.5}
                   >
-                    {/* ── Meta: region + server ── */}
-                    <Stack direction="row" flexWrap="wrap" gap={1} mb={1}>
+                    {/* Host info */}
+                    <Stack direction="row" flexWrap="wrap" gap={1}>
                       <AvatarUser
                         avatarUrl={myLobby?.host?.profilePhoto}
-                        name={myLobby?.host?.name || "vv"}
+                        name={myLobby?.host?.name || ""}
                         verified={myLobby?.host?.verified}
-                        sx={{
-                          width: 48,
-                          height: 48,
-                        }}
+                        sx={{ width: 44, height: 44 }}
                       />
-
-                      <Stack sx={{}}>
-                        <Typography>{myLobby.host.name}</Typography>
+                      <Stack>
+                        <Typography
+                          sx={{
+                            fontFamily: T.RAJ,
+                            fontWeight: 700,
+                            fontSize: "0.82rem",
+                            color: T.text,
+                            letterSpacing: "0.03em",
+                          }}
+                        >
+                          {myLobby.host.name}
+                        </Typography>
                         <Stack direction="row" flexWrap="wrap" gap={0.6}>
                           <MetaChip
                             icon={<Globe size={10} />}
@@ -746,7 +719,7 @@ export function MyLobbyPage() {
                       </Stack>
                     </Stack>
 
-                    {/* Right: ranks + divider + actions */}
+                    {/* Rank + actions */}
                     <Stack
                       direction="row"
                       alignItems="center"
@@ -768,10 +741,7 @@ export function MyLobbyPage() {
                       <Divider
                         orientation="vertical"
                         flexItem
-                        sx={{
-                          mx: 0.25,
-                          borderColor: "rgba(255,255,255,0.07)",
-                        }}
+                        sx={{ mx: 0.25, borderColor: T.border }}
                       />
 
                       <Button
@@ -784,9 +754,9 @@ export function MyLobbyPage() {
                             <RefreshCw size={11} />
                           )
                         }
-                        onClick={() => handleToggle()}
+                        onClick={handleToggle}
                         sx={{
-                          fontFamily: RAJ,
+                          fontFamily: T.RAJ,
                           fontWeight: 700,
                           fontSize: "0.62rem",
                           letterSpacing: "0.07em",
@@ -796,15 +766,15 @@ export function MyLobbyPage() {
                           textTransform: "uppercase",
                           borderColor:
                             myLobby.status === "open"
-                              ? "rgba(255,255,255,0.09)"
-                              : "rgba(255, 255, 255, 0.42)",
+                              ? T.border
+                              : "rgba(255,255,255,0.3)",
                           color:
                             myLobby.status === "open"
-                              ? "rgba(90,100,130,1)"
-                              : "rgb(182, 182, 182)",
+                              ? T.textSub
+                              : "rgba(200,200,200,1)",
                           "&:hover": {
                             borderColor: "rgba(255,255,255,0.2)",
-                            color: "#edf0f4",
+                            color: T.text,
                             background: "rgba(255,255,255,0.04)",
                           },
                         }}
@@ -820,13 +790,13 @@ export function MyLobbyPage() {
                             width: 26,
                             height: 26,
                             borderRadius: "2px",
-                            border: "1px solid rgba(255,70,85,0.18)",
-                            color: "rgba(255,70,85,0.45)",
+                            border: `1px solid rgba(255,70,85,0.2)`,
+                            color: "rgba(255,70,85,0.5)",
                             transition: "all 0.15s",
                             "&:hover": {
-                              background: "rgba(255,70,85,0.1)",
-                              color: "#FF4655",
-                              borderColor: "rgba(255,70,85,0.4)",
+                              background: T.accentDim,
+                              color: T.accent,
+                              borderColor: T.accentBorder,
                             },
                           }}
                         >
@@ -836,7 +806,7 @@ export function MyLobbyPage() {
                     </Stack>
                   </Stack>
 
-                  {/* ── Title + status + host ── */}
+                  {/* Title + status */}
                   <Box mb={1.5}>
                     <Stack
                       direction="row"
@@ -847,12 +817,12 @@ export function MyLobbyPage() {
                     >
                       <Typography
                         sx={{
-                          fontFamily: RAJ,
+                          fontFamily: T.RAJ,
                           fontWeight: 700,
                           fontSize: "1.05rem",
                           letterSpacing: "0.05em",
                           lineHeight: 1.2,
-                          color: "#edf0f4",
+                          color: T.text,
                           textTransform: "uppercase",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
@@ -864,21 +834,20 @@ export function MyLobbyPage() {
                       </Typography>
                       <StatusChip status={myLobby.status} />
                     </Stack>
-
                     {myLobby.hostGamename && (
                       <Typography
                         sx={{
-                          fontFamily: RAJ,
+                          fontFamily: T.RAJ,
                           fontSize: "0.7rem",
                           fontWeight: 500,
                           letterSpacing: "0.03em",
-                          color: "rgba(74,84,112,1)",
+                          color: T.textMuted,
                         }}
                       >
                         hosted by{" "}
                         <Box
                           component="span"
-                          sx={{ color: "#8892aa", fontWeight: 600 }}
+                          sx={{ color: T.textSub, fontWeight: 600 }}
                         >
                           {myLobby.hostGamename}
                         </Box>
@@ -891,24 +860,23 @@ export function MyLobbyPage() {
                     )}
                   </Box>
 
-                  {/* ── Roles ── */}
+                  {/* Roles */}
                   {roles?.length > 0 && (
                     <Stack direction="row" flexWrap="wrap" gap={0.6} mb={1.25}>
-                      {roles.map((role) => {
-                        if (!role) return null;
-                        return <RoleChip key={role} role={role} />;
-                      })}
+                      {roles.map(
+                        (role) => role && <RoleChip key={role} role={role} />,
+                      )}
                     </Stack>
                   )}
 
-                  {/* ── Description ── */}
+                  {/* Description */}
                   {myLobby.description && (
                     <Typography
                       variant="body2"
                       sx={{
-                        fontFamily: RAJ,
+                        fontFamily: T.RAJ,
                         fontWeight: 500,
-                        color: "rgba(74,84,112,1)",
+                        color: T.textMuted,
                         fontSize: "0.78rem",
                         letterSpacing: "0.02em",
                         lineHeight: 1.5,
@@ -927,33 +895,32 @@ export function MyLobbyPage() {
                     sx={{ borderColor: "rgba(255,255,255,0.055)", mb: 1.25 }}
                   />
 
-                  {/* ── Footer ── */}
+                  {/* Footer */}
                   <Stack
                     direction="row"
                     justifyContent="space-between"
                     alignItems="center"
                   >
                     <Stack direction="row" gap={1.75} alignItems="center">
-                      {/* Players */}
                       <Stack direction="row" alignItems="center" gap={0.5}>
                         <Users size={12} color="rgba(58,64,96,1)" />
                         <Typography
                           sx={{
-                            fontFamily: RAJ,
+                            fontFamily: T.RAJ,
                             fontWeight: 700,
-                            color: "#8892aa",
+                            color: T.textSub,
                             fontSize: "0.78rem",
                             letterSpacing: "0.03em",
                           }}
                         >
-                          {playerCount}/{maxPlayers}
+                          {playerCount}/5
                         </Typography>
                         {spotsLeft > 0 && myLobby.status === "open" && (
                           <Typography
                             sx={{
-                              color: "#22c55e",
+                              color: T.green,
                               fontSize: "0.68rem",
-                              fontFamily: RAJ,
+                              fontFamily: T.RAJ,
                               fontWeight: 600,
                             }}
                           >
@@ -961,15 +928,13 @@ export function MyLobbyPage() {
                           </Typography>
                         )}
                       </Stack>
-
-                      {/* Time */}
                       <Stack direction="row" alignItems="center" gap={0.5}>
                         <Clock size={11} color="rgba(58,64,96,1)" />
                         <Typography
                           sx={{
-                            color: "rgba(74,84,112,1)",
+                            color: T.textMuted,
                             fontSize: "0.68rem",
-                            fontFamily: RAJ,
+                            fontFamily: T.RAJ,
                             fontWeight: 600,
                           }}
                         >
@@ -982,7 +947,7 @@ export function MyLobbyPage() {
               </Paper>
             </motion.div>
 
-            {/* ── Join requests ─────────────────────────────────────────────── */}
+            {/* ── Join requests ── */}
             {myLobby?.applicants && myLobby.applicants.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
@@ -990,36 +955,35 @@ export function MyLobbyPage() {
                 transition={{ delay: 0.1, duration: 0.35 }}
               >
                 <Box>
-                  {/* Section label + count */}
                   <Stack direction="row" alignItems="center" gap={1} mb={1.25}>
                     <Typography
                       sx={{
                         fontSize: "0.62rem",
                         fontWeight: 700,
-                        fontFamily: RAJ,
+                        fontFamily: T.RAJ,
                         letterSpacing: "0.12em",
-                        color: "rgba(74,84,112,1)",
+                        color: T.textMuted,
                         textTransform: "uppercase",
                       }}
                     >
-                      Join Requests
+                      Join requests
                     </Typography>
                     <Box
                       sx={{
                         px: 0.85,
                         py: "1px",
                         borderRadius: "2px",
-                        background: "rgba(255,70,85,0.1)",
-                        border: "1px solid rgba(255,70,85,0.25)",
+                        background: T.accentDim,
+                        border: `1px solid ${T.accentBorder}`,
                       }}
                     >
                       <Typography
                         sx={{
                           fontSize: "0.6rem",
                           fontWeight: 700,
-                          fontFamily: RAJ,
+                          fontFamily: T.RAJ,
                           letterSpacing: "0.08em",
-                          color: "#FF4655",
+                          color: T.accent,
                           lineHeight: 1.7,
                         }}
                       >
@@ -1027,8 +991,6 @@ export function MyLobbyPage() {
                       </Typography>
                     </Box>
                   </Stack>
-
-                  {/* Cards grid */}
                   <Stack direction="row" gap={1} flexWrap="wrap">
                     {myLobby.applicants.map((applicant) => (
                       <ApplicantCard

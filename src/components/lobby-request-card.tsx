@@ -38,14 +38,18 @@ import { MetaChip } from "./meta-chip";
 import { AvatarUser } from "./avatar-user";
 import { formatTimeAgo } from "../lib/valorant";
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+// ─── Design tokens ────────────────────────────────────────────────────────────
 
-interface LobbyRequestCardProps {
-  lobby: LobbyType;
-  currentUserId: string;
-  index?: number;
-  onCancelRequest?: (lobbyId: string, applicationId: string) => void;
-}
+const T = {
+  bg: "rgba(22, 23, 34, 0.97)",
+  border: "rgba(255,255,255,0.07)",
+  text: "#edf0f4",
+  textMuted: "rgba(74,84,112,1)",
+  textSub: "#8892aa",
+  accent: "#FF4655",
+  green: "#22c55e",
+  RAJ: '"Rajdhani", sans-serif',
+} as const;
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -76,22 +80,14 @@ const REQUEST_STATUS = {
   },
 } as const;
 
-// ─── Tokens ───────────────────────────────────────────────────────────────────
-
-const CARD_BG = "rgba(255,255,255,0.025)";
-const BORDER = "rgba(255,255,255,0.07)";
-const RAJ = '"Rajdhani", sans-serif';
-
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// ─── Copy hook ────────────────────────────────────────────────────────────────
 
 function useCopyCode(text: string) {
   const [copied, setCopied] = useState(false);
-
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(text);
     } catch {
-      // fallback for non-HTTPS / older browsers
       const el = document.createElement("textarea");
       el.value = text;
       el.style.cssText = "position:fixed;opacity:0;pointer-events:none";
@@ -103,9 +99,10 @@ function useCopyCode(text: string) {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
   return { copied, copy };
 }
+
+// ─── PartyCodeBox ─────────────────────────────────────────────────────────────
 
 export function PartyCodeBox({ partyCode }: { partyCode: string }) {
   const { copied, copy } = useCopyCode(partyCode);
@@ -114,6 +111,11 @@ export function PartyCodeBox({ partyCode }: { partyCode: string }) {
 
   return (
     <Box
+      onMouseEnter={(e) => {
+        setAnchorEl(e.currentTarget);
+        setOpen(true);
+      }}
+      onMouseLeave={() => setOpen(false)}
       sx={{
         display: "inline-flex",
         alignItems: "center",
@@ -127,36 +129,27 @@ export function PartyCodeBox({ partyCode }: { partyCode: string }) {
         clipPath:
           "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
         background: "rgba(34,197,94,0.07)",
-        border: "1px solid rgba(34, 197, 94, 0.5)",
-        transition: "border-color 0.15s",
+        border: "1px solid rgba(34,197,94,0.45)",
         position: "relative",
         overflow: "visible",
-        animation: "codepulse 1.5s ease-in-out infinite",
+        animation: "codepulse 1.8s ease-in-out infinite",
         "@keyframes codepulse": {
           "0%": {
-            borderColor: "rgba(34, 197, 94, 0.3)",
-            boxShadow: "0 0 0 0 rgba(34, 197, 94, 0.2)",
+            borderColor: "rgba(34,197,94,0.25)",
+            boxShadow: "0 0 0 0 rgba(34,197,94,0.15)",
           },
           "50%": {
-            borderColor: "rgb(34, 197, 94)",
-            boxShadow: "0 0 0 3px rgba(34, 197, 94, 0.4)",
+            borderColor: "rgba(34,197,94,0.9)",
+            boxShadow: "0 0 0 3px rgba(34,197,94,0.25)",
           },
           "100%": {
-            borderColor: "rgba(34, 197, 94, 0.3)",
-            boxShadow: "0 0 0 0 rgba(34, 197, 94, 0)",
+            borderColor: "rgba(34,197,94,0.25)",
+            boxShadow: "0 0 0 0 rgba(34,197,94,0)",
           },
         },
-        "&:hover": {
-          animation: "codepulse 0.8s ease-in-out infinite",
-          borderColor: "rgba(34,197,94,0.7)",
-        },
       }}
-      onMouseEnter={(e) => {
-        setAnchorEl(e.currentTarget);
-        setOpen(true);
-      }}
-      onMouseLeave={() => setOpen(false)}
     >
+      {/* Corner ornament */}
       <Box
         aria-hidden
         sx={{
@@ -168,48 +161,40 @@ export function PartyCodeBox({ partyCode }: { partyCode: string }) {
           borderStyle: "solid",
           borderWidth: "0 8px 8px 0",
           borderColor:
-            "transparent rgba(34, 197, 94, 0.89) transparent transparent",
+            "transparent rgba(34,197,94,0.8) transparent transparent",
         }}
       />
 
-      <Shield size={11} color="#22c55e" />
+      <Shield size={11} color={T.green} />
 
       <Typography
         sx={{
-          fontFamily: RAJ,
+          fontFamily: T.RAJ,
           fontWeight: 700,
           fontSize: "0.62rem",
           letterSpacing: "0.1em",
-          color: "rgb(193, 199, 218)",
+          color: "rgba(193,199,218,1)",
           textTransform: "uppercase",
         }}
       >
-        Party Code
+        Party code
       </Typography>
 
-      {/* Code — selectable on click */}
       <Typography
+        onClick={copy}
         sx={{
-          fontFamily: RAJ,
+          fontFamily: T.RAJ,
           fontWeight: 700,
           fontSize: "0.88rem",
           letterSpacing: "0.22em",
-          color: "#22c55e",
+          color: T.green,
           userSelect: "all",
           cursor: "pointer",
-          "&:hover": {
-            opacity: 0.8,
-          },
-        }}
-        onClick={() => {
-          navigator.clipboard.writeText(partyCode);
-          copy(); // If you want to trigger the copied state
+          "&:hover": { opacity: 0.75 },
         }}
       >
         {partyCode}
       </Typography>
-
-      {/* Copy button */}
 
       <IconButton
         onClick={copy}
@@ -222,13 +207,13 @@ export function PartyCodeBox({ partyCode }: { partyCode: string }) {
           borderRadius: "2px",
           flexShrink: 0,
           border: copied
-            ? "1px solid rgba(34,197,94,0.45)"
-            : "1px solid rgba(214, 209, 209, 0.61)",
-          color: copied ? "#22c55e" : "rgba(202, 202, 202, 0.98)",
+            ? "1px solid rgba(34,197,94,0.5)"
+            : "1px solid rgba(255,255,255,0.2)",
+          color: copied ? T.green : "rgba(200,200,200,0.9)",
           transition: "all 0.15s",
           "&:hover": {
-            border: "1px solid rgba(34,197,94,0.4)",
-            color: "#22c55e",
+            border: "1px solid rgba(34,197,94,0.45)",
+            color: T.green,
             background: "rgba(34,197,94,0.08)",
           },
         }}
@@ -236,31 +221,30 @@ export function PartyCodeBox({ partyCode }: { partyCode: string }) {
         {copied ? <Check size={11} strokeWidth={2.5} /> : <Copy size={11} />}
       </IconButton>
 
-      {/* Info message - properly positioned below */}
       <Popper open={open} anchorEl={anchorEl} placement="top" transition>
         {({ TransitionProps }) => (
           <Fade {...TransitionProps} timeout={200}>
             <Box
               sx={{
-                mt: 1,
+                mb: 0.75,
                 background: "rgba(13,15,26,0.98)",
-                border: "1px solid rgba(34, 197, 94, 0.35)",
+                border: "1px solid rgba(34,197,94,0.3)",
                 borderRadius: "2px",
                 px: 1.25,
                 py: 0.5,
-                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
               }}
             >
               <Typography
                 sx={{
-                  fontFamily: RAJ,
+                  fontFamily: T.RAJ,
                   fontSize: "0.6rem",
                   letterSpacing: "0.08em",
-                  color: "#22c55e",
+                  color: T.green,
                   whiteSpace: "nowrap",
                 }}
               >
-                📋 Copy this code to join the party
+                Copy this code to join the party
               </Typography>
             </Box>
           </Fade>
@@ -270,7 +254,14 @@ export function PartyCodeBox({ partyCode }: { partyCode: string }) {
   );
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
+// ─── LobbyRequestCard ─────────────────────────────────────────────────────────
+
+interface LobbyRequestCardProps {
+  lobby: LobbyType;
+  currentUserId: string;
+  index?: number;
+  onCancelRequest?: (lobbyId: string, applicationId: string) => void;
+}
 
 export function LobbyRequestCard({
   lobby,
@@ -278,7 +269,6 @@ export function LobbyRequestCard({
   index = 0,
   onCancelRequest,
 }: LobbyRequestCardProps) {
-  console.log(lobby);
   const myApplication = lobby?.applicants?.find(
     (a) => a.user === currentUserId,
   );
@@ -290,7 +280,6 @@ export function LobbyRequestCard({
 
   const spotsLeft = 5 - Number(lobby?.currentPlayers ?? 4);
   const roles = lobby?.rolesNeeded?.filter(Boolean) ?? [];
-
   const currentRegion = ValorantRegionalServers.find(
     (r) => r.code === lobby?.region,
   );
@@ -304,25 +293,18 @@ export function LobbyRequestCard({
       <Paper
         elevation={0}
         sx={{
-          // Dark Valorant surface
-          backgroundColor: CARD_BG,
-          border: `1px solid ${BORDER}`,
-
-          // Sharp diagonal clip — top-right corner, Valorant agent card feel
+          backgroundColor: T.bg,
+          border: `1px solid ${T.border}`,
           borderRadius: "4px",
           clipPath:
             "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)",
-
           position: "relative",
           overflow: "hidden",
           transition: "border-color 0.2s, box-shadow 0.2s",
-
           "&:hover": {
             borderColor: "rgba(255,255,255,0.13)",
             boxShadow: `0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px ${accent}22`,
           },
-
-          // Left accent bar — color = request status
           "&::before": {
             content: '""',
             position: "absolute",
@@ -333,8 +315,6 @@ export function LobbyRequestCard({
             background: accent,
             zIndex: 2,
           },
-
-          // Top edge tint fading right
           "&::after": {
             content: '""',
             position: "absolute",
@@ -347,7 +327,7 @@ export function LobbyRequestCard({
           },
         }}
       >
-        {/* Clipped corner triangle ornament */}
+        {/* Corner ornament */}
         <Box
           aria-hidden
           sx={{
@@ -358,7 +338,7 @@ export function LobbyRequestCard({
             height: 0,
             borderStyle: "solid",
             borderWidth: "0 14px 14px 0",
-            borderColor: `transparent ${accent}55 transparent transparent`,
+            borderColor: `transparent ${accent}44 transparent transparent`,
             zIndex: 3,
           }}
         />
@@ -372,20 +352,26 @@ export function LobbyRequestCard({
             gap={1.5}
             mb={1.5}
           >
-            {/* ── Meta: region + server ── */}
+            {/* Host info */}
             <Stack direction="row" flexWrap="wrap" gap={1} mb={1}>
               <AvatarUser
                 avatarUrl={lobby?.host?.profilePhoto}
-                name={lobby?.host?.name || "vv"}
+                name={lobby?.host?.name || ""}
                 verified={lobby?.host?.verified}
-                sx={{
-                  width: 48,
-                  height: 48,
-                }}
+                sx={{ width: 44, height: 44 }}
               />
-
-              <Stack sx={{}}>
-                <Typography>{lobby.host.name}</Typography>
+              <Stack>
+                <Typography
+                  sx={{
+                    fontFamily: T.RAJ,
+                    fontWeight: 700,
+                    fontSize: "0.82rem",
+                    color: T.text,
+                    letterSpacing: "0.03em",
+                  }}
+                >
+                  {lobby.host.name}
+                </Typography>
                 <Stack direction="row" flexWrap="wrap" gap={0.6}>
                   <MetaChip
                     icon={<Globe size={10} />}
@@ -401,14 +387,13 @@ export function LobbyRequestCard({
               </Stack>
             </Stack>
 
-            {/* Right: badge + cancel */}
+            {/* Status badge + cancel */}
             <Stack
               direction="row"
               alignItems="center"
               gap={0.75}
               flexShrink={0}
             >
-              {/* Request status badge */}
               <Box
                 sx={{
                   display: "inline-flex",
@@ -424,7 +409,7 @@ export function LobbyRequestCard({
                 <StatusIcon size={10} color={cfg.color} strokeWidth={2} />
                 <Typography
                   sx={{
-                    fontFamily: RAJ,
+                    fontFamily: T.RAJ,
                     fontWeight: 700,
                     fontSize: "0.62rem",
                     letterSpacing: "0.1em",
@@ -436,7 +421,6 @@ export function LobbyRequestCard({
                 </Typography>
               </Box>
 
-              {/* Cancel — only when pending */}
               {requestStatus === "pending" &&
                 onCancelRequest &&
                 myApplication && (
@@ -448,12 +432,12 @@ export function LobbyRequestCard({
                         width: 26,
                         height: 26,
                         borderRadius: "2px",
-                        border: "1px solid rgba(255,255,255,0.09)",
+                        border: `1px solid ${T.border}`,
                         color: "rgba(255,255,255,0.28)",
                         transition: "all 0.15s",
                         "&:hover": {
                           border: "1px solid rgba(255,70,85,0.4)",
-                          color: "#FF4655",
+                          color: T.accent,
                           background: "rgba(255,70,85,0.08)",
                         },
                       }}
@@ -465,7 +449,7 @@ export function LobbyRequestCard({
             </Stack>
           </Stack>
 
-          {/* ── Top row: title + status badge ── */}
+          {/* Title + status + party code */}
           <Stack direction="column" flexWrap="wrap" gap={0.75} mb={1.5}>
             <Stack
               direction="row"
@@ -476,12 +460,12 @@ export function LobbyRequestCard({
             >
               <Typography
                 sx={{
-                  fontFamily: RAJ,
+                  fontFamily: T.RAJ,
                   fontWeight: 700,
                   fontSize: "0.98rem",
                   letterSpacing: "0.05em",
                   lineHeight: 1.15,
-                  color: "#edf0f4",
+                  color: T.text,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -492,20 +476,18 @@ export function LobbyRequestCard({
                 {lobby.title}
               </Typography>
               <StatusChip status={lobby.status} />
-
-              {/* ── Party code — only revealed on acceptance ── */}
               {requestStatus === "accepted" && lobby.partyCode && (
                 <PartyCodeBox partyCode={lobby.partyCode} />
               )}
             </Stack>
-            {/* ── Description ── */}
+
             {lobby.description && (
               <Typography
                 variant="body2"
                 sx={{
-                  fontFamily: RAJ,
+                  fontFamily: T.RAJ,
                   fontWeight: 500,
-                  color: "rgb(212, 137, 134)",
+                  color: "rgba(212,137,134,1)",
                   fontSize: "0.78rem",
                   letterSpacing: "0.02em",
                   lineHeight: 1.5,
@@ -521,7 +503,7 @@ export function LobbyRequestCard({
             )}
           </Stack>
 
-          {/* ── Rank range ── */}
+          {/* Rank range */}
           <Stack direction="row" alignItems="center" gap={0.75} mb={1}>
             <RankChip rank={lobby.rankMin} />
             <Typography
@@ -537,7 +519,7 @@ export function LobbyRequestCard({
             <RankChip rank={lobby.rankMax} />
           </Stack>
 
-          {/* ── Roles needed ── */}
+          {/* Roles */}
           {roles.length > 0 && (
             <Stack direction="row" flexWrap="wrap" gap={0.6} mb={1}>
               {roles.map((role) => (
@@ -548,21 +530,20 @@ export function LobbyRequestCard({
 
           <Divider sx={{ borderColor: "rgba(255,255,255,0.055)", mb: 1.25 }} />
 
-          {/* ── Footer ── */}
+          {/* Footer */}
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
           >
-            {/* Left: player count + timestamp */}
             <Stack direction="row" gap={1.75} alignItems="center">
               <Stack direction="row" alignItems="center" gap={0.5}>
                 <Users size={12} color="rgba(58,64,96,1)" />
                 <Typography
                   sx={{
-                    fontFamily: RAJ,
+                    fontFamily: T.RAJ,
                     fontWeight: 700,
-                    color: "#8892aa",
+                    color: T.textSub,
                     fontSize: "0.78rem",
                     letterSpacing: "0.03em",
                   }}
@@ -572,9 +553,9 @@ export function LobbyRequestCard({
                 {spotsLeft > 0 && lobby.status === "open" && (
                   <Typography
                     sx={{
-                      color: "#22c55e",
+                      color: T.green,
                       fontSize: "0.68rem",
-                      fontFamily: RAJ,
+                      fontFamily: T.RAJ,
                       fontWeight: 600,
                     }}
                   >
@@ -582,14 +563,13 @@ export function LobbyRequestCard({
                   </Typography>
                 )}
               </Stack>
-
               <Stack direction="row" alignItems="center" gap={0.5}>
                 <Clock size={11} color="rgba(58,64,96,1)" />
                 <Typography
                   sx={{
-                    color: "rgba(74,84,112,1)",
+                    color: T.textMuted,
                     fontSize: "0.68rem",
-                    fontFamily: RAJ,
+                    fontFamily: T.RAJ,
                     fontWeight: 600,
                   }}
                 >
@@ -598,12 +578,11 @@ export function LobbyRequestCard({
               </Stack>
             </Stack>
 
-            {/* Right: applied role */}
             {myApplication?.user?.mainRole && (
               <Stack direction="row" alignItems="center" gap={0.6}>
                 <Typography
                   sx={{
-                    fontFamily: RAJ,
+                    fontFamily: T.RAJ,
                     fontWeight: 700,
                     fontSize: "0.6rem",
                     letterSpacing: "0.09em",
