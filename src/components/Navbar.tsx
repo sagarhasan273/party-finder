@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -53,6 +53,12 @@ export function Navbar() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const isActive = (path: string) => location.pathname === path;
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <AppBar position="sticky" elevation={0}>

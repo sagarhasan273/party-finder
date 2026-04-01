@@ -15,6 +15,7 @@ import {
   Server,
   RefreshCw,
   ChevronLeft,
+  ArrowUpRight,
 } from "lucide-react";
 
 import {
@@ -46,9 +47,9 @@ import { RankChip } from "src/components/rank-chip";
 import { MetaChip } from "src/components/meta-chip";
 import { AvatarUser } from "src/components/avatar-user";
 
-import { formatTimeAgo } from "../lib/valorant";
 import { RoleChip } from "../components/role-chip";
 import { StatusChip } from "../components/status-chip";
+import { formatTimeAgo, getTrackerProfileUrl } from "../lib/valorant";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -220,10 +221,36 @@ function ApplicantCard({
             {user.gamename}
             <Box
               component="span"
-              sx={{ opacity: 0.35, fontWeight: 400, textTransform: "none" }}
+              sx={{ opacity: 0.5, fontWeight: 500, textTransform: "none" }}
             >
               #{user.tagline}
             </Box>
+            <Button
+              variant="text"
+              component="span"
+              startIcon={<ArrowUpRight size={18} />}
+              onClick={() => {
+                if (user.gamename && user.tagline)
+                  window.open(
+                    getTrackerProfileUrl(user.gamename, user.tagline),
+                    "_blank",
+                  );
+              }}
+              sx={{
+                ml: 1,
+                color: "#00a0d1",
+                textTransform: "none",
+                "&:hover": {
+                  color: "#52d7ff",
+                  background: "transparent",
+                },
+                "& .MuiButton-startIcon": {
+                  marginRight: 0.25,
+                },
+              }}
+            >
+              View Stats
+            </Button>
           </Typography>
         </Stack>
       </Stack>
