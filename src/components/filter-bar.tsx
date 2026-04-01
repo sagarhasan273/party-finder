@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
 import { X, SlidersHorizontal } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
 
+import { Box } from "@mui/system";
 import {
   Stack,
   Paper,
@@ -12,11 +13,57 @@ import {
   FormControl,
 } from "@mui/material";
 
+import { useCredentials } from "src/core/slices";
 import { ValorantRegionalServers } from "src/@mock/constant";
 
 import { RANKS } from "../lib/valorant";
 
+const RegionDetection = () => {
+  const [dots, setDots] = useState(".");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? "." : `${prev}.`));
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, []);
+  return (
+    <Box sx={{ ml: 1 }}>
+      <Typography
+        variant="subtitle2"
+        sx={{
+          fontSize: "0.8rem",
+          color: "#22c55e",
+          fontFamily: '"Rajdhani", sans-serif',
+          letterSpacing: "0.05em",
+
+          animation: "pulseGlow 1.5s ease-in-out infinite",
+          "@keyframes pulseGlow": {
+            "0%": {
+              opacity: 0.5,
+              textShadow: "0 0 0px rgba(34, 197, 94, 0.48)",
+            },
+            "50%": {
+              opacity: 1,
+              textShadow: "0 0 8px rgba(34,197,94,0.6)",
+            },
+            "100%": {
+              opacity: 0.5,
+              textShadow: "0 0 0px rgba(34, 197, 94, 0.37)",
+            },
+          },
+        }}
+      >
+        🌍 Detecting your region{dots}
+      </Typography>
+    </Box>
+  );
+};
+
 export function FilterBar() {
+  const { isRegionLoading } = useCredentials();
+
   const [selectedRegion, setSelectedRegion] = useState("ap");
   const [selectedServer, setSelectedServer] = useState("");
 
@@ -82,6 +129,8 @@ export function FilterBar() {
         <SlidersHorizontal size={14} color="#FF4655" />
         <Typography>FILTERS</Typography>
 
+        {isRegionLoading && <RegionDetection />}
+
         {hasActive && (
           <Button
             onClick={resetFiltersLocal}
@@ -123,6 +172,7 @@ export function FilterBar() {
               setSelectedServer(""); // Reset server when region changes
             }}
             sx={selectSx}
+            disabled={isRegionLoading}
           >
             {ValorantRegionalServers.map((region) => (
               <MenuItem
@@ -149,6 +199,7 @@ export function FilterBar() {
             label={`Server ${selectedRegion.toUpperCase()}`}
             onChange={(e) => setSelectedServer(e.target.value)}
             sx={selectSx}
+            disabled={isRegionLoading}
           >
             {serverList.map((server) => (
               <MenuItem
@@ -172,6 +223,7 @@ export function FilterBar() {
             value={filters.rankMin}
             label="MIN RANK"
             onChange={(e) => update({ rankMin: e.target.value })}
+            disabled={isRegionLoading}
           >
             <MenuItem value="">All</MenuItem>
             {RANKS.map((r) => (
