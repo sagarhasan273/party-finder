@@ -17,9 +17,9 @@ import {
   CardContent,
 } from "@mui/material";
 
-import { useCredentials } from "src/core/slices";
 import { ValorantRegionalServers } from "src/@mock";
 import { fErrorCatchToast } from "src/lib/error-catch";
+import { useInventory, useCredentials } from "src/core/slices";
 import { useRequestToJoinLobbyMutation } from "src/core/apis/api-inventory";
 
 import { RoleChip } from "./role-chip";
@@ -36,6 +36,7 @@ interface LobbyCardProps {
 
 export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
   const { isAuthenticated, user } = useCredentials();
+  const { appliedLobbies, setAppliedLobbies } = useInventory();
 
   const [haveYouRequestedToJoin, setHaveYouRequestedToJoin] = useState(
     lobby?.applicants?.some((applicant) => applicant.user === user?.id),
@@ -57,7 +58,10 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
         applicantId: user?.id || "",
       }).unwrap();
       if (response?.status) {
-        setHaveYouRequestedToJoin(true);
+        if (response?.data) {
+          setHaveYouRequestedToJoin(true);
+          setAppliedLobbies([...appliedLobbies, response.data]);
+        }
       }
     } catch (error) {
       fErrorCatchToast(error, "Failed to send join request.");

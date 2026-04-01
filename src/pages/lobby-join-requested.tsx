@@ -230,40 +230,42 @@ export function LobbyJoinRequested() {
           </Box>
         )}
 
-        {/* ── Lobbies card ── */}
-        {appliedLobbies.map((lobby, i) => (
-          <LobbyRequestCard
-            key={lobby.id}
-            lobby={lobby}
-            currentUserId={user.id} // to find your application in applicants[]
-            index={i}
-            onCancelRequest={async (lobbyId, applicationId) => {
-              // call your cancel API here
-              try {
-                const response = await cancelRequest({
-                  lobbyId,
-                  applicantId: applicationId,
-                }).unwrap();
-                if (response.status) {
-                  setAppliedLobbies(
-                    appliedLobbies.filter((l) => l.id !== lobbyId),
-                  );
-                } else {
-                  // handle error (e.g. show toast)
-                  console.error(
-                    "Failed to cancel join request:",
-                    response.message,
+        <Stack gap={2}>
+          {/* ── Lobbies card ── */}
+          {appliedLobbies.map((lobby, i) => (
+            <LobbyRequestCard
+              key={lobby.id}
+              lobby={lobby}
+              currentUserId={user.id} // to find your application in applicants[]
+              index={i}
+              onCancelRequest={async (lobbyId, applicationId) => {
+                // call your cancel API here
+                try {
+                  const response = await cancelRequest({
+                    lobbyId,
+                    applicantId: applicationId,
+                  }).unwrap();
+                  if (response.status) {
+                    setAppliedLobbies(
+                      appliedLobbies.filter((l) => l.id !== lobbyId),
+                    );
+                  } else {
+                    // handle error (e.g. show toast)
+                    console.error(
+                      "Failed to cancel join request:",
+                      response.message,
+                    );
+                  }
+                } catch (err) {
+                  fErrorCatchToast(
+                    err,
+                    "Failed to cancel join request. Please try again.",
                   );
                 }
-              } catch (err) {
-                fErrorCatchToast(
-                  err,
-                  "Failed to cancel join request. Please try again.",
-                );
-              }
-            }}
-          />
-        ))}
+              }}
+            />
+          ))}
+        </Stack>
       </motion.div>
     </Container>
   );

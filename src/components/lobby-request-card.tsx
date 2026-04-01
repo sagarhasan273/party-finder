@@ -35,6 +35,7 @@ import { RankChip } from "src/components/rank-chip";
 import { StatusChip } from "src/components/status-chip";
 
 import { MetaChip } from "./meta-chip";
+import { AvatarUser } from "./avatar-user";
 import { formatTimeAgo } from "../lib/valorant";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -277,8 +278,9 @@ export function LobbyRequestCard({
   index = 0,
   onCancelRequest,
 }: LobbyRequestCardProps) {
+  console.log(lobby);
   const myApplication = lobby?.applicants?.find(
-    (a) => a.user.id === currentUserId,
+    (a) => a.user === currentUserId,
   );
 
   const requestStatus =
@@ -370,21 +372,33 @@ export function LobbyRequestCard({
             gap={1.5}
             mb={1.5}
           >
-            <Stack
-              direction="row"
-              alignItems="center"
-              gap={1.75}
-              flexWrap="wrap"
-              mb={0.4}
-            >
-              <MetaChip
-                icon={<Globe size={12} />}
-                label={currentRegion?.label || lobby?.region || "Unknown"}
+            {/* ── Meta: region + server ── */}
+            <Stack direction="row" flexWrap="wrap" gap={1} mb={1}>
+              <AvatarUser
+                avatarUrl={lobby?.host?.profilePhoto}
+                name={lobby?.host?.name || "vv"}
+                verified={lobby?.host?.verified}
+                sx={{
+                  width: 48,
+                  height: 48,
+                }}
               />
-              <MetaChip
-                icon={<Server size={12} />}
-                label={lobby?.server || "Unknown"}
-              />
+
+              <Stack sx={{}}>
+                <Typography>{lobby.host.name}</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={0.6}>
+                  <MetaChip
+                    icon={<Globe size={10} />}
+                    label={currentRegion?.label || String(lobby.region)}
+                  />
+                  {lobby.server && (
+                    <MetaChip
+                      icon={<Server size={10} />}
+                      label={lobby.server}
+                    />
+                  )}
+                </Stack>
+              </Stack>
             </Stack>
 
             {/* Right: badge + cancel */}

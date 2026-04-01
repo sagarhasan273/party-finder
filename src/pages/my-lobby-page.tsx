@@ -715,18 +715,35 @@ export function MyLobbyPage() {
                     gap={1}
                     mb={1.5}
                   >
-                    {/* Left: region + server */}
-                    <Stack direction="row" flexWrap="wrap" gap={0.6}>
-                      <MetaChip
-                        icon={<Globe size={10} />}
-                        label={currentRegion?.label || String(myLobby.region)}
+                    {/* ── Meta: region + server ── */}
+                    <Stack direction="row" flexWrap="wrap" gap={1} mb={1}>
+                      <AvatarUser
+                        avatarUrl={myLobby?.host?.profilePhoto}
+                        name={myLobby?.host?.name || "vv"}
+                        verified={myLobby?.host?.verified}
+                        sx={{
+                          width: 48,
+                          height: 48,
+                        }}
                       />
-                      {myLobby.server && (
-                        <MetaChip
-                          icon={<Server size={10} />}
-                          label={myLobby.server}
-                        />
-                      )}
+
+                      <Stack sx={{}}>
+                        <Typography>{myLobby.host.name}</Typography>
+                        <Stack direction="row" flexWrap="wrap" gap={0.6}>
+                          <MetaChip
+                            icon={<Globe size={10} />}
+                            label={
+                              currentRegion?.label || String(myLobby.region)
+                            }
+                          />
+                          {myLobby.server && (
+                            <MetaChip
+                              icon={<Server size={10} />}
+                              label={myLobby.server}
+                            />
+                          )}
+                        </Stack>
+                      </Stack>
                     </Stack>
 
                     {/* Right: ranks + divider + actions */}
