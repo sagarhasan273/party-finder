@@ -73,25 +73,43 @@ const getIcon = (type: string) => {
 export const useSocketListeners = () => {
   const { on, off, isConnected } = useSocket();
 
-  const { lobbies, setMyLobbyStatus, setLobbies, setAppliedLobbiesStatus } =
-    useInventory();
+  const {
+    lobbies,
+    appliedLobbies,
+    setMyLobbyStatus,
+    setLobbies,
+    setAppliedLobbies,
+    setAppliedLobbiesStatus,
+  } = useInventory();
 
   // Memoize handlers to prevent unnecessary re-renders
   const handleReceiveNewLobby = useCallback(
     (data: any) => {
-      toast.info(data?.message || "New Lobby Created!", {
+      if (data?.lobby) setLobbies([data.lobby, ...lobbies]);
+    },
+    [lobbies, setLobbies],
+  );
+
+  const handleReceiveDeletedLobby = useCallback(
+    (data: any) => {
+      toast.info(data?.message || "Lobby Deleted!", {
         duration: 4000,
         position: "top-right",
-        icon: getIcon("create"),
+        icon: getIcon("delete"),
         style: {
           ...toastStyles.base,
           ...toastStyles.request,
         },
       });
 
-      if (data?.lobby) setLobbies([data.lobby, ...lobbies]);
+      if (data?.lobbyId) {
+        setAppliedLobbies(
+          appliedLobbies.filter((lobby) => lobby.id !== data?.lobbyId),
+        );
+        setLobbies(lobbies.filter((lobby) => lobby.id !== data?.lobbyId));
+      }
     },
-    [lobbies, setLobbies],
+    [lobbies, appliedLobbies, setAppliedLobbies, setLobbies],
   );
 
   const handleReceiveJoinRequest = useCallback((data: any) => {
@@ -137,6 +155,7 @@ export const useSocketListeners = () => {
 
     // Register listeners
     on("receive-new-lobby", handleReceiveNewLobby);
+    on("receive-deleted-lobby", handleReceiveDeletedLobby);
     on("receive-join-request", handleReceiveJoinRequest);
     on("receive-request-reject", handleReceiveRequestReject);
     on("receive-lobby-status", handleReceiveLobbyStatus);
@@ -144,6 +163,7 @@ export const useSocketListeners = () => {
     // Cleanup function
     return () => {
       off("receive-new-lobby", handleReceiveNewLobby);
+      off("receive-deleted-lobby", handleReceiveDeletedLobby);
       off("receive-join-request", handleReceiveJoinRequest);
       off("receive-request-reject", handleReceiveRequestReject);
       off("receive-lobby-status", handleReceiveLobbyStatus);
@@ -153,6 +173,7 @@ export const useSocketListeners = () => {
     on,
     off,
     handleReceiveNewLobby,
+    handleReceiveDeletedLobby,
     handleReceiveJoinRequest,
     handleReceiveRequestReject,
     handleReceiveLobbyStatus,

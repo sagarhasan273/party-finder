@@ -305,12 +305,11 @@ export function CreateLobbyPage() {
         status: "open",
         currentPlayers,
         discordLink: discordLink.trim() || undefined,
-      });
-      console.log("Create Lobby Response:", response);
-      if (response?.data?.status) {
-        toast.success("Lobby posted! Good luck finding your 5th 🎯");
+      }).unwrap();
+
+      if (response?.status) {
         navigate("/");
-        if (response?.data?.data) setMyLobby(response.data.data);
+        if (response?.data) setMyLobby(response.data);
       }
     } catch {
       toast.error("Failed to create lobby. Please try again.");

@@ -76,6 +76,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
       timeout: 20000,
       query: {
         userId: user.id,
+        region: user?.region,
       },
     });
 
@@ -116,7 +117,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
 
     // Store cleanup handlers
     (socket as any).__userId = user.id;
-  }, [url, user?.id, isAuthenticated]);
+  }, [url, user?.id, user?.region, isAuthenticated]);
 
   const disconnect = useCallback(() => {
     if (socketRef.current) {

@@ -31,6 +31,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 
+import { GoogleSignIn } from "src/core/auth";
 import { ValorantRegionalServers } from "src/@mock";
 import { fErrorCatchToast } from "src/lib/error-catch";
 import { useInventory, useCredentials } from "src/core/slices";
@@ -347,6 +348,11 @@ export function MyLobbyPage() {
       const response = await deleteLobby({
         lobbyId: id,
         userId: user?.id || "",
+        applicantIds: [
+          ...(myLobby?.applicants?.map(
+            (applicant) => applicant?.user?.id as string,
+          ) || []),
+        ],
       }).unwrap();
 
       if (response?.status) {
@@ -423,24 +429,7 @@ export function MyLobbyPage() {
               You need to be signed in to manage your lobbies.
             </Typography>
           </Box>
-          <Button
-            variant="contained"
-            onClick={() => {}}
-            sx={{
-              background: "#FF4655",
-              fontFamily: RAJ,
-              fontWeight: 700,
-              letterSpacing: "0.07em",
-              textTransform: "uppercase",
-              borderRadius: "3px",
-              "&:hover": {
-                background: "#ff6b77",
-                boxShadow: "0 0 18px rgba(255,70,85,0.4)",
-              },
-            }}
-          >
-            Sign In
-          </Button>
+          <GoogleSignIn />
         </Stack>
       </Box>
     );
