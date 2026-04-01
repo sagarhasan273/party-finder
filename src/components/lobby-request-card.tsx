@@ -32,10 +32,10 @@ import { ValorantRegionalServers } from "src/@mock";
 
 import { RoleChip } from "src/components/role-chip";
 import { RankChip } from "src/components/rank-chip";
-import { StatusChip } from "src/components/status-chip";
 
 import { MetaChip } from "./meta-chip";
 import { AvatarUser } from "./avatar-user";
+import { StatusChip } from "./status-chip";
 import { formatTimeAgo } from "../lib/valorant";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -373,6 +373,7 @@ export function LobbyRequestCard({
                   {lobby.host.name}
                 </Typography>
                 <Stack direction="row" flexWrap="wrap" gap={0.6}>
+                  <StatusChip status={lobby.status} />
                   <MetaChip
                     icon={<Globe size={10} />}
                     label={currentRegion?.label || String(lobby.region)}
@@ -475,7 +476,6 @@ export function LobbyRequestCard({
               >
                 {lobby.title}
               </Typography>
-              <StatusChip status={lobby.status} />
               {requestStatus === "accepted" && lobby.partyCode && (
                 <PartyCodeBox partyCode={lobby.partyCode} />
               )}

@@ -189,6 +189,7 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
                 {lobby.host.name}
               </Typography>
               <Stack direction="row" flexWrap="wrap" gap={0.6}>
+                <StatusChip status={lobby?.status || "open"} />
                 <MetaChip
                   icon={<Globe size={10} />}
                   label={currentRegion?.label || String(lobby.region)}
@@ -214,7 +215,6 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
               flex={1}
               minWidth={0}
             >
-              <StatusChip status={lobby?.status || "open"} />
               <Typography
                 sx={{
                   fontFamily: T.RAJ,
