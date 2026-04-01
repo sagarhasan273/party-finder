@@ -34,8 +34,8 @@ import {
 } from "@mui/material";
 
 import { GoogleSignIn } from "src/core/auth";
-import { useCredentials } from "src/core/slices";
 import { ValorantRegionalServers } from "src/@mock";
+import { useInventory, useCredentials } from "src/core/slices";
 import { useCreateLobbyMutation } from "src/core/apis/api-inventory";
 
 import { RANKS, ROLES, ROLE_COLORS } from "../lib/valorant";
@@ -224,6 +224,8 @@ function SectionTitle({
 
 export function CreateLobbyPage() {
   const { user, region, isLoading, isAuthenticated } = useCredentials();
+  const { setMyLobby } = useInventory();
+
   const navigate = useNavigate();
 
   const [title, setTitle] = useState("sdfs");
@@ -308,6 +310,7 @@ export function CreateLobbyPage() {
       if (response?.data?.status) {
         toast.success("Lobby posted! Good luck finding your 5th 🎯");
         navigate("/");
+        if (response?.data?.data) setMyLobby(response.data.data);
       }
     } catch {
       toast.error("Failed to create lobby. Please try again.");

@@ -49,6 +49,14 @@ const toastStyles = {
 
 const getIcon = (type: string) => {
   switch (type) {
+    case "create":
+      return "✨"; // Creation/sparkle icon
+    case "delete":
+      return "🗑️"; // Trash can icon
+    case "on":
+      return "🟢"; // Green circle for online/active
+    case "off":
+      return "⚫"; // Black circle for offline/inactive
     case "request":
       return "🎮";
     case "accept":
@@ -65,11 +73,29 @@ const getIcon = (type: string) => {
 export const useSocketListeners = () => {
   const { on, off, isConnected } = useSocket();
 
-  const { setMyLobbyStatus, setAppliedLobbiesStatus } = useInventory();
+  const { lobbies, setMyLobbyStatus, setLobbies, setAppliedLobbiesStatus } =
+    useInventory();
 
   // Memoize handlers to prevent unnecessary re-renders
+  const handleReceiveNewLobby = useCallback(
+    (data: any) => {
+      toast.info(data?.message || "New Lobby Created!", {
+        duration: 4000,
+        position: "top-right",
+        icon: getIcon("create"),
+        style: {
+          ...toastStyles.base,
+          ...toastStyles.request,
+        },
+      });
+
+      if (data?.lobby) setLobbies([data.lobby, ...lobbies]);
+    },
+    [lobbies, setLobbies],
+  );
+
   const handleReceiveJoinRequest = useCallback((data: any) => {
-    toast.info(data?.message || "New join request received!", {
+    toast.info(data?.message || "New Lobby Created!", {
       duration: 4000,
       position: "top-right",
       icon: getIcon("request"),
@@ -110,12 +136,14 @@ export const useSocketListeners = () => {
     }
 
     // Register listeners
+    on("receive-new-lobby", handleReceiveNewLobby);
     on("receive-join-request", handleReceiveJoinRequest);
     on("receive-request-reject", handleReceiveRequestReject);
     on("receive-lobby-status", handleReceiveLobbyStatus);
 
     // Cleanup function
     return () => {
+      off("receive-new-lobby", handleReceiveNewLobby);
       off("receive-join-request", handleReceiveJoinRequest);
       off("receive-request-reject", handleReceiveRequestReject);
       off("receive-lobby-status", handleReceiveLobbyStatus);
@@ -124,6 +152,7 @@ export const useSocketListeners = () => {
     isConnected,
     on,
     off,
+    handleReceiveNewLobby,
     handleReceiveJoinRequest,
     handleReceiveRequestReject,
     handleReceiveLobbyStatus,
