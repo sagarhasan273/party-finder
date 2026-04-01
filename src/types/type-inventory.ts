@@ -30,7 +30,7 @@ export type ApplicantStatus = "pending" | "accepted" | "rejected" | "in-party";
 
 export interface LobbyType {
   id: string;
-  userId: string;
+  host: UserType;
   title: string;
   description?: string;
   partyCode: string;
@@ -52,7 +52,6 @@ export interface LobbyType {
   }[];
 }
 
-export type CreateLobbyInput = Omit<
-  LobbyType,
-  "id" | "createdAt" | "updatedAt"
->;
+export type CreateLobbyInput =
+  | Omit<LobbyType, "id" | "createdAt" | "updatedAt ">
+  | { host: string };

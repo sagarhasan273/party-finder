@@ -44,6 +44,7 @@ import {
 
 import { RankChip } from "src/components/rank-chip";
 import { MetaChip } from "src/components/meta-chip";
+import { AvatarUser } from "src/components/avatar-user";
 
 import { formatTimeAgo } from "../lib/valorant";
 import { RoleChip } from "../components/role-chip";
@@ -51,7 +52,7 @@ import { StatusChip } from "../components/status-chip";
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
 
-const CARD_BG = "rgba(13,15,26,0.97)";
+const CARD_BG = "rgba(255,255,255,0.025)";
 const BORDER = "rgba(255,255,255,0.07)";
 const RAJ = '"Rajdhani", sans-serif';
 
@@ -152,25 +153,46 @@ function ApplicantCard({
         }}
       />
 
-      {/* Name */}
-      <Typography
-        sx={{
-          fontSize: "0.78rem",
-          fontWeight: 700,
-          fontFamily: RAJ,
-          letterSpacing: "0.04em",
-          color: "#edf0f4",
-          textTransform: "uppercase",
-        }}
-      >
-        {user.gamename}
-        <Box
-          component="span"
-          sx={{ opacity: 0.35, fontWeight: 400, textTransform: "none" }}
-        >
-          #{user.tagline}
-        </Box>
-      </Typography>
+      <Stack direction="row" gap={1} mb={0.5}>
+        <AvatarUser
+          avatarUrl={user?.profilePhoto || ""}
+          name={user.name || ""}
+          verified={user.verified}
+        />
+        <Stack>
+          {/* Name */}
+          <Typography
+            sx={{
+              fontSize: "0.8rem",
+              fontWeight: 700,
+              fontFamily: RAJ,
+              letterSpacing: "0.04em",
+              color: "#edf0f4",
+            }}
+          >
+            {user.name}
+          </Typography>
+          {/* Name */}
+          <Typography
+            sx={{
+              fontSize: "0.78rem",
+              fontWeight: 700,
+              fontFamily: RAJ,
+              letterSpacing: "0.04em",
+              color: "#edf0f4",
+              textTransform: "uppercase",
+            }}
+          >
+            {user.gamename}
+            <Box
+              component="span"
+              sx={{ opacity: 0.35, fontWeight: 400, textTransform: "none" }}
+            >
+              #{user.tagline}
+            </Box>
+          </Typography>
+        </Stack>
+      </Stack>
 
       {/* Rank + Role */}
       <Stack direction="row" gap={0.5} flexWrap="wrap">
@@ -347,7 +369,7 @@ export function MyLobbyPage() {
     try {
       const response = await deleteLobby({
         lobbyId: id,
-        userId: user?.id || "",
+        hostId: user?.id || "",
         applicantIds: [
           ...(myLobby?.applicants?.map(
             (applicant) => applicant?.user?.id as string,

@@ -291,7 +291,7 @@ export function CreateLobbyPage() {
     setIsSubmitting(true);
     try {
       const response = await createLobby({
-        userId: user?.id || "",
+        host: user?.id || "",
         title,
         description,
         partyCode,

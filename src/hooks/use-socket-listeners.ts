@@ -77,9 +77,11 @@ export const useSocketListeners = () => {
 
   const {
     lobbies,
+    myLobby,
     appliedLobbies,
     setMyLobbyStatus,
     setLobbies,
+    setMyLobby,
     setAppliedLobbies,
     setAppliedLobbiesStatus,
   } = useInventory();
@@ -119,17 +121,47 @@ export const useSocketListeners = () => {
     [user.id, lobbies, appliedLobbies, setAppliedLobbies, setLobbies],
   );
 
-  const handleReceiveJoinRequest = useCallback((data: any) => {
-    toast.info(data?.message || "New Lobby Created!", {
-      duration: 4000,
-      position: "top-right",
-      icon: getIcon("request"),
-      style: {
-        ...toastStyles.base,
-        ...toastStyles.request,
-      },
-    });
-  }, []);
+  const handleReceiveJoinRequest = useCallback(
+    (data: any) => {
+      toast.info(data?.message || "New Lobby Created!", {
+        duration: 4000,
+        position: "top-right",
+        icon: getIcon("request"),
+        style: {
+          ...toastStyles.base,
+          ...toastStyles.request,
+        },
+      });
+
+      if (data?.applicant && myLobby) {
+        setMyLobby({
+          ...myLobby,
+          applicants: [
+            ...(Array.isArray(myLobby.applicants) ? myLobby.applicants : []),
+            data.applicant,
+          ],
+        });
+      }
+
+      if (data?.applicantId === user?.id) {
+        setLobbies(
+          lobbies.map((lobby) => {
+            if (lobby.id === data?.lobbyId) {
+              return {
+                ...lobby,
+                applicants: [
+                  ...(Array.isArray(lobby.applicants) ? lobby.applicants : []),
+                  data.applicant,
+                ],
+              };
+            }
+            return lobby;
+          }),
+        );
+      }
+    },
+    [user?.id, myLobby, lobbies, setMyLobby, setLobbies],
+  );
 
   const handleReceiveRequestReject = useCallback((data: any) => {
     toast.error(data?.message || "Your request was rejected", {

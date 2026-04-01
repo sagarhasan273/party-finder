@@ -1,5 +1,6 @@
 import type { LobbyType } from "src/types/type-inventory";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Users, Clock, Globe, Server, ExternalLink } from "lucide-react";
 
@@ -25,6 +26,7 @@ import { RoleChip } from "./role-chip";
 import { RankChip } from "./rank-chip";
 import { MetaChip } from "./meta-chip";
 import { StatusChip } from "./status-chip";
+import { AvatarUser } from "./avatar-user";
 import { formatTimeAgo } from "../lib/valorant";
 
 interface LobbyCardProps {
@@ -34,6 +36,10 @@ interface LobbyCardProps {
 
 export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
   const { isAuthenticated, user } = useCredentials();
+
+  const [haveYouRequestedToJoin, setHaveYouRequestedToJoin] = useState(
+    lobby?.applicants?.some((applicant) => applicant.user === user?.id),
+  );
 
   const [requestToJoinLobby] = useRequestToJoinLobbyMutation();
 
@@ -46,10 +52,13 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
       return;
     }
     try {
-      await requestToJoinLobby({
+      const response = await requestToJoinLobby({
         lobbyId: lobby?.id,
         applicantId: user?.id || "",
       }).unwrap();
+      if (response?.status) {
+        setHaveYouRequestedToJoin(true);
+      }
     } catch (error) {
       fErrorCatchToast(error, "Failed to send join request.");
     }
@@ -59,11 +68,7 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
     (r) => r.code === lobby?.region,
   );
 
-  const haveYouRequestedToJoin = lobby?.applicants?.some(
-    (applicant) => applicant.user === user?.id,
-  );
-
-  const areYouTheHost = lobby?.userId === user?.id;
+  const areYouTheHost = lobby?.host.id === user?.id;
 
   return (
     <motion.div
@@ -105,14 +110,29 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
           }}
         >
           {/* ── Meta: region + server ── */}
-          <Stack direction="row" flexWrap="wrap" gap={0.6} mb={1}>
-            <MetaChip
-              icon={<Globe size={10} />}
-              label={currentRegion?.label || String(lobby.region)}
+          <Stack direction="row" flexWrap="wrap" gap={1} mb={1}>
+            <AvatarUser
+              avatarUrl={lobby?.host?.profilePhoto}
+              name={lobby?.host?.name || "vv"}
+              verified={lobby?.host?.verified}
+              sx={{
+                width: 48,
+                height: 48,
+              }}
             />
-            {lobby.server && (
-              <MetaChip icon={<Server size={10} />} label={lobby.server} />
-            )}
+
+            <Stack sx={{}}>
+              <Typography>{lobby.host.name}</Typography>
+              <Stack direction="row" flexWrap="wrap" gap={0.6}>
+                <MetaChip
+                  icon={<Globe size={10} />}
+                  label={currentRegion?.label || String(lobby.region)}
+                />
+                {lobby.server && (
+                  <MetaChip icon={<Server size={10} />} label={lobby.server} />
+                )}
+              </Stack>
+            </Stack>
           </Stack>
 
           {/* Header */}

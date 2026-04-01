@@ -77,7 +77,7 @@ const REQUEST_STATUS = {
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
 
-const CARD_BG = "rgba(13,15,26,0.97)";
+const CARD_BG = "rgba(255,255,255,0.025)";
 const BORDER = "rgba(255,255,255,0.07)";
 const RAJ = '"Rajdhani", sans-serif';
 

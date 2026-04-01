@@ -69,12 +69,12 @@ export const inventoryApi = createApi({
 
     deleteLobby: builder.mutation<
       ResponseType,
-      { lobbyId: string; userId: string; applicantIds: string[] }
+      { lobbyId: string; hostId: string; applicantIds: string[] }
     >({
-      query: ({ lobbyId, userId, applicantIds }) => ({
+      query: ({ lobbyId, hostId, applicantIds }) => ({
         url: `inventory/lobby/delete`,
         method: "POST",
-        body: { lobbyId, userId, applicantIds },
+        body: { lobbyId, hostId, applicantIds },
       }),
     }),
 
