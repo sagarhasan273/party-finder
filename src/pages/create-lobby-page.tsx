@@ -224,7 +224,7 @@ function SectionTitle({
 
 export function CreateLobbyPage() {
   const { user, region, isLoading, isAuthenticated } = useCredentials();
-  const { setMyLobby } = useInventory();
+  const { myLobby, setMyLobby } = useInventory();
 
   const navigate = useNavigate();
 
@@ -308,7 +308,7 @@ export function CreateLobbyPage() {
       }).unwrap();
 
       if (response?.status) {
-        navigate("/");
+        navigate("/my-lobby");
         if (response?.data) setMyLobby(response.data);
       }
     } catch {
@@ -737,7 +737,7 @@ export function CreateLobbyPage() {
               type="submit"
               variant="contained"
               fullWidth
-              disabled={isSubmitting}
+              disabled={isSubmitting || !!myLobby}
               startIcon={
                 isSubmitting ? (
                   <CircularProgress size={16} sx={{ color: "white" }} />

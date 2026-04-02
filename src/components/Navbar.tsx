@@ -27,9 +27,10 @@ import {
 import { useLoadInventory } from "src/hooks/use-load-inventory";
 import { useSocketListeners } from "src/hooks/use-socket-listeners";
 
+import { CONFIG } from "src/config-global";
 import { GoogleSignIn } from "src/core/auth";
-import { useCredentials } from "src/core/slices";
 import { useSocket } from "src/contexts/socket-context";
+import { useInventory, useCredentials } from "src/core/slices";
 
 import { ApplicantReplyDialog } from "./applicant-reply-dialog";
 import { CompleteProfileDialog } from "./complete-profile-dialog";
@@ -48,6 +49,8 @@ export function Navbar() {
   const { isConnected } = useSocket();
 
   const { user, isAuthenticated, isProfileUpdated, logout } = useCredentials();
+
+  const { myLobby } = useInventory();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -140,7 +143,7 @@ export function Navbar() {
             <>
               <Button
                 component={Link}
-                to="/create"
+                to={myLobby ? "my-lobby" : "/create"}
                 variant="contained"
                 size="small"
                 startIcon={<Plus size={14} />}
@@ -288,7 +291,7 @@ export function Navbar() {
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
-                    navigate("/create");
+                    navigate(myLobby ? "my-lobby" : "/create");
                     setAnchorEl(null);
                   }}
                   sx={{ fontSize: "0.85rem" }}
@@ -302,7 +305,9 @@ export function Navbar() {
                 <MenuItem
                   onClick={() => {
                     logout();
+                    sessionStorage.removeItem(CONFIG.googleAccessToken);
                     setAnchorEl(null);
+                    navigate("/");
                   }}
                   sx={{ fontSize: "0.85rem", color: "#FF4655" }}
                 >

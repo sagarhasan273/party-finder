@@ -674,6 +674,7 @@ export function MyLobbyPage() {
                   boxShadow: "0 0 18px rgba(255,70,85,0.3)",
                 },
               }}
+              disabled={!!myLobby}
             >
               New lobby
             </Button>
