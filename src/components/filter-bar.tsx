@@ -1,25 +1,69 @@
-import { useMemo, useState } from "react";
-import { X, Search, SlidersHorizontal } from "lucide-react";
+import { X, SlidersHorizontal } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
 
+import { Box } from "@mui/system";
 import {
   Stack,
   Paper,
   Select,
   Button,
   MenuItem,
-  TextField,
   InputLabel,
   Typography,
   FormControl,
-  ToggleButton,
-  InputAdornment,
 } from "@mui/material";
 
+import { useCredentials } from "src/core/slices";
 import { ValorantRegionalServers } from "src/@mock/constant";
 
-import { MAPS, RANKS } from "../lib/valorant";
+import { RANKS } from "../lib/valorant";
+
+const RegionDetection = () => {
+  const [dots, setDots] = useState(".");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? "." : `${prev}.`));
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, []);
+  return (
+    <Box sx={{ ml: 1 }}>
+      <Typography
+        variant="subtitle2"
+        sx={{
+          fontSize: "0.8rem",
+          color: "#22c55e",
+          fontFamily: '"Rajdhani", sans-serif',
+          letterSpacing: "0.05em",
+
+          animation: "pulseGlow 1.5s ease-in-out infinite",
+          "@keyframes pulseGlow": {
+            "0%": {
+              opacity: 0.5,
+              textShadow: "0 0 0px rgba(34, 197, 94, 0.48)",
+            },
+            "50%": {
+              opacity: 1,
+              textShadow: "0 0 8px rgba(34,197,94,0.6)",
+            },
+            "100%": {
+              opacity: 0.5,
+              textShadow: "0 0 0px rgba(34, 197, 94, 0.37)",
+            },
+          },
+        }}
+      >
+        🌍 Detecting your region{dots}
+      </Typography>
+    </Box>
+  );
+};
 
 export function FilterBar() {
+  const { isRegionLoading } = useCredentials();
+
   const [selectedRegion, setSelectedRegion] = useState("ap");
   const [selectedServer, setSelectedServer] = useState("");
 
@@ -85,6 +129,8 @@ export function FilterBar() {
         <SlidersHorizontal size={14} color="#FF4655" />
         <Typography>FILTERS</Typography>
 
+        {isRegionLoading && <RegionDetection />}
+
         {hasActive && (
           <Button
             onClick={resetFiltersLocal}
@@ -99,7 +145,7 @@ export function FilterBar() {
 
       <Stack direction="row" flexWrap="wrap" gap={1.25} alignItems="center">
         {/* Search */}
-        <TextField
+        {/* <TextField
           size="small"
           placeholder="Search lobbies..."
           value={filters.search}
@@ -111,41 +157,7 @@ export function FilterBar() {
               </InputAdornment>
             ),
           }}
-        />
-
-        {/* Rank */}
-        <FormControl size="small" sx={{ ...selectSx, minWidth: 120 }}>
-          <InputLabel>MIN RANK</InputLabel>
-          <Select
-            value={filters.rankMin}
-            label="MIN RANK"
-            onChange={(e) => update({ rankMin: e.target.value })}
-          >
-            <MenuItem value="">All</MenuItem>
-            {RANKS.map((r) => (
-              <MenuItem key={r} value={r}>
-                {r}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Map */}
-        <FormControl size="small" sx={{ ...selectSx, minWidth: 110 }}>
-          <InputLabel>MAP</InputLabel>
-          <Select
-            value={filters.map}
-            label="MAP"
-            onChange={(e) => update({ map: e.target.value })}
-          >
-            <MenuItem value="">All</MenuItem>
-            {MAPS.map((m) => (
-              <MenuItem key={m} value={m}>
-                {m}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        /> */}
 
         {/* First Dropdown - Region Selection */}
         <FormControl size="small" sx={{ ...selectSx, minWidth: 110 }}>
@@ -160,6 +172,7 @@ export function FilterBar() {
               setSelectedServer(""); // Reset server when region changes
             }}
             sx={selectSx}
+            disabled={isRegionLoading}
           >
             {ValorantRegionalServers.map((region) => (
               <MenuItem
@@ -186,6 +199,7 @@ export function FilterBar() {
             label={`Server ${selectedRegion.toUpperCase()}`}
             onChange={(e) => setSelectedServer(e.target.value)}
             sx={selectSx}
+            disabled={isRegionLoading}
           >
             {serverList.map((server) => (
               <MenuItem
@@ -202,15 +216,23 @@ export function FilterBar() {
           </Select>
         </FormControl>
 
-        {/* Toggle */}
-        <ToggleButton
-          size="small"
-          value="openOnly"
-          selected={filters.openOnly}
-          onChange={() => update({ openOnly: !filters.openOnly })}
-        >
-          OPEN ONLY
-        </ToggleButton>
+        {/* Rank */}
+        <FormControl size="small" sx={{ ...selectSx, minWidth: 120 }}>
+          <InputLabel>MIN RANK</InputLabel>
+          <Select
+            value={filters.rankMin}
+            label="MIN RANK"
+            onChange={(e) => update({ rankMin: e.target.value })}
+            disabled={isRegionLoading}
+          >
+            <MenuItem value="">All</MenuItem>
+            {RANKS.map((r) => (
+              <MenuItem key={r} value={r}>
+                {r}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Stack>
     </Paper>
   );

@@ -71,7 +71,7 @@ const playstyles: UserType["playstyle"][] = [
   "🔥 Tryhard",
 ];
 
-const agents: UserType["agents"] = [
+export const ValorantAgents: UserType["agents"] = [
   "Astra",
   "Breach",
   "Brimstone",
@@ -97,6 +97,8 @@ const agents: UserType["agents"] = [
   "Viper",
   "Vyse",
   "Yoru",
+  "Waylay",
+  "Miks",
 ];
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -635,42 +637,6 @@ export const ProfilePage: React.FC = () => {
             fullWidth
             sx={inputSx}
           />
-          <Button
-            variant="outlined"
-            startIcon={<ArrowUpRight size={14} />}
-            disabled={!hostGamename || !hostTagline}
-            onClick={() => {
-              if (hostGamename && hostTagline)
-                window.open(
-                  getTrackerProfileUrl(hostGamename, hostTagline),
-                  "_blank",
-                );
-            }}
-            sx={{
-              minWidth: "fit-content",
-              fontFamily: RAJ,
-              fontWeight: 700,
-              fontSize: "0.72rem",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              borderRadius: "2px",
-              whiteSpace: "nowrap",
-              px: 2.5,
-              borderColor: "rgba(255,255,255,0.15)",
-              color: "rgba(136,146,170,1)",
-              "&:hover": {
-                borderColor: "rgba(255,70,85,0.45)",
-                color: ACCENT,
-                background: "rgba(255,70,85,0.06)",
-              },
-              "&.Mui-disabled": {
-                borderColor: "rgba(255,255,255,0.06)",
-                color: "rgba(58,64,96,1)",
-              },
-            }}
-          >
-            View tracker stats
-          </Button>
         </Stack>
       </VCard>
 
@@ -769,6 +735,42 @@ export const ProfilePage: React.FC = () => {
             }}
             sx={{ ...inputSx, maxWidth: { sm: 160 } }}
           />
+          <Button
+            variant="outlined"
+            startIcon={<ArrowUpRight size={14} />}
+            disabled={!hostGamename || !hostTagline}
+            onClick={() => {
+              if (hostGamename && hostTagline)
+                window.open(
+                  getTrackerProfileUrl(hostGamename, hostTagline),
+                  "_blank",
+                );
+            }}
+            sx={{
+              minWidth: "fit-content",
+              fontFamily: RAJ,
+              fontWeight: 700,
+              fontSize: "0.72rem",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              borderRadius: "2px",
+              whiteSpace: "nowrap",
+              px: 2.5,
+              borderColor: "rgba(255,255,255,0.15)",
+              color: "rgba(136,146,170,1)",
+              "&:hover": {
+                borderColor: "rgba(255,70,85,0.45)",
+                color: ACCENT,
+                background: "rgba(255,70,85,0.06)",
+              },
+              "&.Mui-disabled": {
+                borderColor: "rgba(255,255,255,0.06)",
+                color: "rgba(58,64,96,1)",
+              },
+            }}
+          >
+            View stats
+          </Button>
         </Stack>
       </VCard>
 
@@ -898,7 +900,7 @@ export const ProfilePage: React.FC = () => {
           </Typography>
         </Stack>
         <Stack direction="row" flexWrap="wrap" gap={0.75}>
-          {agents.map((agent) => {
+          {ValorantAgents.map((agent) => {
             const isActive = selectedAgents?.includes(agent);
             const isDisabled = !isActive && (selectedAgents?.length ?? 0) >= 3;
             return (

@@ -13,6 +13,7 @@ import {
   Box,
   Menu,
   Stack,
+  Badge,
   AppBar,
   Button,
   Avatar,
@@ -23,8 +24,16 @@ import {
   ListItemIcon,
 } from "@mui/material";
 
+import { useLoadInventory } from "src/hooks/use-load-inventory";
+import { useSocketListeners } from "src/hooks/use-socket-listeners";
+
+import { CONFIG } from "src/config-global";
 import { GoogleSignIn } from "src/core/auth";
-import { useCredentials } from "src/core/slices";
+import { useSocket } from "src/contexts/socket-context";
+import { useInventory, useCredentials } from "src/core/slices";
+
+import { ApplicantReplyDialog } from "./applicant-reply-dialog";
+import { CompleteProfileDialog } from "./complete-profile-dialog";
 
 const navLinks = [
   { label: "BROWSE", path: "/" },
@@ -33,10 +42,19 @@ const navLinks = [
 ];
 
 export function Navbar() {
-  const { user, isAuthenticated, logout } = useCredentials();
+  useLoadInventory();
+
+  const { isAccepted, setIsAccepted, acceptedLobby } = useSocketListeners();
+
+  const { isConnected } = useSocket();
+
+  const { user, isAuthenticated, isProfileUpdated, logout } = useCredentials();
+
+  const { myLobby } = useInventory();
 
   const location = useLocation();
   const navigate = useNavigate();
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const isActive = (path: string) => location.pathname === path;
@@ -125,7 +143,7 @@ export function Navbar() {
             <>
               <Button
                 component={Link}
-                to="/create"
+                to={myLobby ? "my-lobby" : "/create"}
                 variant="contained"
                 size="small"
                 startIcon={<Plus size={14} />}
@@ -165,18 +183,34 @@ export function Navbar() {
                   "&:hover": { background: "rgba(255,255,255,0.05)" },
                 }}
               >
-                <Avatar
+                <Badge
+                  overlap="circular"
+                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                  variant="dot"
                   sx={{
-                    width: 28,
-                    height: 28,
-                    background: "#FF4655",
-                    fontFamily: '"Rajdhani", sans-serif',
-                    fontWeight: 700,
-                    fontSize: "0.8rem",
+                    "& .MuiBadge-badge": {
+                      backgroundColor: isConnected ? "#22c55e" : "#6b7280",
+                      color: isConnected ? "#22c55e" : "#6b7280",
+                      boxShadow: "0 0 0 2px #0f172a", // border ring
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                    },
                   }}
                 >
-                  {(user?.name?.[0] ?? user?.email?.[0] ?? "U").toUpperCase()}
-                </Avatar>
+                  <Avatar
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      background: "#FF4655",
+                      fontFamily: '"Rajdhani", sans-serif',
+                      fontWeight: 700,
+                      fontSize: "0.8rem",
+                    }}
+                  >
+                    {(user?.name?.[0] ?? user?.email?.[0] ?? "U").toUpperCase()}
+                  </Avatar>
+                </Badge>
                 <Typography
                   sx={{
                     display: { xs: "none", sm: "block" },
@@ -257,7 +291,7 @@ export function Navbar() {
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
-                    navigate("/create");
+                    navigate(myLobby ? "my-lobby" : "/create");
                     setAnchorEl(null);
                   }}
                   sx={{ fontSize: "0.85rem" }}
@@ -271,7 +305,9 @@ export function Navbar() {
                 <MenuItem
                   onClick={() => {
                     logout();
+                    sessionStorage.removeItem(CONFIG.googleAccessToken);
                     setAnchorEl(null);
+                    navigate("/");
                   }}
                   sx={{ fontSize: "0.85rem", color: "#FF4655" }}
                 >
@@ -328,6 +364,19 @@ export function Navbar() {
             ))}
         </Box>
       )}
+      <CompleteProfileDialog open={!isProfileUpdated} />
+
+      <ApplicantReplyDialog
+        open={isAccepted}
+        onClose={() => setIsAccepted(false)}
+        hostName={acceptedLobby?.host.name as string}
+        lobbyTitle={acceptedLobby?.title as string}
+        partyCode={acceptedLobby?.partyCode as string}
+        lobbyId={acceptedLobby?.id}
+        applicant={
+          acceptedLobby?.applicants?.find((a) => a.user === user?.id) as any
+        }
+      />
     </AppBar>
   );
 }

@@ -34,8 +34,8 @@ import {
 } from "@mui/material";
 
 import { GoogleSignIn } from "src/core/auth";
-import { useCredentials } from "src/core/slices";
 import { ValorantRegionalServers } from "src/@mock";
+import { useInventory, useCredentials } from "src/core/slices";
 import { useCreateLobbyMutation } from "src/core/apis/api-inventory";
 
 import { RANKS, ROLES, ROLE_COLORS } from "../lib/valorant";
@@ -224,19 +224,21 @@ function SectionTitle({
 
 export function CreateLobbyPage() {
   const { user, region, isLoading, isAuthenticated } = useCredentials();
+  const { myLobby, setMyLobby } = useInventory();
+
   const navigate = useNavigate();
 
-  const [title, setTitle] = useState("");
-  const [hostUsername, setHostUsername] = useState("");
-  const [hostTag, setHostTag] = useState("");
-  const [description, setDescription] = useState("");
-  const [partyCode, setPartyCode] = useState("");
+  const [title, setTitle] = useState("sdfs");
+  const [hostUsername, setHostUsername] = useState("sdfs");
+  const [hostTag, setHostTag] = useState("sdfs");
+  const [description, setDescription] = useState("sdf");
+  const [partyCode, setPartyCode] = useState("sdfs");
   const [rankMin, setRankMin] = useState<RankTier>("Gold");
   const [rankMax, setRankMax] = useState<RankTier>("Platinum");
   const [rolesNeeded, setRolesNeeded] = useState<string[]>(["Any"]);
   const [discordLink, setDiscordLink] = useState("");
   const [selectedRegion, setSelectedRegion] = useState(region?.region || "ap");
-  const [selectedServer, setSelectedServer] = useState("");
+  const [selectedServer, setSelectedServer] = useState("Mumbai");
   const [currentPlayers, setCurrentPlayers] = useState(4);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -289,7 +291,7 @@ export function CreateLobbyPage() {
     setIsSubmitting(true);
     try {
       const response = await createLobby({
-        userId: user?.id || "",
+        host: user?.id || "",
         title,
         description,
         partyCode,
@@ -303,14 +305,21 @@ export function CreateLobbyPage() {
         status: "open",
         currentPlayers,
         discordLink: discordLink.trim() || undefined,
-      });
-      console.log("Create Lobby Response:", response);
-      if (response?.data?.status) {
-        toast.success("Lobby posted! Good luck finding your 5th 🎯");
-        navigate("/");
+      }).unwrap();
+
+      if (response?.status) {
+        navigate("/my-lobby");
+        if (response?.data) setMyLobby(response.data);
       }
     } catch {
-      toast.error("Failed to create lobby. Please try again.");
+      toast.info("Failed to create! You have requested for a lobby.", {
+        style: {
+          background: "rgba(61, 34, 38, 0.77)",
+          border: "1px solid rgba(255, 51, 68, 0.84)",
+          color: "#fae2e4d0",
+        },
+      });
+      navigate("/applied-lobbies");
     } finally {
       setIsSubmitting(false);
     }
@@ -735,7 +744,7 @@ export function CreateLobbyPage() {
               type="submit"
               variant="contained"
               fullWidth
-              disabled={isSubmitting}
+              disabled={isSubmitting || !!myLobby}
               startIcon={
                 isSubmitting ? (
                   <CircularProgress size={16} sx={{ color: "white" }} />

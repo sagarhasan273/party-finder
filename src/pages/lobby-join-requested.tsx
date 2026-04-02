@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Lock, Layout, ChevronLeft } from "lucide-react";
 
@@ -12,8 +11,9 @@ import {
   Typography,
 } from "@mui/material";
 
+import { fErrorCatchToast } from "src/lib/error-catch";
 import { useInventory, useCredentials } from "src/core/slices";
-import { useGetJoinRequestedLobbiesQuery } from "src/core/apis/api-inventory";
+import { useCancelJoinRequestMutation } from "src/core/apis/api-inventory";
 
 import { LobbyRequestCard } from "src/components/lobby-request-card";
 
@@ -24,24 +24,12 @@ const rajdhani = '"Rajdhani", sans-serif';
 
 export function LobbyJoinRequested() {
   const { isAuthenticated, user } = useCredentials();
-  const { appliedLobbies, setAppliedLobbies } = useInventory();
+  const { appliedLobbies, appliedLobbiesLoading, setAppliedLobbies } =
+    useInventory();
 
-  const { data, isLoading: lobbiesLoading } =
-    useGetJoinRequestedLobbiesQuery(null);
-
-  const cancelRequestRef = useRef(false);
+  const [cancelRequest] = useCancelJoinRequestMutation();
 
   const navigate = useNavigate();
-  useEffect(() => {
-    if (
-      isAuthenticated &&
-      data &&
-      data.status &&
-      cancelRequestRef.current === false
-    ) {
-      setAppliedLobbies(data.data || []);
-    }
-  }, [isAuthenticated, data, setAppliedLobbies]);
 
   // ── Auth guard ──
   if (!isAuthenticated) {
@@ -97,7 +85,18 @@ export function LobbyJoinRequested() {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 5 }}>
+    <Container
+      maxWidth="md"
+      sx={{
+        py: 5,
+        "&.MuiContainer-root": {
+          px: {
+            sm: 3,
+            md: 1,
+          },
+        },
+      }}
+    >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -165,7 +164,7 @@ export function LobbyJoinRequested() {
         </Box>
 
         {/* ── Loading skeletons ── */}
-        {lobbiesLoading && (
+        {appliedLobbiesLoading && (
           <Stack gap={2}>
             {[1, 2, 3].map((i) => (
               <Skeleton
@@ -183,7 +182,7 @@ export function LobbyJoinRequested() {
         )}
 
         {/* ── Empty state ── */}
-        {!lobbiesLoading && !appliedLobbies.length && (
+        {!appliedLobbiesLoading && !appliedLobbies.length && (
           <Box
             sx={{
               py: 12,
@@ -242,18 +241,52 @@ export function LobbyJoinRequested() {
           </Box>
         )}
 
-        {/* ── Lobbies card ── */}
-        {appliedLobbies.map((lobby, i) => (
-          <LobbyRequestCard
-            key={lobby.id}
-            lobby={lobby}
-            currentUserId={user.id} // to find your application in applicants[]
-            index={i}
-            onCancelRequest={(lobbyId, applicationId) => {
-              // call your cancel API here
-            }}
-          />
-        ))}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr", // 1 column on mobile
+              sm: "repeat(2, 1fr)", // 2 columns on tablet and up
+            },
+            gap: 1,
+            alignItems: "stretch",
+          }}
+        >
+          {/* ── Lobbies card ── */}
+          {appliedLobbies.map((lobby, i) => (
+            <LobbyRequestCard
+              key={lobby.id}
+              lobby={lobby}
+              currentUserId={user.id} // to find your application in applicants[]
+              index={i}
+              onCancelRequest={async (lobbyId, applicationId) => {
+                // call your cancel API here
+                try {
+                  const response = await cancelRequest({
+                    lobbyId,
+                    applicantId: applicationId,
+                  }).unwrap();
+                  if (response.status) {
+                    setAppliedLobbies(
+                      appliedLobbies.filter((l) => l.id !== lobbyId),
+                    );
+                  } else {
+                    // handle error (e.g. show toast)
+                    console.error(
+                      "Failed to cancel join request:",
+                      response.message,
+                    );
+                  }
+                } catch (err) {
+                  fErrorCatchToast(
+                    err,
+                    "Failed to cancel join request. Please try again.",
+                  );
+                }
+              }}
+            />
+          ))}
+        </Box>
       </motion.div>
     </Container>
   );

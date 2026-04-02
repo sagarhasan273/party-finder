@@ -29,6 +29,7 @@ const AgentEnum = zod.enum([
   "Viper",
   "Vyse",
   "Yoru",
+  "Waylay",
 ]);
 
 const PlaystyleEnum = zod.enum([
@@ -47,8 +48,8 @@ export const UserSchema = zod
       message: "User ID must follow the format USRYYMMDDCOUNTER",
     }),
     googleId: zod.string(),
-    name: zod.string().optional(),
-    username: zod.string().optional(),
+    name: zod.string(),
+    username: zod.string(),
     email: zod
       .string()
       .email({ message: "Invalid email address" })

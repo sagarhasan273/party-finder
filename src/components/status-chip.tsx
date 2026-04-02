@@ -61,6 +61,7 @@ export function StatusChip({ status }: StatusChipProps) {
         borderRadius: "2px",
         backgroundColor: cfg.bg,
         color: cfg.color,
+        height: 20,
         border: `1px solid ${cfg.border}`,
         fontFamily: '"Rajdhani", sans-serif',
         "& .MuiChip-icon": { ml: 0.75 },

@@ -1,8 +1,9 @@
 import type { SxProps } from "@mui/material";
 
 import axios from "axios";
+import { useNavigate } from "react-router";
 import { useGoogleLogin } from "@react-oauth/google";
-import { useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 
 import { Button, SvgIcon, Typography, CircularProgress } from "@mui/material";
 
@@ -29,9 +30,15 @@ export const GoogleSignIn = ({
   title?: string;
   onSuccess?: () => void;
 }) => {
-  const { setUser, logout, setRegion } = useCredentials();
+  const navigate = useNavigate();
+
+  const { setUser, logout, region, setRegion, setRegionLoading } =
+    useCredentials();
 
   const [isLoading, setIsLoading] = useState(false);
+
+  const userSectionRef = useRef(false);
+  const regionRef = useRef(false);
 
   // ── Mobile: redirect flow ─────────────────────────────────────────────────
   const mobileLogin = useGoogleLogin({
@@ -113,10 +120,13 @@ export const GoogleSignIn = ({
         const { data, status } = res.data;
         if (status) {
           setUser(data);
+        } else {
+          navigate("/");
         }
       }
     } catch (error) {
       logout();
+      navigate("/");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -124,22 +134,26 @@ export const GoogleSignIn = ({
   useEffect(() => {
     // Auto-detect user's location and set region
     const autoDetectRegion = async () => {
+      regionRef.current = true;
       try {
+        setRegionLoading(true);
         // Try IP-based detection first (faster, no permission needed)
         const detectedRegion = await getUserRegionSmart();
-
         setRegion(detectedRegion);
       } catch (error) {
         console.log("Auto-detection failed, using default");
         setRegion(null);
+        regionRef.current = false;
       }
     };
-
-    autoDetectRegion();
-  }, [setRegion]);
+    if (region === null && !regionRef.current) autoDetectRegion();
+  }, [region, setRegion, setRegionLoading]);
 
   useEffect(() => {
-    checkUserSession();
+    if (!userSectionRef.current) {
+      userSectionRef.current = true;
+      checkUserSession();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

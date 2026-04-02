@@ -18,21 +18,25 @@ export const inventoryApi = createApi({
       return headers;
     },
   }), // your REST API base
-  tagTypes: ["inventory-recall"],
+  tagTypes: [
+    "inventory-lobbies-recall",
+    "inventory-requested-lobbies-recall",
+    "inventory-my-lobby-recall",
+  ],
   endpoints: (builder) => ({
     getLobbies: builder.query<ResponseType, null>({
       query: () => `inventory/lobbies`,
-      providesTags: ["inventory-recall"],
+      providesTags: ["inventory-lobbies-recall"],
     }),
 
     getMyLobby: builder.query<ResponseType, null>({
-      query: () => `inventory/lobby/me`,
-      providesTags: ["inventory-recall"],
+      query: () => `inventory/my-lobby`,
+      providesTags: ["inventory-my-lobby-recall"],
     }),
 
     getJoinRequestedLobbies: builder.query<ResponseType, null>({
       query: () => `inventory/lobby/join-requests`,
-      providesTags: ["inventory-recall"],
+      providesTags: ["inventory-requested-lobbies-recall"],
     }),
 
     createLobby: builder.mutation<ResponseType, CreateLobbyInput>({
@@ -41,6 +45,7 @@ export const inventoryApi = createApi({
         method: "POST",
         body: newUser,
       }),
+      invalidatesTags: ["inventory-my-lobby-recall"],
     }),
 
     updateLobby: builder.mutation<ResponseType, Partial<LobbyType>>({
@@ -49,40 +54,82 @@ export const inventoryApi = createApi({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["inventory-recall"],
+    }),
+
+    lobbyStatus: builder.mutation<
+      ResponseType,
+      { lobbyId: string; userId: string }
+    >({
+      query: (body) => ({
+        url: `inventory/lobby/status`,
+        method: "POST",
+        body,
+      }),
     }),
 
     deleteLobby: builder.mutation<
       ResponseType,
-      { lobbyId: string; userId: string }
+      { lobbyId: string; hostId: string; applicantIds: string[] }
     >({
-      query: ({ lobbyId, userId }) => ({
+      query: ({ lobbyId, hostId, applicantIds }) => ({
         url: `inventory/lobby/delete`,
         method: "POST",
-        body: { lobbyId, userId },
+        body: { lobbyId, hostId, applicantIds },
       }),
-      invalidatesTags: ["inventory-recall"],
     }),
 
     requestToJoinLobby: builder.mutation<
       ResponseType,
-      { lobbyId: string; userId: string }
+      { lobbyId: string; applicantId: string }
     >({
-      query: ({ lobbyId, userId }) => ({
+      query: ({ lobbyId, applicantId }) => ({
         url: `inventory/lobby/request-to-join`,
         method: "POST",
-        body: { lobbyId, userId },
+        body: { lobbyId, applicantId },
       }),
     }),
 
     acceptJoinRequest: builder.mutation<
       ResponseType,
-      { lobbyId: string; userId: string }
+      { lobbyId: string; applicantId: string }
     >({
-      query: ({ lobbyId, userId }) => ({
+      query: ({ lobbyId, applicantId }) => ({
         url: `inventory/lobby/accept-join-request`,
         method: "POST",
-        body: { lobbyId, userId },
+        body: { lobbyId, applicantId },
+      }),
+    }),
+
+    rejectJoinRequest: builder.mutation<
+      ResponseType,
+      { lobbyId: string; applicantId: string }
+    >({
+      query: ({ lobbyId, applicantId }) => ({
+        url: `inventory/lobby/reject-join-request`,
+        method: "POST",
+        body: { lobbyId, applicantId },
+      }),
+    }),
+
+    applicantJoining: builder.mutation<
+      ResponseType,
+      { lobbyId: string; applicantId: string; message?: string }
+    >({
+      query: ({ lobbyId, applicantId, message }) => ({
+        url: `inventory/lobby/applicant-joining`,
+        method: "POST",
+        body: { lobbyId, applicantId, message },
+      }),
+    }),
+
+    cancelJoinRequest: builder.mutation<
+      ResponseType,
+      { lobbyId: string; applicantId: string }
+    >({
+      query: ({ lobbyId, applicantId }) => ({
+        url: `inventory/lobby/cancel-join-request`,
+        method: "POST",
+        body: { lobbyId, applicantId },
       }),
     }),
   }),
@@ -94,7 +141,11 @@ export const {
   useGetJoinRequestedLobbiesQuery,
   useCreateLobbyMutation,
   useUpdateLobbyMutation,
+  useLobbyStatusMutation,
   useDeleteLobbyMutation,
   useRequestToJoinLobbyMutation,
   useAcceptJoinRequestMutation,
+  useRejectJoinRequestMutation,
+  useCancelJoinRequestMutation,
+  useApplicantJoiningMutation,
 } = inventoryApi;

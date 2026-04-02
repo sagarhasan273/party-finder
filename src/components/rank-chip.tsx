@@ -8,11 +8,12 @@ interface RankChipProps {
 }
 
 export function RankChip({ rank, size = "small" }: RankChipProps) {
-  const colors = RANK_COLORS[rank] ?? {
+  const colors = RANK_COLORS[rank?.split(" ")?.[0]] ?? {
     bg: "rgba(100,100,130,0.2)",
     color: "#a0a0c0",
     border: "rgba(100,100,130,0.3)",
   };
+
   return (
     <Chip
       label={rank?.toUpperCase()}

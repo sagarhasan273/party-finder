@@ -10,7 +10,9 @@ import type { RootState } from "../types";
 // Define auth state interface
 interface UserState {
   user: UserType;
+  isProfileUpdated: boolean;
   region: LocationWithRegion | null;
+  isRegionLoading: boolean;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -18,7 +20,9 @@ interface UserState {
 // Initial state
 const initialState: UserState = {
   user: {} as UserType,
-  region: {} as LocationWithRegion,
+  isProfileUpdated: true,
+  region: null,
+  isRegionLoading: false,
   isAuthenticated: false,
   isLoading: false,
 };
@@ -31,22 +35,47 @@ export const accountSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = !!action.payload;
       state.isLoading = false;
+      state.isProfileUpdated = !(
+        !action.payload.gamename || !action.payload.tagline
+      );
     },
     setRegion(state, action: PayloadAction<UserState["region"]>) {
       state.region = action.payload;
+      state.isRegionLoading = false;
     },
+
+    setRegionLoading(
+      state,
+      action: PayloadAction<UserState["isRegionLoading"]>,
+    ) {
+      state.isRegionLoading = action.payload;
+    },
+
     setLoading(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
     },
+
+    setIsProfileUpdated(state, action: PayloadAction<boolean>) {
+      state.isProfileUpdated = action.payload;
+    },
+
     logout(state) {
       state.user = {} as UserType;
       state.isAuthenticated = false;
       state.isLoading = false;
+      state.isProfileUpdated = true;
     },
   },
 });
 
-const { setUser, logout, setLoading, setRegion } = accountSlice.actions;
+const {
+  setUser,
+  logout,
+  setLoading,
+  setRegion,
+  setIsProfileUpdated,
+  setRegionLoading,
+} = accountSlice.actions;
 
 const selectIsAuthenticated = (state: RootState) =>
   state.account.isAuthenticated;
@@ -61,6 +90,12 @@ export const useCredentials = () => {
   const isLoading = useSelector(selectIsLoading);
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const region = useSelector(selectRegion);
+  const isProfileUpdated = useSelector(
+    (state: RootState) => state.account.isProfileUpdated,
+  );
+  const isRegionLoading = useSelector(
+    (state: RootState) => state.account.isRegionLoading,
+  );
 
   const memoCredentials = useMemo(
     () => ({
@@ -68,13 +103,27 @@ export const useCredentials = () => {
       region,
       isLoading,
       isAuthenticated,
+      isProfileUpdated,
+      isRegionLoading,
       setUser: (payload: UserState["user"]) => dispatch(setUser(payload)),
       setLoading: (payload: UserState["isLoading"]) =>
         dispatch(setLoading(payload)),
       logout: () => dispatch(logout()),
       setRegion: (payload: UserState["region"]) => dispatch(setRegion(payload)),
+      setRegionLoading: (payload: UserState["isRegionLoading"]) =>
+        dispatch(setRegionLoading(payload)),
+      setIsProfileUpdated: (payload: UserState["isProfileUpdated"]) =>
+        dispatch(setIsProfileUpdated(payload)),
     }),
-    [isAuthenticated, isLoading, user, region, dispatch],
+    [
+      isAuthenticated,
+      isLoading,
+      user,
+      region,
+      isProfileUpdated,
+      isRegionLoading,
+      dispatch,
+    ],
   );
 
   return memoCredentials;
