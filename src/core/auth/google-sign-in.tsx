@@ -1,6 +1,7 @@
 import type { SxProps } from "@mui/material";
 
 import axios from "axios";
+import { useNavigate } from "react-router";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useRef, useState, useEffect, useCallback } from "react";
 
@@ -29,6 +30,8 @@ export const GoogleSignIn = ({
   title?: string;
   onSuccess?: () => void;
 }) => {
+  const navigate = useNavigate();
+
   const { setUser, logout, region, setRegion, setRegionLoading } =
     useCredentials();
 
@@ -117,10 +120,13 @@ export const GoogleSignIn = ({
         const { data, status } = res.data;
         if (status) {
           setUser(data);
+        } else {
+          navigate("/");
         }
       }
     } catch (error) {
       logout();
+      navigate("/");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

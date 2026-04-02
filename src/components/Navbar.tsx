@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -31,6 +31,7 @@ import { GoogleSignIn } from "src/core/auth";
 import { useCredentials } from "src/core/slices";
 import { useSocket } from "src/contexts/socket-context";
 
+import { ApplicantReplyDialog } from "./applicant-reply-dialog";
 import { CompleteProfileDialog } from "./complete-profile-dialog";
 
 const navLinks = [
@@ -41,7 +42,8 @@ const navLinks = [
 
 export function Navbar() {
   useLoadInventory();
-  useSocketListeners();
+
+  const { isAccepted, setIsAccepted, acceptedLobby } = useSocketListeners();
 
   const { isConnected } = useSocket();
 
@@ -53,12 +55,6 @@ export function Navbar() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const isActive = (path: string) => location.pathname === path;
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/");
-    }
-  }, [isAuthenticated, navigate]);
 
   return (
     <AppBar position="sticky" elevation={0}>
@@ -364,6 +360,15 @@ export function Navbar() {
         </Box>
       )}
       <CompleteProfileDialog open={!isProfileUpdated} />
+
+      <ApplicantReplyDialog
+        open={isAccepted}
+        onClose={() => setIsAccepted(false)}
+        onSend={async () => {}}
+        hostName={acceptedLobby?.host.name as string}
+        lobbyTitle={acceptedLobby?.title as string}
+        partyCode={acceptedLobby?.partyCode as string}
+      />
     </AppBar>
   );
 }

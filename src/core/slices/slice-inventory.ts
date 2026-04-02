@@ -46,8 +46,27 @@ export const inventorySlice = createSlice({
 
     setMyLobbyApplicantStatus(
       state,
-      action: PayloadAction<{ applicantId: string; status: ApplicantStatus }>,
+      action: PayloadAction<{
+        lobbyId?: string;
+        applicantId: string;
+        status: ApplicantStatus;
+      }>,
     ) {
+      if (action.payload.lobbyId) {
+        const lobby = state.appliedLobbies.find(
+          (l) => l.id === action.payload.lobbyId,
+        );
+        if (lobby) {
+          const applicants = lobby.applicants?.map((applicant) => {
+            if (applicant.user === action.payload.applicantId) {
+              return { ...applicant, status: action.payload.status };
+            }
+            return applicant;
+          });
+          lobby.applicants = applicants;
+        }
+        return;
+      }
       if (!state.myLobby) return;
 
       const applicants = state.myLobby.applicants?.map((applicant) => {
@@ -155,6 +174,7 @@ export const useInventory = () => {
         dispatch(setMyLobbyStatus(payload)),
 
       setMyLobbyApplicantStatus: (payload: {
+        lobbyId?: string;
         applicantId: string;
         status: ApplicantStatus;
       }) => dispatch(setMyLobbyApplicantStatus(payload)),

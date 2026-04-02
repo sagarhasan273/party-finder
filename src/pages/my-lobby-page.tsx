@@ -159,6 +159,8 @@ function ApplicantCard({
   status: ApplicantStatus;
   lobbyId: string;
 }) {
+  const { setMyLobbyApplicantStatus } = useInventory();
+
   const [acceptJoinRequest, { isLoading: isAccepting }] =
     useAcceptJoinRequestMutation();
   const [rejectJoinRequest, { isLoading: isRejecting }] =
@@ -170,7 +172,13 @@ function ApplicantCard({
         lobbyId,
         applicantId: user.id as string,
       }).unwrap();
-      if (r.status) toast.success(r?.message || "Join request accepted.");
+      if (r.status) {
+        setMyLobbyApplicantStatus({
+          applicantId: user?.id as string,
+          status: "accepted",
+        });
+        toast.success(r?.message || "Join request accepted.");
+      }
     } catch (e) {
       fErrorCatchToast(e, "Failed to accept join request.");
     }
@@ -182,7 +190,13 @@ function ApplicantCard({
         lobbyId,
         applicantId: user.id as string,
       }).unwrap();
-      if (r.status) toast.success(r?.message || "Join request rejected.");
+      if (r.status) {
+        setMyLobbyApplicantStatus({
+          applicantId: user?.id as string,
+          status: "rejected",
+        });
+        toast.success(r?.message || "Join request rejected.");
+      }
     } catch (e) {
       fErrorCatchToast(e, "Failed to reject join request.");
     }

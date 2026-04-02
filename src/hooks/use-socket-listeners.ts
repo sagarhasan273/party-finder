@@ -1,5 +1,7 @@
+import type { LobbyType } from "src/types/type-inventory";
+
 import { toast } from "sonner";
-import { useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import { useSocket } from "src/contexts/socket-context";
 import { useInventory, useCredentials } from "src/core/slices";
@@ -84,7 +86,11 @@ export const useSocketListeners = () => {
     setMyLobby,
     setAppliedLobbies,
     setAppliedLobbiesStatus,
+    setMyLobbyApplicantStatus,
   } = useInventory();
+
+  const [isAccepted, setIsAccepted] = useState(false);
+  const [acceptedLobby, setAcceptedLobby] = useState<LobbyType | null>(null);
 
   // Memoize handlers to prevent unnecessary re-renders
   const handleReceiveNewLobby = useCallback(
@@ -96,25 +102,29 @@ export const useSocketListeners = () => {
 
   const handleReceiveDeletedLobby = useCallback(
     (data: any) => {
-      toast.info(
-        data?.hostId === user.id
-          ? "Lobby Deleted!"
-          : data?.message || "Lobby Deleted!",
-        {
-          duration: 4000,
-          position: "top-right",
-          icon: getIcon("delete"),
-          style: {
-            ...toastStyles.base,
-            ...toastStyles.request,
-          },
-        },
-      );
-
       if (data?.lobbyId) {
-        setAppliedLobbies(
-          appliedLobbies.filter((lobby) => lobby.id !== data?.lobbyId),
+        const isLobbyExist = appliedLobbies.some(
+          (lobby) => lobby.id === data?.lobbyId,
         );
+        if (isLobbyExist) {
+          const templobby = appliedLobbies.filter(
+            (lobby) => lobby.id !== data?.lobbyId,
+          );
+          setAppliedLobbies(templobby);
+          toast.info(
+            data?.hostId === user.id
+              ? "Lobby Deleted!"
+              : data?.message || "Lobby Deleted!",
+            {
+              duration: 4000,
+              position: "top-right",
+              icon: getIcon("delete"),
+              style: {
+                ...toastStyles.base,
+              },
+            },
+          );
+        }
         setLobbies(lobbies.filter((lobby) => lobby.id !== data?.lobbyId));
       }
     },
@@ -163,17 +173,51 @@ export const useSocketListeners = () => {
     [user?.id, myLobby, lobbies, setMyLobby, setLobbies],
   );
 
-  const handleReceiveRequestReject = useCallback((data: any) => {
-    toast.error(data?.message || "Your request was rejected", {
-      duration: 4000,
-      position: "top-right",
-      icon: getIcon("reject"),
-      style: {
-        ...toastStyles.base,
-        ...toastStyles.reject,
-      },
-    });
-  }, []);
+  const handleReceiveRequestAccept = useCallback(
+    (data: any) => {
+      toast.error(data?.message || "Your request has accepted", {
+        duration: 4000,
+        position: "top-right",
+        icon: getIcon("accept"),
+        style: {
+          ...toastStyles.base,
+          ...toastStyles.accept,
+        },
+      });
+      if (data?.lobbyId && data?.lobby) {
+        setIsAccepted(true);
+        setAcceptedLobby(data.lobby);
+        setMyLobbyApplicantStatus({
+          lobbyId: data.lobbyId,
+          applicantId: user?.id as string,
+          status: "accepted",
+        });
+      }
+    },
+    [user?.id, setMyLobbyApplicantStatus],
+  );
+
+  const handleReceiveRequestReject = useCallback(
+    (data: any) => {
+      toast.error(data?.message || "Your request has rejected", {
+        duration: 4000,
+        position: "top-right",
+        icon: getIcon("reject"),
+        style: {
+          ...toastStyles.base,
+          ...toastStyles.reject,
+        },
+      });
+      if (data?.lobbyId) {
+        setMyLobbyApplicantStatus({
+          lobbyId: data?.lobbyId,
+          applicantId: user?.id as string,
+          status: "rejected",
+        });
+      }
+    },
+    [user?.id, setMyLobbyApplicantStatus],
+  );
 
   const handleReceiveLobbyStatus = useCallback(
     (data: any) => {
@@ -196,6 +240,7 @@ export const useSocketListeners = () => {
     on("receive-new-lobby", handleReceiveNewLobby);
     on("receive-deleted-lobby", handleReceiveDeletedLobby);
     on("receive-join-request", handleReceiveJoinRequest);
+    on("receive-request-accept", handleReceiveRequestAccept);
     on("receive-request-reject", handleReceiveRequestReject);
     on("receive-lobby-status", handleReceiveLobbyStatus);
 
@@ -204,6 +249,7 @@ export const useSocketListeners = () => {
       off("receive-new-lobby", handleReceiveNewLobby);
       off("receive-deleted-lobby", handleReceiveDeletedLobby);
       off("receive-join-request", handleReceiveJoinRequest);
+      off("receive-request-accept", handleReceiveRequestAccept);
       off("receive-request-reject", handleReceiveRequestReject);
       off("receive-lobby-status", handleReceiveLobbyStatus);
     };
@@ -214,7 +260,16 @@ export const useSocketListeners = () => {
     handleReceiveNewLobby,
     handleReceiveDeletedLobby,
     handleReceiveJoinRequest,
+    handleReceiveRequestAccept,
     handleReceiveRequestReject,
     handleReceiveLobbyStatus,
   ]);
+
+  return {
+    isAccepted,
+    setIsAccepted: (value: boolean) => {
+      setIsAccepted(value);
+    },
+    acceptedLobby,
+  };
 };
