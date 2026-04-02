@@ -50,6 +50,7 @@ export const inventorySlice = createSlice({
         lobbyId?: string;
         applicantId: string;
         status: ApplicantStatus;
+        updatedAt?: string;
       }>,
     ) {
       if (action.payload.lobbyId) {
@@ -59,7 +60,11 @@ export const inventorySlice = createSlice({
         if (lobby) {
           const applicants = lobby.applicants?.map((applicant) => {
             if (applicant.user === action.payload.applicantId) {
-              return { ...applicant, status: action.payload.status };
+              return {
+                ...applicant,
+                status: action.payload.status,
+                updatedAt: new Date().toString(),
+              };
             }
             return applicant;
           });
@@ -71,7 +76,11 @@ export const inventorySlice = createSlice({
 
       const applicants = state.myLobby.applicants?.map((applicant) => {
         if (applicant.user.id === action.payload.applicantId) {
-          return { ...applicant, status: action.payload.status };
+          return {
+            ...applicant,
+            status: action.payload.status,
+            updatedAt: new Date().toString(),
+          };
         }
         return applicant;
       });
@@ -177,6 +186,7 @@ export const useInventory = () => {
         lobbyId?: string;
         applicantId: string;
         status: ApplicantStatus;
+        updatedAt?: string;
       }) => dispatch(setLobbyApplicantStatus(payload)),
 
       setAppliedLobbiesStatus: (payload: {

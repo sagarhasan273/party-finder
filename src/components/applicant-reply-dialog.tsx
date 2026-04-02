@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, Copy, Check, Shield } from "lucide-react";
 
@@ -14,17 +14,16 @@ import {
   DialogContent,
 } from "@mui/material";
 
+import { WINDOW_MS, CountdownTimer } from "./count-down-timer";
+
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
 const T = {
   bg: "rgba(10,11,20,0.99)",
-  bgCard: "rgba(14,16,28,0.97)",
   bgInput: "rgba(20,24,42,0.8)",
   border: "rgba(255,255,255,0.06)",
   borderHover: "rgba(255,255,255,0.12)",
   accent: "#FF4655",
-  accentDim: "rgba(255,70,85,0.1)",
-  accentBorder: "rgba(255,70,85,0.22)",
   text: "#dde3f0",
   textSub: "#7f8fad",
   textMuted: "#3e4d6b",
@@ -77,8 +76,8 @@ function PartyCodeReveal({ partyCode }: { partyCode: string }) {
           border: `1px solid ${T.greenBorder}`,
           position: "relative",
           overflow: "hidden",
-          animation: "pulse 2s ease-in-out infinite",
-          "@keyframes pulse": {
+          animation: "codepulse 2s ease-in-out infinite",
+          "@keyframes codepulse": {
             "0%": {
               borderColor: "rgba(34,197,94,0.2)",
               boxShadow: "0 0 0 0 rgba(34,197,94,0.1)",
@@ -94,7 +93,6 @@ function PartyCodeReveal({ partyCode }: { partyCode: string }) {
           },
         }}
       >
-        {/* Corner ornament */}
         <Box
           aria-hidden
           sx={{
@@ -110,15 +108,14 @@ function PartyCodeReveal({ partyCode }: { partyCode: string }) {
           }}
         />
 
-        {/* Label */}
         <Stack direction="row" alignItems="center" gap={0.75} mb={1.25}>
-          <Shield size={14} color={T.green} />
+          <Shield size={13} color={T.green} />
           <Typography
             sx={{
               fontFamily: T.RAJ,
               fontWeight: 700,
-              fontSize: "0.72rem",
-              letterSpacing: "0.14em",
+              fontSize: "0.68rem",
+              letterSpacing: "0.12em",
               color: T.green,
               textTransform: "uppercase",
             }}
@@ -127,7 +124,6 @@ function PartyCodeReveal({ partyCode }: { partyCode: string }) {
           </Typography>
         </Stack>
 
-        {/* Code + copy */}
         <Stack
           direction="row"
           alignItems="center"
@@ -147,7 +143,6 @@ function PartyCodeReveal({ partyCode }: { partyCode: string }) {
           >
             {partyCode}
           </Typography>
-
           <IconButton
             onClick={copy}
             disableRipple
@@ -158,13 +153,13 @@ function PartyCodeReveal({ partyCode }: { partyCode: string }) {
               borderRadius: "2px",
               flexShrink: 0,
               border: copied
-                ? `1px solid rgba(34,197,94,0.55)`
-                : `1px solid rgba(34,197,94,0.25)`,
+                ? "1px solid rgba(34,197,94,0.55)"
+                : "1px solid rgba(34,197,94,0.25)",
               color: copied ? T.green : T.textSub,
               background: copied ? "rgba(34,197,94,0.1)" : "transparent",
               transition: "all 0.15s",
               "&:hover": {
-                border: `1px solid rgba(34,197,94,0.5)`,
+                border: "1px solid rgba(34,197,94,0.5)",
                 color: T.green,
                 background: "rgba(34,197,94,0.1)",
               },
@@ -182,8 +177,8 @@ function PartyCodeReveal({ partyCode }: { partyCode: string }) {
           sx={{
             fontFamily: T.RAJ,
             fontWeight: 500,
-            fontSize: "0.65rem",
-            color: "rgba(34,197,94,0.5)",
+            fontSize: "0.63rem",
+            color: "rgba(34,197,94,0.45)",
             mt: 0.75,
             letterSpacing: "0.04em",
           }}
@@ -205,6 +200,10 @@ interface ApplicantReplyDialogProps {
   lobbyTitle: string;
   partyCode: string;
   isSending?: boolean;
+  /** When the applicant was accepted — starts the 1-min countdown */
+  acceptedAt?: Date | string;
+  /** Called when the 1-minute window expires */
+  onTimeout?: () => void;
 }
 
 // ─── Dialog ───────────────────────────────────────────────────────────────────
@@ -217,19 +216,32 @@ export function ApplicantReplyDialog({
   lobbyTitle,
   partyCode,
   isSending = false,
+  acceptedAt,
+  onTimeout,
 }: ApplicantReplyDialogProps) {
   const { copy } = useCopyCode(partyCode);
   const [message, setMessage] = useState("");
   const MAX = 280;
 
-  const handleSend = async () => {
-    await onSend(message.trim());
-    setMessage("");
-    copy();
+  // If dialog opens after the window has already passed, close immediately
+  useEffect(() => {
+    if (!open || !acceptedAt) return;
+    const deadline = new Date(acceptedAt).getTime() + WINDOW_MS;
+    if (Date.now() >= deadline) {
+      onTimeout?.();
+      onClose();
+    }
+  }, [open, acceptedAt, onClose, onTimeout]);
+
+  const handleTimeout = () => {
+    onTimeout?.();
+    setTimeout(onClose, 1200); // brief delay so user sees 00:00
   };
 
-  const handleSkip = () => {
-    onClose();
+  const handleSend = async () => {
+    await onSend(message.trim());
+    copy();
+    setMessage("");
   };
 
   return (
@@ -248,7 +260,6 @@ export function ApplicantReplyDialog({
           overflow: "hidden",
           position: "relative",
           boxShadow: "0 24px 60px rgba(0,0,0,0.7)",
-          // Left accent bar
           "&::before": {
             content: '""',
             position: "absolute",
@@ -256,10 +267,9 @@ export function ApplicantReplyDialog({
             left: 0,
             width: 3,
             height: "100%",
-            background: partyCode ? T.green : T.accent,
+            background: T.green,
             zIndex: 10,
           },
-          // Top edge tint
           "&::after": {
             content: '""',
             position: "absolute",
@@ -267,9 +277,7 @@ export function ApplicantReplyDialog({
             left: 3,
             right: 0,
             height: "2px",
-            background: partyCode
-              ? `linear-gradient(90deg, ${T.green}77, transparent 60%)`
-              : `linear-gradient(90deg, ${T.accent}77, transparent 60%)`,
+            background: `linear-gradient(90deg, ${T.green}66, transparent 60%)`,
             zIndex: 10,
           },
         },
@@ -280,7 +288,6 @@ export function ApplicantReplyDialog({
         },
       }}
     >
-      {/* Corner ornament */}
       <Box
         aria-hidden
         sx={{
@@ -292,13 +299,10 @@ export function ApplicantReplyDialog({
           height: 0,
           borderStyle: "solid",
           borderWidth: "0 18px 18px 0",
-          borderColor: partyCode
-            ? `transparent ${T.green}44 transparent transparent`
-            : `transparent ${T.accent}44 transparent transparent`,
+          borderColor: `transparent ${T.green}33 transparent transparent`,
         }}
       />
 
-      {/* Close button */}
       <IconButton
         onClick={onClose}
         size="small"
@@ -326,12 +330,12 @@ export function ApplicantReplyDialog({
                 fontWeight: 700,
                 fontSize: "0.62rem",
                 letterSpacing: "0.14em",
-                color: partyCode ? T.green : "rgba(255,70,85,0.75)",
+                color: T.green,
                 textTransform: "uppercase",
                 mb: 0.5,
               }}
             >
-              {partyCode ? "Lobby accepted" : "Reply to host"}
+              Lobby accepted
             </Typography>
             <Typography
               sx={{
@@ -363,18 +367,26 @@ export function ApplicantReplyDialog({
             </Typography>
           </Box>
 
-          {/* Party code — shown when accepted */}
+          {/* 1-min countdown */}
+          {acceptedAt && (
+            <Box mb={2}>
+              <CountdownTimer
+                acceptedAt={acceptedAt}
+                onExpired={handleTimeout}
+              />
+            </Box>
+          )}
+
+          {/* Party code */}
           <AnimatePresence>
-            {partyCode && (
-              <Box mb={2}>
-                <PartyCodeReveal partyCode={partyCode} />
-              </Box>
-            )}
+            <Box mb={2}>
+              <PartyCodeReveal partyCode={partyCode} />
+            </Box>
           </AnimatePresence>
 
           <Divider sx={{ borderColor: "rgba(255,255,255,0.05)", mb: 2 }} />
 
-          {/* Message input */}
+          {/* Optional message */}
           <Box mb={0.5}>
             <Stack
               direction="row"
@@ -430,12 +442,10 @@ export function ApplicantReplyDialog({
                   "& fieldset": { borderColor: T.border },
                   "&:hover fieldset": { borderColor: T.borderHover },
                   "&.Mui-focused fieldset": {
-                    borderColor: partyCode
-                      ? "rgba(34,197,94,0.45)"
-                      : "rgba(255,70,85,0.4)",
+                    borderColor: "rgba(34,197,94,0.45)",
                     borderWidth: 1,
                   },
-                  "& textarea": { padding: "4px 6px" },
+                  "& textarea": { padding: "6px 8px" },
                   "& textarea::placeholder": { color: T.textMuted, opacity: 1 },
                 },
               }}
@@ -444,22 +454,21 @@ export function ApplicantReplyDialog({
             <Typography
               sx={{
                 fontFamily: T.RAJ,
-                fontSize: "0.7rem",
+                fontSize: "0.62rem",
                 fontWeight: 500,
                 color: T.textMuted,
                 mt: 0.75,
                 letterSpacing: "0.03em",
               }}
             >
-              This is optional — you can skip and join directly with the party
-              code.
+              Optional — skip to join directly with the code above.
             </Typography>
           </Box>
 
           {/* Actions */}
           <Stack direction="row" gap={1} mt={2.5} justifyContent="flex-end">
             <Button
-              onClick={handleSkip}
+              onClick={onClose}
               sx={{
                 fontFamily: T.RAJ,
                 fontWeight: 700,
@@ -468,9 +477,8 @@ export function ApplicantReplyDialog({
                 textTransform: "uppercase",
                 borderRadius: "2px",
                 px: 2,
-                borderColor: T.border,
-                color: T.textSub,
                 border: `1px solid ${T.border}`,
+                color: T.textSub,
                 "&:hover": {
                   borderColor: T.borderHover,
                   color: T.text,
@@ -484,7 +492,7 @@ export function ApplicantReplyDialog({
             <Button
               onClick={handleSend}
               disabled={isSending}
-              startIcon={message ? <Send size={13} /> : null}
+              startIcon={message ? <Send size={13} /> : undefined}
               sx={{
                 fontFamily: T.RAJ,
                 fontWeight: 700,
@@ -494,13 +502,11 @@ export function ApplicantReplyDialog({
                 borderRadius: "2px",
                 px: 2.5,
                 boxShadow: "none",
-                background: partyCode ? T.green : T.accent,
+                background: T.green,
                 color: "#fff",
                 "&:hover": {
-                  background: partyCode ? "#1da84f" : "#e03040",
-                  boxShadow: partyCode
-                    ? "0 0 16px rgba(34,197,94,0.3)"
-                    : "0 0 16px rgba(255,70,85,0.3)",
+                  background: "#1da84f",
+                  boxShadow: "0 0 16px rgba(34,197,94,0.3)",
                 },
                 "&.Mui-disabled": {
                   background: "rgba(255,255,255,0.07)",
@@ -510,9 +516,9 @@ export function ApplicantReplyDialog({
             >
               {isSending
                 ? "Sending…"
-                : !message
-                  ? "Yes, I'm joining"
-                  : "Send message"}
+                : message
+                  ? "Send message"
+                  : "I'm joining"}
             </Button>
           </Stack>
         </Box>

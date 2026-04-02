@@ -373,6 +373,9 @@ export function Navbar() {
         hostName={acceptedLobby?.host.name as string}
         lobbyTitle={acceptedLobby?.title as string}
         partyCode={acceptedLobby?.partyCode as string}
+        acceptedAt={
+          acceptedLobby?.applicants?.find((a) => a.user === user?.id)?.updatedAt
+        }
       />
     </AppBar>
   );

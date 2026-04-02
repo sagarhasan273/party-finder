@@ -118,6 +118,9 @@ export const useSocketListeners = () => {
             (lobby) => lobby.id !== data?.lobbyId,
           );
           setAppliedLobbies(templobby);
+          setIsAccepted(false);
+          setAcceptedLobby(null);
+
           toast.info(
             data?.hostId === user.id
               ? "Lobby Deleted!"
@@ -189,6 +192,7 @@ export const useSocketListeners = () => {
           lobbyId: data.lobbyId,
           applicantId: user?.id as string,
           status: "accepted",
+          updatedAt: new Date().toDateString(),
         });
       }
     },

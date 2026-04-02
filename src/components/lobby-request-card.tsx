@@ -39,6 +39,7 @@ import { MetaChip } from "./meta-chip";
 import { AvatarUser } from "./avatar-user";
 import { StatusChip } from "./status-chip";
 import { formatTimeAgo } from "../lib/valorant";
+import { CountdownTimer } from "./count-down-timer";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -570,47 +571,57 @@ export function LobbyRequestCard({
             justifyContent="space-between"
             alignItems="center"
           >
-            <Stack direction="row" gap={1.75} alignItems="center">
-              <Stack direction="row" alignItems="center" gap={0.5}>
-                <Users size={12} color="rgba(58,64,96,1)" />
-                <Typography
-                  sx={{
-                    fontFamily: T.RAJ,
-                    fontWeight: 700,
-                    color: T.textSub,
-                    fontSize: "0.78rem",
-                    letterSpacing: "0.03em",
-                  }}
-                >
-                  {lobby.currentPlayers}/5
-                </Typography>
-                {spotsLeft > 0 && lobby.status === "open" && (
+            {myApplication?.status !== "accepted" && (
+              <Stack direction="row" gap={1.75} alignItems="center">
+                <Stack direction="row" alignItems="center" gap={0.5}>
+                  <Users size={12} color="rgba(58,64,96,1)" />
                   <Typography
                     sx={{
-                      color: T.green,
+                      fontFamily: T.RAJ,
+                      fontWeight: 700,
+                      color: T.textSub,
+                      fontSize: "0.78rem",
+                      letterSpacing: "0.03em",
+                    }}
+                  >
+                    {lobby.currentPlayers}/5
+                  </Typography>
+                  {spotsLeft > 0 && lobby.status === "open" && (
+                    <Typography
+                      sx={{
+                        color: T.green,
+                        fontSize: "0.68rem",
+                        fontFamily: T.RAJ,
+                        fontWeight: 600,
+                      }}
+                    >
+                      ({spotsLeft} left)
+                    </Typography>
+                  )}
+                </Stack>
+                <Stack direction="row" alignItems="center" gap={0.5}>
+                  <Clock size={11} color="rgba(58,64,96,1)" />
+                  <Typography
+                    sx={{
+                      color: T.textMuted,
                       fontSize: "0.68rem",
                       fontFamily: T.RAJ,
                       fontWeight: 600,
                     }}
                   >
-                    ({spotsLeft} left)
+                    {formatTimeAgo(lobby.createdAt)}
                   </Typography>
-                )}
+                </Stack>
               </Stack>
-              <Stack direction="row" alignItems="center" gap={0.5}>
-                <Clock size={11} color="rgba(58,64,96,1)" />
-                <Typography
-                  sx={{
-                    color: T.textMuted,
-                    fontSize: "0.68rem",
-                    fontFamily: T.RAJ,
-                    fontWeight: 600,
-                  }}
-                >
-                  {formatTimeAgo(lobby.createdAt)}
-                </Typography>
-              </Stack>
-            </Stack>
+            )}
+
+            {myApplication?.status === "accepted" &&
+              myApplication?.updatedAt && (
+                <CountdownTimer
+                  acceptedAt={myApplication?.updatedAt}
+                  onExpired={() => {}}
+                />
+              )}
 
             {myApplication?.user?.mainRole && (
               <Stack direction="row" alignItems="center" gap={0.6}>

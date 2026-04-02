@@ -3,6 +3,7 @@ import type { ApplicantStatus } from "src/types/type-inventory";
 
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -29,6 +30,7 @@ import {
   Container,
   Typography,
   IconButton,
+  LinearProgress,
   CircularProgress,
 } from "@mui/material";
 
@@ -52,48 +54,32 @@ import { StatusChip } from "../components/status-chip";
 import { formatTimeAgo, getTrackerProfileUrl } from "../lib/valorant";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-//
-// Text hierarchy:
-//   textDim   → timestamps, icon tints          very dark navy-slate
-//   textMuted → section labels, hosted-by       mid navy-slate
-//   textSub   → meta values, descriptions       silver-blue
-//   text      → names, titles, primary content  cool near-white
-//
-// The surface is near-black with a blue undertone so the red accent
-// reads warm and vivid against it rather than muddy.
 
 const T = {
-  // Surfaces
   bg: "rgba(10,11,20,0.98)",
   bgCard: "rgba(14,16,28,0.97)",
   border: "rgba(255,255,255,0.06)",
   borderHover: "rgba(255,255,255,0.12)",
-
-  // Accent — untouched
   accent: "#FF4655",
   accentDim: "rgba(255,70,85,0.1)",
   accentBorder: "rgba(255,70,85,0.22)",
-
-  // Text ramp — cool blue-white family
-  text: "#dde3f0", // primary titles & names
-  textSub: "#7f8fad", // secondary values & descriptions
-  textMuted: "#3e4d6b", // labels, "hosted by", divider hints
-  textDim: "#28374f", // icon color, timestamps
-
-  // Semantic
+  text: "#dde3f0",
+  textSub: "#7f8fad",
+  textMuted: "#3e4d6b",
+  textDim: "#28374f",
   green: "#22c55e",
   greenDim: "rgba(34,197,94,0.12)",
   greenBorder: "rgba(34,197,94,0.25)",
   teal: "#5DCAA5",
   tealDim: "rgba(93,202,165,0.07)",
   tealBorder: "rgba(93,202,165,0.22)",
-
   suspended: "#ff46d7",
-  suspendedDim: "rgba(255, 70, 230, 0.1)",
-  suspendedBorder: "rgba(255, 70, 240, 0.28)",
-
+  suspendedBorder: "rgba(255,70,240,0.28)",
   RAJ: '"Rajdhani", sans-serif',
 } as const;
+
+/** 1-minute response window */
+const WINDOW_MS = 60_000;
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
@@ -152,19 +138,131 @@ function CornerOrnament({ color }: { color: string }) {
   );
 }
 
+// ─── ApplicantCountdown ───────────────────────────────────────────────────────
+
+interface ApplicantCountdownProps {
+  acceptedAt: Date | string;
+  onExpired?: () => void;
+}
+
+function ApplicantCountdown({
+  acceptedAt,
+  onExpired,
+}: ApplicantCountdownProps) {
+  const deadline = new Date(acceptedAt).getTime() + WINDOW_MS;
+
+  const getSecondsLeft = () =>
+    Math.max(0, Math.floor((deadline - Date.now()) / 1000));
+
+  const [secondsLeft, setSecondsLeft] = useState(getSecondsLeft);
+  const isWarning = secondsLeft <= 10 && secondsLeft > 0;
+  const expired = secondsLeft <= 0;
+
+  useEffect(() => {
+    if (expired) {
+      onExpired?.();
+      return undefined;
+    }
+    const id = setInterval(() => {
+      const s = getSecondsLeft();
+      setSecondsLeft(s);
+      if (s <= 0) {
+        clearInterval(id);
+        onExpired?.();
+      }
+    }, 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deadline]);
+
+  if (expired) return null;
+
+  const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
+  const ss = String(secondsLeft % 60).padStart(2, "0");
+  const progress = (secondsLeft / (WINDOW_MS / 1000)) * 100;
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1.25,
+        bgcolor: "rgba(0,0,0,0.25)",
+        borderRadius: "2px",
+        p: "7px 10px",
+        border: `1px solid ${isWarning ? T.accent : T.tealBorder}`,
+        animation: isWarning ? "warnpulse 1s ease-in-out infinite" : "none",
+        "@keyframes warnpulse": {
+          "0%": { borderColor: "rgba(255,70,85,0.2)" },
+          "50%": { borderColor: "rgba(255,70,85,0.7)" },
+          "100%": { borderColor: "rgba(255,70,85,0.2)" },
+        },
+      }}
+    >
+      <Clock
+        size={13}
+        color={isWarning ? T.accent : T.teal}
+        style={{ flexShrink: 0 }}
+      />
+      <Box sx={{ flex: 1 }}>
+        <Stack direction="row" justifyContent="space-between" mb={0.4}>
+          <Typography
+            sx={{
+              fontFamily: T.RAJ,
+              fontWeight: 600,
+              fontSize: "0.6rem",
+              color: T.textSub,
+              letterSpacing: "0.07em",
+              textTransform: "uppercase",
+            }}
+          >
+            Waiting for response
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: T.RAJ,
+              fontWeight: 700,
+              fontSize: "0.72rem",
+              color: isWarning ? T.accent : T.teal,
+              letterSpacing: "0.08em",
+            }}
+          >
+            {mm}:{ss}
+          </Typography>
+        </Stack>
+        <LinearProgress
+          variant="determinate"
+          value={progress}
+          sx={{
+            height: 2,
+            borderRadius: 1,
+            bgcolor: "rgba(255,255,255,0.06)",
+            "& .MuiLinearProgress-bar": {
+              bgcolor: isWarning ? T.accent : T.teal,
+              borderRadius: 1,
+              transition: "width 1s linear",
+            },
+          }}
+        />
+      </Box>
+    </Box>
+  );
+}
+
 // ─── ApplicantCard ────────────────────────────────────────────────────────────
 
 function ApplicantCard({
   user,
   lobbyId,
   status,
+  acceptedAt,
 }: {
   user: Partial<UserType>;
   status: ApplicantStatus;
   lobbyId: string;
+  acceptedAt?: Date | string;
 }) {
   const { setLobbyApplicantStatus } = useInventory();
-
   const [acceptJoinRequest, { isLoading: isAccepting }] =
     useAcceptJoinRequestMutation();
   const [rejectJoinRequest, { isLoading: isRejecting }] =
@@ -180,6 +278,7 @@ function ApplicantCard({
         setLobbyApplicantStatus({
           applicantId: user?.id as string,
           status: "accepted",
+          updatedAt: new Date().toString(),
         });
         toast.success(r?.message || "Join request accepted.");
       }
@@ -204,6 +303,14 @@ function ApplicantCard({
     } catch (e) {
       fErrorCatchToast(e, "Failed to reject join request.");
     }
+  };
+
+  // Auto-suspend when the 1-min window closes without a response
+  const handleCountdownExpired = () => {
+    setLobbyApplicantStatus({
+      applicantId: user?.id as string,
+      status: "suspended",
+    });
   };
 
   return (
@@ -232,7 +339,6 @@ function ApplicantCard({
           verified={user.verified}
         />
         <Stack justifyContent="center">
-          {/* Display name */}
           <Typography
             sx={{
               fontSize: "0.82rem",
@@ -245,7 +351,6 @@ function ApplicantCard({
           >
             {user.name}
           </Typography>
-          {/* Riot ID + stats link */}
           <Stack direction="row" alignItems="center" gap={0.75} flexWrap="wrap">
             <Typography
               sx={{
@@ -258,10 +363,7 @@ function ApplicantCard({
               }}
             >
               {user.gamename}
-              <Box
-                component="span"
-                sx={{ opacity: 0.8, fontWeight: 500, textTransform: "none" }}
-              >
+              <Box component="span" sx={{ opacity: 0.8, fontWeight: 500 }}>
                 #{user.tagline}
               </Box>
             </Typography>
@@ -297,7 +399,7 @@ function ApplicantCard({
         </Stack>
       </Stack>
 
-      {/* Rank + Role */}
+      {/* Rank + Role — pending only */}
       {status === "pending" && (
         <Stack direction="row" gap={0.5} flexWrap="wrap">
           {user?.rank && <RankChip rank={user.rank} />}
@@ -379,20 +481,28 @@ function ApplicantCard({
         </Stack>
       )}
 
-      {/* Status — accepted */}
-      {status === "accepted" && (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 1.25,
-            background: T.tealDim,
-            border: `1px solid ${T.tealBorder}`,
-            borderRadius: "2px",
-          }}
-        >
-          <Stack direction="row" alignItems="center" gap={1.25}>
-            <CircularProgress size={15} sx={{ color: T.teal, flexShrink: 0 }} />
-            <Box>
+      {/* Status — accepted: live countdown */}
+      {status === "accepted" &&
+        (acceptedAt ? (
+          <ApplicantCountdown
+            acceptedAt={acceptedAt}
+            onExpired={handleCountdownExpired}
+          />
+        ) : (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 1.25,
+              background: T.tealDim,
+              border: `1px solid ${T.tealBorder}`,
+              borderRadius: "2px",
+            }}
+          >
+            <Stack direction="row" alignItems="center" gap={1.25}>
+              <CircularProgress
+                size={15}
+                sx={{ color: T.teal, flexShrink: 0 }}
+              />
               <Typography
                 sx={{
                   fontFamily: T.RAJ,
@@ -403,20 +513,9 @@ function ApplicantCard({
               >
                 Waiting for applicant…
               </Typography>
-              <Typography
-                sx={{
-                  fontFamily: T.RAJ,
-                  fontWeight: 500,
-                  fontSize: "0.62rem",
-                  color: "rgba(93,202,165,0.5)",
-                }}
-              >
-                They&lsquo;ll confirm shortly
-              </Typography>
-            </Box>
-          </Stack>
-        </Paper>
-      )}
+            </Stack>
+          </Paper>
+        ))}
 
       {/* Status — suspended */}
       {status === "suspended" && (
@@ -424,34 +523,32 @@ function ApplicantCard({
           elevation={0}
           sx={{
             p: 1.25,
-
+            background: "rgba(255,70,230,0.06)",
             border: `1px solid ${T.suspendedBorder}`,
             borderRadius: "2px",
           }}
         >
-          <Stack direction="row" alignItems="center" gap={1.25}>
-            <Box>
-              <Typography
-                sx={{
-                  fontFamily: T.RAJ,
-                  fontWeight: 600,
-                  fontSize: "0.76rem",
-                  color: T.suspended,
-                }}
-              >
-                Suspended!
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: T.RAJ,
-                  fontSize: "0.62rem",
-                  color: T.suspended,
-                }}
-              >
-                Applicant can get suspended only by the time or by host action.
-              </Typography>
-            </Box>
-          </Stack>
+          <Typography
+            sx={{
+              fontFamily: T.RAJ,
+              fontWeight: 600,
+              fontSize: "0.76rem",
+              color: T.suspended,
+            }}
+          >
+            Suspended
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: T.RAJ,
+              fontSize: "0.62rem",
+              color: "rgba(255,70,230,0.5)",
+              mt: 0.25,
+              lineHeight: 1.4,
+            }}
+          >
+            Applicant didn&lsquo;t respond in time
+          </Typography>
         </Paper>
       )}
 
@@ -536,7 +633,6 @@ export function MyLobbyPage() {
         ? T.accent
         : "rgba(255,255,255,0.12)";
 
-  // ── Auth guard ─────────────────────────────────────────────────────────────
   if (!isAuthenticated) {
     return (
       <Box
@@ -659,6 +755,7 @@ export function MyLobbyPage() {
               to="/create"
               variant="contained"
               startIcon={<Plus size={14} />}
+              disabled={!!myLobby}
               sx={{
                 background: T.accent,
                 fontFamily: T.RAJ,
@@ -674,7 +771,6 @@ export function MyLobbyPage() {
                   boxShadow: "0 0 18px rgba(255,70,85,0.3)",
                 },
               }}
-              disabled={!!myLobby}
             >
               New lobby
             </Button>
@@ -782,7 +878,6 @@ export function MyLobbyPage() {
                     zIndex: 1,
                   }}
                 >
-                  {/* Top row — host + controls */}
                   <Stack
                     direction="row"
                     justifyContent="space-between"
@@ -851,13 +946,11 @@ export function MyLobbyPage() {
                         →
                       </Typography>
                       <RankChip rank={myLobby.rankMax} />
-
                       <Divider
                         orientation="vertical"
                         flexItem
                         sx={{ mx: 0.25, borderColor: T.border }}
                       />
-
                       <Button
                         variant="outlined"
                         size="small"
@@ -895,7 +988,6 @@ export function MyLobbyPage() {
                       >
                         {myLobby.status === "open" ? "Close" : "Reopen"}
                       </Button>
-
                       <Tooltip title="Delete lobby" placement="top">
                         <IconButton
                           onClick={() => handleDelete(myLobby.id)}
@@ -920,33 +1012,24 @@ export function MyLobbyPage() {
                     </Stack>
                   </Stack>
 
-                  {/* Title + status */}
                   <Box mb={1.5}>
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      gap={0.75}
-                      flexWrap="wrap"
-                      mb={0.5}
+                    <Typography
+                      sx={{
+                        fontFamily: T.RAJ,
+                        fontWeight: 700,
+                        fontSize: "1.05rem",
+                        letterSpacing: "0.05em",
+                        lineHeight: 1.2,
+                        color: T.text,
+                        textTransform: "uppercase",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: { xs: 200, sm: 420 },
+                      }}
                     >
-                      <Typography
-                        sx={{
-                          fontFamily: T.RAJ,
-                          fontWeight: 700,
-                          fontSize: "1.05rem",
-                          letterSpacing: "0.05em",
-                          lineHeight: 1.2,
-                          color: T.text,
-                          textTransform: "uppercase",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          maxWidth: { xs: 200, sm: 420 },
-                        }}
-                      >
-                        {myLobby.title}
-                      </Typography>
-                    </Stack>
+                      {myLobby.title}
+                    </Typography>
                     {myLobby.hostGamename && (
                       <Typography
                         sx={{
@@ -976,7 +1059,6 @@ export function MyLobbyPage() {
                     )}
                   </Box>
 
-                  {/* Roles */}
                   {roles?.length > 0 && (
                     <Stack direction="row" flexWrap="wrap" gap={0.6} mb={1.25}>
                       {roles.map(
@@ -985,7 +1067,6 @@ export function MyLobbyPage() {
                     </Stack>
                   )}
 
-                  {/* Description */}
                   {myLobby.description && (
                     <Typography
                       variant="body2"
@@ -1011,52 +1092,45 @@ export function MyLobbyPage() {
                     sx={{ borderColor: "rgba(255,255,255,0.05)", mb: 1.25 }}
                   />
 
-                  {/* Footer */}
-                  <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                  >
-                    <Stack direction="row" gap={1.75} alignItems="center">
-                      <Stack direction="row" alignItems="center" gap={0.5}>
-                        <Users size={12} color={T.textMuted} />
+                  <Stack direction="row" gap={1.75} alignItems="center">
+                    <Stack direction="row" alignItems="center" gap={0.5}>
+                      <Users size={12} color={T.textMuted} />
+                      <Typography
+                        sx={{
+                          fontFamily: T.RAJ,
+                          fontWeight: 700,
+                          color: T.textSub,
+                          fontSize: "0.78rem",
+                          letterSpacing: "0.03em",
+                        }}
+                      >
+                        {playerCount}/5
+                      </Typography>
+                      {spotsLeft > 0 && myLobby.status === "open" && (
                         <Typography
                           sx={{
-                            fontFamily: T.RAJ,
-                            fontWeight: 700,
-                            color: T.textSub,
-                            fontSize: "0.78rem",
-                            letterSpacing: "0.03em",
-                          }}
-                        >
-                          {playerCount}/5
-                        </Typography>
-                        {spotsLeft > 0 && myLobby.status === "open" && (
-                          <Typography
-                            sx={{
-                              color: T.green,
-                              fontSize: "0.68rem",
-                              fontFamily: T.RAJ,
-                              fontWeight: 600,
-                            }}
-                          >
-                            ({spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left)
-                          </Typography>
-                        )}
-                      </Stack>
-                      <Stack direction="row" alignItems="center" gap={0.5}>
-                        <Clock size={11} color={T.textMuted} />
-                        <Typography
-                          sx={{
-                            color: T.textMuted,
+                            color: T.green,
                             fontSize: "0.68rem",
                             fontFamily: T.RAJ,
                             fontWeight: 600,
                           }}
                         >
-                          {formatTimeAgo(myLobby.createdAt)}
+                          ({spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left)
                         </Typography>
-                      </Stack>
+                      )}
+                    </Stack>
+                    <Stack direction="row" alignItems="center" gap={0.5}>
+                      <Clock size={11} color={T.textMuted} />
+                      <Typography
+                        sx={{
+                          color: T.textMuted,
+                          fontSize: "0.68rem",
+                          fontFamily: T.RAJ,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {formatTimeAgo(myLobby.createdAt)}
+                      </Typography>
                     </Stack>
                   </Stack>
                 </Box>
@@ -1114,6 +1188,7 @@ export function MyLobbyPage() {
                         user={applicant.user}
                         lobbyId={myLobby.id}
                         status={applicant.status}
+                        acceptedAt={applicant.updatedAt}
                       />
                     ))}
                   </Stack>
