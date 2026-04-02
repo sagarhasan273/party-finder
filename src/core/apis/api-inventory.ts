@@ -111,6 +111,17 @@ export const inventoryApi = createApi({
       }),
     }),
 
+    applicantJoining: builder.mutation<
+      ResponseType,
+      { lobbyId: string; applicantId: string; message?: string }
+    >({
+      query: ({ lobbyId, applicantId, message }) => ({
+        url: `inventory/lobby/applicant-joining`,
+        method: "POST",
+        body: { lobbyId, applicantId, message },
+      }),
+    }),
+
     cancelJoinRequest: builder.mutation<
       ResponseType,
       { lobbyId: string; applicantId: string }
@@ -136,4 +147,5 @@ export const {
   useAcceptJoinRequestMutation,
   useRejectJoinRequestMutation,
   useCancelJoinRequestMutation,
+  useApplicantJoiningMutation,
 } = inventoryApi;

@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, Copy, Check, Shield } from "lucide-react";
@@ -13,6 +14,10 @@ import {
   IconButton,
   DialogContent,
 } from "@mui/material";
+
+import { useInventory } from "src/core/slices";
+import { fErrorCatchToast } from "src/lib/error-catch";
+import { useApplicantJoiningMutation } from "src/core/apis";
 
 import { WINDOW_MS, CountdownTimer } from "./count-down-timer";
 
@@ -195,14 +200,12 @@ function PartyCodeReveal({ partyCode }: { partyCode: string }) {
 interface ApplicantReplyDialogProps {
   open: boolean;
   onClose: () => void;
-  onSend: (message: string) => Promise<void>;
   hostName: string;
   lobbyTitle: string;
   partyCode: string;
   isSending?: boolean;
-  /** When the applicant was accepted — starts the 1-min countdown */
-  acceptedAt?: Date | string;
-  /** Called when the 1-minute window expires */
+  lobbyId?: string;
+  applicant: any;
   onTimeout?: () => void;
 }
 
@@ -211,17 +214,26 @@ interface ApplicantReplyDialogProps {
 export function ApplicantReplyDialog({
   open,
   onClose,
-  onSend,
   hostName,
   lobbyTitle,
   partyCode,
   isSending = false,
-  acceptedAt,
+  lobbyId,
+  applicant,
   onTimeout,
 }: ApplicantReplyDialogProps) {
+  const navigate = useNavigate();
   const { copy } = useCopyCode(partyCode);
+
+  const { setLobbyApplicantStatus } = useInventory();
+
   const [message, setMessage] = useState("");
+
+  const [updateJoining] = useApplicantJoiningMutation();
+
   const MAX = 280;
+
+  const acceptedAt = (applicant as any)?.updatedAt;
 
   // If dialog opens after the window has already passed, close immediately
   useEffect(() => {
@@ -235,13 +247,33 @@ export function ApplicantReplyDialog({
 
   const handleTimeout = () => {
     onTimeout?.();
+
     setTimeout(onClose, 1200); // brief delay so user sees 00:00
   };
 
   const handleSend = async () => {
-    await onSend(message.trim());
-    copy();
-    setMessage("");
+    if (!lobbyId || !applicant?.user) return;
+    try {
+      const r = await updateJoining({
+        lobbyId,
+        applicantId: applicant?.user,
+      }).unwrap();
+
+      if (r?.status) {
+        setLobbyApplicantStatus({
+          lobbyId,
+          applicantId: applicant?.user,
+          status: "joining",
+          message,
+        });
+        navigate("/applied-lobbies");
+        copy();
+        setMessage("");
+        onClose?.();
+      }
+    } catch (error) {
+      fErrorCatchToast(error);
+    }
   };
 
   return (
@@ -468,7 +500,10 @@ export function ApplicantReplyDialog({
           {/* Actions */}
           <Stack direction="row" gap={1} mt={2.5} justifyContent="flex-end">
             <Button
-              onClick={onClose}
+              onClick={() => {
+                onClose?.();
+                navigate("/applied-lobbies");
+              }}
               sx={{
                 fontFamily: T.RAJ,
                 fontWeight: 700,

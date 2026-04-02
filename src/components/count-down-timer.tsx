@@ -22,7 +22,7 @@ const T = {
 } as const;
 
 /** Single source of truth — change this to adjust the window */
-export const WINDOW_MS = 60_000; // 1 minute
+export const WINDOW_MS = 120_000; // 1 minute
 
 interface CountdownTimerProps {
   acceptedAt: Date | string;
@@ -54,8 +54,6 @@ export function CountdownTimer({ acceptedAt, onExpired }: CountdownTimerProps) {
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deadline]);
-
-  if (secondsLeft <= 0) return null;
 
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
   const ss = String(secondsLeft % 60).padStart(2, "0");
@@ -105,12 +103,12 @@ export function CountdownTimer({ acceptedAt, onExpired }: CountdownTimerProps) {
               letterSpacing: "0.08em",
             }}
           >
-            {mm}:{ss}
+            {secondsLeft <= 0 ? "00:00" : `${mm}:${ss}`}
           </Typography>
         </Stack>
         <LinearProgress
           variant="determinate"
-          value={progress}
+          value={secondsLeft <= 0 ? 0 : progress}
           sx={{
             height: 2,
             borderRadius: 1,

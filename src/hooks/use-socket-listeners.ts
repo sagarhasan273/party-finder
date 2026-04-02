@@ -249,6 +249,27 @@ export const useSocketListeners = () => {
     [setLobbyApplicantStatus],
   );
 
+  const handleReceiveJoiningApplicant = useCallback(
+    (data: any) => {
+      if (data?.applicantId) {
+        toast.error(data?.message || "Applicant has responded to join.", {
+          duration: 4000,
+          position: "top-right",
+          style: {
+            ...toastStyles.base,
+            ...toastStyles.accept,
+          },
+        });
+        setLobbyApplicantStatus({
+          applicantId: data?.applicantId,
+          status: "joining",
+          message: data?.applicantMessage,
+        });
+      }
+    },
+    [setLobbyApplicantStatus],
+  );
+
   const handleReceiveLobbyStatus = useCallback(
     (data: any) => {
       if (data?.sentTo === "host") setMyLobbyStatus(data?.status);
@@ -273,6 +294,7 @@ export const useSocketListeners = () => {
     on("receive-request-accept", handleReceiveRequestAccept);
     on("receive-request-reject", handleReceiveRequestReject);
     on("receive-suspended-applicant", handleReceiveSuspendedApplicant);
+    on("receive-joining-applicant", handleReceiveJoiningApplicant);
     on("receive-lobby-status", handleReceiveLobbyStatus);
 
     // Cleanup function
@@ -283,6 +305,7 @@ export const useSocketListeners = () => {
       off("receive-request-accept", handleReceiveRequestAccept);
       off("receive-request-reject", handleReceiveRequestReject);
       off("receive-suspended-applicant", handleReceiveSuspendedApplicant);
+      off("receive-joining-applicant", handleReceiveJoiningApplicant);
       off("receive-lobby-status", handleReceiveLobbyStatus);
     };
   }, [
@@ -295,6 +318,7 @@ export const useSocketListeners = () => {
     handleReceiveRequestAccept,
     handleReceiveRequestReject,
     handleReceiveSuspendedApplicant,
+    handleReceiveJoiningApplicant,
     handleReceiveLobbyStatus,
   ]);
 

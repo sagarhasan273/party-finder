@@ -20,13 +20,18 @@ export default function App() {
             <AppRouter />
 
             <Toaster
-              position="bottom-right"
+              position="top-right"
               toastOptions={{
                 style: {
-                  background: "rgba(255, 194, 194, 0.34)",
                   border: "1px solid rgba(255, 255, 255, 0.94)",
                   color: "#ffffff",
-                  fontFamily: '"DM Sans", sans-serif',
+                  background: "rgba(13, 15, 26, 0.95)",
+                  borderRadius: "4px",
+                  backdropFilter: "blur(10px)",
+                  fontFamily: '"Rajdhani", sans-serif',
+                  fontWeight: 600,
+                  fontSize: "0.90rem",
+                  padding: "16px 16px",
                 },
               }}
             />

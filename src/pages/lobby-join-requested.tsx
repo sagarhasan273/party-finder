@@ -85,7 +85,18 @@ export function LobbyJoinRequested() {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 5 }}>
+    <Container
+      maxWidth="md"
+      sx={{
+        py: 5,
+        "&.MuiContainer-root": {
+          px: {
+            sm: 3,
+            md: 1,
+          },
+        },
+      }}
+    >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -230,7 +241,17 @@ export function LobbyJoinRequested() {
           </Box>
         )}
 
-        <Stack gap={2}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr", // 1 column on mobile
+              sm: "repeat(2, 1fr)", // 2 columns on tablet and up
+            },
+            gap: 1,
+            alignItems: "stretch",
+          }}
+        >
           {/* ── Lobbies card ── */}
           {appliedLobbies.map((lobby, i) => (
             <LobbyRequestCard
@@ -265,7 +286,7 @@ export function LobbyJoinRequested() {
               }}
             />
           ))}
-        </Stack>
+        </Box>
       </motion.div>
     </Container>
   );

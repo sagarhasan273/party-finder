@@ -58,6 +58,7 @@ export interface LobbyType {
     status: ApplicantStatus;
     createdAt: string;
     updatedAt: string;
+    message?: string;
   }[];
 }
 

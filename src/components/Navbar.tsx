@@ -369,12 +369,12 @@ export function Navbar() {
       <ApplicantReplyDialog
         open={isAccepted}
         onClose={() => setIsAccepted(false)}
-        onSend={async () => {}}
         hostName={acceptedLobby?.host.name as string}
         lobbyTitle={acceptedLobby?.title as string}
         partyCode={acceptedLobby?.partyCode as string}
-        acceptedAt={
-          acceptedLobby?.applicants?.find((a) => a.user === user?.id)?.updatedAt
+        lobbyId={acceptedLobby?.id}
+        applicant={
+          acceptedLobby?.applicants?.find((a) => a.user === user?.id) as any
         }
       />
     </AppBar>

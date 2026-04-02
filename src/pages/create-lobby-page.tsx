@@ -312,7 +312,14 @@ export function CreateLobbyPage() {
         if (response?.data) setMyLobby(response.data);
       }
     } catch {
-      toast.error("Failed to create lobby. Please try again.");
+      toast.info("Failed to create! You have requested for a lobby.", {
+        style: {
+          background: "rgba(61, 34, 38, 0.77)",
+          border: "1px solid rgba(255, 51, 68, 0.84)",
+          color: "#fae2e4d0",
+        },
+      });
+      navigate("/applied-lobbies");
     } finally {
       setIsSubmitting(false);
     }

@@ -24,20 +24,23 @@ import {
   Stack,
   Paper,
   Popper,
+  Button,
   Divider,
   Tooltip,
   Typography,
   IconButton,
 } from "@mui/material";
 
+import { useInventory } from "src/core/slices";
 import { ValorantRegionalServers } from "src/@mock";
+import { fErrorCatchToast } from "src/lib/error-catch";
+import { useApplicantJoiningMutation } from "src/core/apis";
 
 import { RoleChip } from "src/components/role-chip";
 import { RankChip } from "src/components/rank-chip";
 
 import { MetaChip } from "./meta-chip";
 import { AvatarUser } from "./avatar-user";
-import { StatusChip } from "./status-chip";
 import { formatTimeAgo } from "../lib/valorant";
 import { CountdownTimer } from "./count-down-timer";
 
@@ -91,11 +94,11 @@ const REQUEST_STATUS = {
   },
   joining: {
     label: "Joining",
-    Icon: Info,
-    bg: "rgba(255, 70, 230, 0.1)",
-    color: "#ff46d7",
-    border: "rgba(255, 70, 240, 0.28)",
-    accent: "#ff46f6",
+    Icon: CheckCircle2,
+    bg: "rgba(34,197,94,0.1)",
+    color: "#22c55e",
+    border: "rgba(34,197,94,0.3)",
+    accent: "#22c55e",
   },
   "not-joining": {
     label: "Not Joining",
@@ -158,7 +161,6 @@ export function PartyCodeBox({ partyCode }: { partyCode: string }) {
         pl: 1.25,
         pr: 0.75,
         py: "5px",
-        mb: 1.25,
         ml: "auto",
         borderRadius: "3px",
         clipPath:
@@ -304,6 +306,11 @@ export function LobbyRequestCard({
   index = 0,
   onCancelRequest,
 }: LobbyRequestCardProps) {
+  const { setLobbyApplicantStatus } = useInventory();
+
+  const [updateJoining, { isLoading: isJoining }] =
+    useApplicantJoiningMutation();
+
   const myApplication = lobby?.applicants?.find(
     (a) => a.user === currentUserId,
   );
@@ -318,6 +325,26 @@ export function LobbyRequestCard({
   const currentRegion = ValorantRegionalServers.find(
     (r) => r.code === lobby?.region,
   );
+
+  const handleSend = async () => {
+    if (!lobby?.id || !myApplication?.user) return;
+    try {
+      const r = await updateJoining({
+        lobbyId: lobby?.id,
+        applicantId: myApplication?.user as string,
+      }).unwrap();
+
+      if (r?.status) {
+        setLobbyApplicantStatus({
+          lobbyId: lobby?.id,
+          applicantId: myApplication?.user as string,
+          status: "joining",
+        });
+      }
+    } catch (error) {
+      fErrorCatchToast(error);
+    }
+  };
 
   return (
     <motion.div
@@ -360,6 +387,7 @@ export function LobbyRequestCard({
             background: `linear-gradient(90deg, ${accent}88, transparent 55%)`,
             zIndex: 2,
           },
+          height: "100%",
         }}
       >
         {/* Corner ornament */}
@@ -385,10 +413,10 @@ export function LobbyRequestCard({
             justifyContent="space-between"
             alignItems="flex-start"
             gap={1.5}
-            mb={1.5}
+            mb={1}
           >
             {/* Host info */}
-            <Stack direction="row" flexWrap="wrap" gap={1} mb={1}>
+            <Stack direction="row" flexWrap="wrap" gap={1}>
               <AvatarUser
                 avatarUrl={lobby?.host?.profilePhoto}
                 name={lobby?.host?.name || ""}
@@ -408,7 +436,6 @@ export function LobbyRequestCard({
                   {lobby.host.name}
                 </Typography>
                 <Stack direction="row" flexWrap="wrap" gap={0.6}>
-                  <StatusChip status={lobby.status} />
                   <MetaChip
                     icon={<Globe size={10} />}
                     label={currentRegion?.label || String(lobby.region)}
@@ -486,7 +513,7 @@ export function LobbyRequestCard({
           </Stack>
 
           {/* Title + status + party code */}
-          <Stack direction="column" flexWrap="wrap" gap={0.75} mb={1.5}>
+          <Stack direction="column" flexWrap="wrap" gap={0.75} mb={1}>
             <Stack
               direction="row"
               alignItems="center"
@@ -511,9 +538,6 @@ export function LobbyRequestCard({
               >
                 {lobby.title}
               </Typography>
-              {requestStatus === "accepted" && lobby.partyCode && (
-                <PartyCodeBox partyCode={lobby.partyCode} />
-              )}
             </Stack>
 
             {lobby.description && (
@@ -617,28 +641,70 @@ export function LobbyRequestCard({
 
             {myApplication?.status === "accepted" &&
               myApplication?.updatedAt && (
-                <CountdownTimer
-                  acceptedAt={myApplication?.updatedAt}
-                  onExpired={() => {}}
-                />
-              )}
-
-            {myApplication?.user?.mainRole && (
-              <Stack direction="row" alignItems="center" gap={0.6}>
-                <Typography
+                <Stack
+                  direction="row"
                   sx={{
-                    fontFamily: T.RAJ,
-                    fontWeight: 700,
-                    fontSize: "0.6rem",
-                    letterSpacing: "0.09em",
-                    color: "rgba(58,64,96,1)",
-                    textTransform: "uppercase",
+                    alignItems: "center",
+                    flex: 1,
+                    gap: 1,
                   }}
                 >
-                  Applied as
-                </Typography>
-                <RoleChip role={myApplication.user.mainRole} />
-              </Stack>
+                  <CountdownTimer
+                    acceptedAt={myApplication?.updatedAt}
+                    onExpired={() => {}}
+                  />
+                  <Button
+                    onClick={handleSend}
+                    disabled={isJoining}
+                    sx={{
+                      fontFamily: T.RAJ,
+                      fontWeight: 700,
+                      fontSize: "0.72rem",
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      borderRadius: "2px",
+                      px: 2.5,
+                      py: 1,
+                      boxShadow: "none",
+                      background: T.green,
+                      color: "#fff",
+                      "&:hover": {
+                        background: "#1da84f",
+                        boxShadow: "0 0 16px rgba(34,197,94,0.3)",
+                      },
+                      "&.Mui-disabled": {
+                        background: "rgba(255,255,255,0.07)",
+                        color: T.textMuted,
+                      },
+                    }}
+                  >
+                    {isJoining ? "Sending…" : "I'm joining"}
+                  </Button>
+                </Stack>
+              )}
+
+            {["joining"].includes(requestStatus) && lobby.partyCode ? (
+              <PartyCodeBox partyCode={lobby.partyCode} />
+            ) : (
+              <>
+                {myApplication?.user?.mainRole && (
+                  <Stack direction="row" alignItems="center" gap={0.6}>
+                    <Typography
+                      sx={{
+                        fontFamily: T.RAJ,
+                        fontWeight: 700,
+                        fontSize: "0.6rem",
+                        letterSpacing: "0.09em",
+                        color: "rgba(58,64,96,1)",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Applied as
+                    </Typography>
+                    <RoleChip role={myApplication.user.mainRole} />
+                  </Stack>
+                )}
+              </>
             )}
           </Stack>
         </Box>

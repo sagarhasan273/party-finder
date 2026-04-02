@@ -51,6 +51,7 @@ export const inventorySlice = createSlice({
         applicantId: string;
         status: ApplicantStatus;
         updatedAt?: string;
+        message?: string;
       }>,
     ) {
       if (action.payload.lobbyId) {
@@ -63,6 +64,7 @@ export const inventorySlice = createSlice({
               return {
                 ...applicant,
                 status: action.payload.status,
+                message: action.payload?.message,
                 updatedAt: new Date().toString(),
               };
             }
@@ -79,6 +81,7 @@ export const inventorySlice = createSlice({
           return {
             ...applicant,
             status: action.payload.status,
+            message: action.payload?.message,
             updatedAt: new Date().toString(),
           };
         }
@@ -187,6 +190,7 @@ export const useInventory = () => {
         applicantId: string;
         status: ApplicantStatus;
         updatedAt?: string;
+        message?: string;
       }) => dispatch(setLobbyApplicantStatus(payload)),
 
       setAppliedLobbiesStatus: (payload: {

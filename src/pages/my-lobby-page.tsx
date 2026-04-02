@@ -48,6 +48,7 @@ import {
 import { RankChip } from "src/components/rank-chip";
 import { MetaChip } from "src/components/meta-chip";
 import { AvatarUser } from "src/components/avatar-user";
+import { WINDOW_MS } from "src/components/count-down-timer";
 
 import { RoleChip } from "../components/role-chip";
 import { StatusChip } from "../components/status-chip";
@@ -77,9 +78,6 @@ const T = {
   suspendedBorder: "rgba(255,70,240,0.28)",
   RAJ: '"Rajdhani", sans-serif',
 } as const;
-
-/** 1-minute response window */
-const WINDOW_MS = 60_000;
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
@@ -324,12 +322,12 @@ function ApplicantCard({
         display: "flex",
         flexDirection: "column",
         gap: 0.75,
-        ...valorantCard(T.accent),
+        ...valorantCard(status === "joining" ? T.green : T.accent),
         clipPath:
           "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)",
       }}
     >
-      <CornerOrnament color={T.accent} />
+      <CornerOrnament color={status === "joining" ? T.green : T.accent} />
 
       {/* Avatar + name */}
       <Stack direction="row" gap={1} mb={0.5}>
@@ -547,7 +545,7 @@ function ApplicantCard({
               lineHeight: 1.4,
             }}
           >
-            Applicant didn&lsquo;t respond in time
+            Applicant didn&lsquo;t respond in time.
           </Typography>
         </Paper>
       )}
@@ -561,6 +559,7 @@ function ApplicantCard({
             background: "rgba(255,70,85,0.06)",
             border: "1px solid rgba(255,70,85,0.2)",
             borderRadius: "2px",
+            mt: "auto",
           }}
         >
           <Typography
@@ -569,9 +568,61 @@ function ApplicantCard({
               fontWeight: 700,
               fontSize: "0.76rem",
               color: T.accent,
+              textAlign: "center",
             }}
           >
             Applicant rejected
+          </Typography>
+        </Paper>
+      )}
+
+      {status === "joining" && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1,
+            background: T.greenDim,
+            border: `1px solid ${T.greenBorder}`,
+            borderRadius: "2px",
+            mt: "auto",
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: T.RAJ,
+              fontWeight: 700,
+              fontSize: "0.76rem",
+              color: T.green,
+              textAlign: "center",
+            }}
+          >
+            Applicant has responded to join.
+          </Typography>
+        </Paper>
+      )}
+
+      {/* Status — rejected */}
+      {status === "cancelled" && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1,
+            background: "rgba(255,70,85,0.06)",
+            border: "1px solid rgba(255,70,85,0.2)",
+            borderRadius: "2px",
+            mt: "auto",
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: T.RAJ,
+              fontWeight: 700,
+              fontSize: "0.76rem",
+              color: T.accent,
+              textAlign: "center",
+            }}
+          >
+            Request got cancelled.
           </Typography>
         </Paper>
       )}
