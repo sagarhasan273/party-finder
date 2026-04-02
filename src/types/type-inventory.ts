@@ -26,7 +26,14 @@ export type ValorantMap =
 
 export type LobbyStatus = "open" | "full" | "in-progress" | "closed";
 
-export type ApplicantStatus = "pending" | "accepted" | "rejected" | "in-party";
+export type ApplicantStatus =
+  | "pending"
+  | "accepted"
+  | "rejected"
+  | "joining"
+  | "not-joining"
+  | "suspended"
+  | "cancelled";
 
 export interface LobbyType {
   id: string;
@@ -49,9 +56,11 @@ export interface LobbyType {
   applicants?: {
     user: Partial<UserType>;
     status: ApplicantStatus;
+    createdAt: string;
+    updatedAt: string;
   }[];
 }
 
 export type CreateLobbyInput =
-  | Omit<LobbyType, "id" | "createdAt" | "updatedAt ">
+  | Omit<LobbyType, "id" | "createdAt" | "updatedAt">
   | { host: string };

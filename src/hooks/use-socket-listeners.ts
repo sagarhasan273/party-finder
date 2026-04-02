@@ -41,6 +41,13 @@ const toastStyles = {
     color: "#ffc7ccd0",
   },
 
+  // Rejected style (red theme)
+  suspended: {
+    background: "rgba(61, 34, 52, 0.56)",
+    border: "1px solid rgba(255, 51, 228, 0.84)",
+    color: "#ffc7f1d0",
+  },
+
   // Canceled style (orange/yellow theme)
   canceled: {
     background: "rgba(26, 20, 13, 0.95)",
@@ -86,7 +93,7 @@ export const useSocketListeners = () => {
     setMyLobby,
     setAppliedLobbies,
     setAppliedLobbiesStatus,
-    setMyLobbyApplicantStatus,
+    setLobbyApplicantStatus,
   } = useInventory();
 
   const [isAccepted, setIsAccepted] = useState(false);
@@ -175,26 +182,17 @@ export const useSocketListeners = () => {
 
   const handleReceiveRequestAccept = useCallback(
     (data: any) => {
-      toast.error(data?.message || "Your request has accepted", {
-        duration: 4000,
-        position: "top-right",
-        icon: getIcon("accept"),
-        style: {
-          ...toastStyles.base,
-          ...toastStyles.accept,
-        },
-      });
       if (data?.lobbyId && data?.lobby) {
         setIsAccepted(true);
         setAcceptedLobby(data.lobby);
-        setMyLobbyApplicantStatus({
+        setLobbyApplicantStatus({
           lobbyId: data.lobbyId,
           applicantId: user?.id as string,
           status: "accepted",
         });
       }
     },
-    [user?.id, setMyLobbyApplicantStatus],
+    [user?.id, setLobbyApplicantStatus],
   );
 
   const handleReceiveRequestReject = useCallback(
@@ -209,14 +207,42 @@ export const useSocketListeners = () => {
         },
       });
       if (data?.lobbyId) {
-        setMyLobbyApplicantStatus({
+        setLobbyApplicantStatus({
           lobbyId: data?.lobbyId,
           applicantId: user?.id as string,
           status: "rejected",
         });
       }
     },
-    [user?.id, setMyLobbyApplicantStatus],
+    [user?.id, setLobbyApplicantStatus],
+  );
+
+  const handleReceiveSuspendedApplicant = useCallback(
+    (data: any) => {
+      if (data?.applicantId) {
+        toast.error(data?.message || "Your request has suspended", {
+          duration: 4000,
+          position: "top-right",
+          icon: getIcon("suspended"),
+          style: {
+            ...toastStyles.base,
+            ...toastStyles.suspended,
+          },
+        });
+        setIsAccepted(false);
+        setAcceptedLobby(null);
+        setLobbyApplicantStatus({
+          lobbyId: data?.lobbyId,
+          applicantId: data?.applicantId,
+          status: "suspended",
+        });
+        setLobbyApplicantStatus({
+          applicantId: data?.applicantId,
+          status: "suspended",
+        });
+      }
+    },
+    [setLobbyApplicantStatus],
   );
 
   const handleReceiveLobbyStatus = useCallback(
@@ -242,6 +268,7 @@ export const useSocketListeners = () => {
     on("receive-join-request", handleReceiveJoinRequest);
     on("receive-request-accept", handleReceiveRequestAccept);
     on("receive-request-reject", handleReceiveRequestReject);
+    on("receive-suspended-applicant", handleReceiveSuspendedApplicant);
     on("receive-lobby-status", handleReceiveLobbyStatus);
 
     // Cleanup function
@@ -251,6 +278,7 @@ export const useSocketListeners = () => {
       off("receive-join-request", handleReceiveJoinRequest);
       off("receive-request-accept", handleReceiveRequestAccept);
       off("receive-request-reject", handleReceiveRequestReject);
+      off("receive-suspended-applicant", handleReceiveSuspendedApplicant);
       off("receive-lobby-status", handleReceiveLobbyStatus);
     };
   }, [
@@ -262,6 +290,7 @@ export const useSocketListeners = () => {
     handleReceiveJoinRequest,
     handleReceiveRequestAccept,
     handleReceiveRequestReject,
+    handleReceiveSuspendedApplicant,
     handleReceiveLobbyStatus,
   ]);
 

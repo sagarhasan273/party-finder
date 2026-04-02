@@ -44,7 +44,7 @@ export const inventorySlice = createSlice({
       console.log(action.payload);
     },
 
-    setMyLobbyApplicantStatus(
+    setLobbyApplicantStatus(
       state,
       action: PayloadAction<{
         lobbyId?: string;
@@ -128,7 +128,7 @@ const {
   setMyLobby,
   setAppliedLobbies,
   setMyLobbyStatus,
-  setMyLobbyApplicantStatus,
+  setLobbyApplicantStatus,
   setAppliedLobbiesStatus,
   reset,
   setLoading,
@@ -173,11 +173,11 @@ export const useInventory = () => {
       setMyLobbyStatus: (payload: LobbyType["status"]) =>
         dispatch(setMyLobbyStatus(payload)),
 
-      setMyLobbyApplicantStatus: (payload: {
+      setLobbyApplicantStatus: (payload: {
         lobbyId?: string;
         applicantId: string;
         status: ApplicantStatus;
-      }) => dispatch(setMyLobbyApplicantStatus(payload)),
+      }) => dispatch(setLobbyApplicantStatus(payload)),
 
       setAppliedLobbiesStatus: (payload: {
         lobbyId: string;

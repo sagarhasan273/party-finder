@@ -88,6 +88,10 @@ const T = {
   tealDim: "rgba(93,202,165,0.07)",
   tealBorder: "rgba(93,202,165,0.22)",
 
+  suspended: "#ff46d7",
+  suspendedDim: "rgba(255, 70, 230, 0.1)",
+  suspendedBorder: "rgba(255, 70, 240, 0.28)",
+
   RAJ: '"Rajdhani", sans-serif',
 } as const;
 
@@ -159,7 +163,7 @@ function ApplicantCard({
   status: ApplicantStatus;
   lobbyId: string;
 }) {
-  const { setMyLobbyApplicantStatus } = useInventory();
+  const { setLobbyApplicantStatus } = useInventory();
 
   const [acceptJoinRequest, { isLoading: isAccepting }] =
     useAcceptJoinRequestMutation();
@@ -173,7 +177,7 @@ function ApplicantCard({
         applicantId: user.id as string,
       }).unwrap();
       if (r.status) {
-        setMyLobbyApplicantStatus({
+        setLobbyApplicantStatus({
           applicantId: user?.id as string,
           status: "accepted",
         });
@@ -191,7 +195,7 @@ function ApplicantCard({
         applicantId: user.id as string,
       }).unwrap();
       if (r.status) {
-        setMyLobbyApplicantStatus({
+        setLobbyApplicantStatus({
           applicantId: user?.id as string,
           status: "rejected",
         });
@@ -294,10 +298,12 @@ function ApplicantCard({
       </Stack>
 
       {/* Rank + Role */}
-      <Stack direction="row" gap={0.5} flexWrap="wrap">
-        {user?.rank && <RankChip rank={user.rank} />}
-        {user?.mainRole && <RoleChip role={user.mainRole} size="small" />}
-      </Stack>
+      {status === "pending" && (
+        <Stack direction="row" gap={0.5} flexWrap="wrap">
+          {user?.rank && <RankChip rank={user.rank} />}
+          {user?.mainRole && <RoleChip role={user.mainRole} size="small" />}
+        </Stack>
+      )}
 
       {/* Playstyle */}
       {user?.playstyle && (
@@ -317,7 +323,7 @@ function ApplicantCard({
 
       {/* Actions — pending */}
       {status === "pending" && (
-        <Stack direction="row" gap={0.6} mt={0.25}>
+        <Stack direction="row" gap={0.6} mt="auto">
           <Button
             size="small"
             onClick={handleAccept}
@@ -406,6 +412,43 @@ function ApplicantCard({
                 }}
               >
                 They&lsquo;ll confirm shortly
+              </Typography>
+            </Box>
+          </Stack>
+        </Paper>
+      )}
+
+      {/* Status — suspended */}
+      {status === "suspended" && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1.25,
+
+            border: `1px solid ${T.suspendedBorder}`,
+            borderRadius: "2px",
+          }}
+        >
+          <Stack direction="row" alignItems="center" gap={1.25}>
+            <Box>
+              <Typography
+                sx={{
+                  fontFamily: T.RAJ,
+                  fontWeight: 600,
+                  fontSize: "0.76rem",
+                  color: T.suspended,
+                }}
+              >
+                Suspended!
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: T.RAJ,
+                  fontSize: "0.62rem",
+                  color: T.suspended,
+                }}
+              >
+                Applicant can get suspended only by the time or by host action.
               </Typography>
             </Box>
           </Stack>
