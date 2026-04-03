@@ -34,7 +34,10 @@ import {
 import { useInventory } from "src/core/slices";
 import { ValorantRegionalServers } from "src/@mock";
 import { fErrorCatchToast } from "src/lib/error-catch";
-import { useApplicantJoiningMutation } from "src/core/apis";
+import {
+  useApplicantJoiningMutation,
+  useRemoveJoinRequestMutation,
+} from "src/core/apis";
 
 import { RoleChip } from "src/components/role-chip";
 import { RankChip } from "src/components/rank-chip";
@@ -43,7 +46,7 @@ import { MetaChip } from "./meta-chip";
 import { AvatarUser } from "./avatar-user";
 import { formatTimeAgo } from "../lib/valorant";
 import { CountdownTimer } from "./count-down-timer";
-import { CooldownTimer } from "./callback-count-down-timer";
+import { RemoveJoinRequestTimer } from "./remove-join-request-timer";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -307,10 +310,12 @@ export function LobbyRequestCard({
   index = 0,
   onCancelRequest,
 }: LobbyRequestCardProps) {
-  const { setLobbyApplicantStatus } = useInventory();
+  const { appliedLobbies, setLobbyApplicantStatus, setAppliedLobbies } =
+    useInventory();
 
   const [updateJoining, { isLoading: isJoining }] =
     useApplicantJoiningMutation();
+  const [removeJoinRequest] = useRemoveJoinRequestMutation();
 
   const myApplication = lobby?.applicants?.find(
     (a) => a.user === currentUserId,
@@ -341,6 +346,25 @@ export function LobbyRequestCard({
           applicantId: myApplication?.user as string,
           status: "joining",
         });
+      }
+    } catch (error) {
+      fErrorCatchToast(error);
+    }
+  };
+
+  const handleRemoveJoinRequest = async () => {
+    if (!lobby?.id || !myApplication?.user) return;
+    try {
+      const r = await removeJoinRequest({
+        lobbyId: lobby?.id,
+        applicantId: myApplication?.user as string,
+      }).unwrap();
+
+      if (r?.status) {
+        const updateAppliedLobbies = appliedLobbies?.filter(
+          (l) => l.id !== lobby?.id,
+        );
+        setAppliedLobbies(updateAppliedLobbies);
       }
     } catch (error) {
       fErrorCatchToast(error);
@@ -644,10 +668,13 @@ export function LobbyRequestCard({
 
             {myApplication?.status === "joining" &&
               myApplication?.updatedAt && (
-                <CooldownTimer
+                <RemoveJoinRequestTimer
                   requestedAt={myApplication.updatedAt}
                   cooldownMinutes={2}
                   onReady={() => {}}
+                  onRemoveJoinRequest={() => {
+                    handleRemoveJoinRequest();
+                  }}
                 />
               )}
 

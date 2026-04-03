@@ -132,6 +132,16 @@ export const inventoryApi = createApi({
         body: { lobbyId, applicantId },
       }),
     }),
+    removeJoinRequest: builder.mutation<
+      ResponseType,
+      { lobbyId: string; applicantId: string }
+    >({
+      query: ({ lobbyId, applicantId }) => ({
+        url: `inventory/lobby/remove-join-request`,
+        method: "POST",
+        body: { lobbyId, applicantId },
+      }),
+    }),
   }),
 });
 
@@ -148,4 +158,5 @@ export const {
   useRejectJoinRequestMutation,
   useCancelJoinRequestMutation,
   useApplicantJoiningMutation,
+  useRemoveJoinRequestMutation,
 } = inventoryApi;

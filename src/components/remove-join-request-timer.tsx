@@ -5,20 +5,22 @@ import { Box, Button, Typography } from "@mui/material";
 
 const RAJ = '"Rajdhani", sans-serif';
 
-interface CooldownTimerProps {
+interface RemoveJoinRequestTimerProps {
   /** ISO string or Date of when the request was sent */
   requestedAt: string | Date;
   /** Cooldown window in minutes — default 2 */
   cooldownMinutes?: number;
   /** Called once the cooldown expires */
   onReady?: () => void;
+  onRemoveJoinRequest?: () => void;
 }
 
-export function CooldownTimer({
+export function RemoveJoinRequestTimer({
   requestedAt,
   cooldownMinutes = 2,
   onReady,
-}: CooldownTimerProps) {
+  onRemoveJoinRequest,
+}: RemoveJoinRequestTimerProps) {
   const totalMs = cooldownMinutes * 60 * 1000;
 
   const getSecondsLeft = () => {
@@ -57,7 +59,7 @@ export function CooldownTimer({
   if (ready) {
     return (
       <Button
-        onClick={onReady}
+        onClick={onRemoveJoinRequest}
         variant="text"
         sx={{
           fontFamily: '"Rajdhani", sans-serif',
