@@ -87,7 +87,13 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
       }).unwrap();
       if (response?.status && response?.data) {
         setHaveYouRequestedToJoin(true);
-        setAppliedLobbies([...appliedLobbies, response.data]);
+        // Avoid duplicates
+        const alreadyExists = appliedLobbies.some(
+          (l) => l.id === response.data.id,
+        );
+        if (!alreadyExists) {
+          setAppliedLobbies([...appliedLobbies, response.data]);
+        }
       }
     } catch (error) {
       fErrorCatchToast(error, "Failed to send join request.");
@@ -99,6 +105,7 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, duration: 0.35, ease: "easeOut" }}
+      style={{ height: "100%", width: "100%" }}
     >
       <Paper
         elevation={0}
@@ -112,6 +119,8 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
+          alignItems: "stretch",
+          flex: 1,
           transition: "border-color 0.2s, box-shadow 0.2s",
           "&:hover": {
             borderColor: T.borderHover,
@@ -139,6 +148,7 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
             background: `linear-gradient(90deg, ${statusAccent}88, transparent 55%)`,
             zIndex: 2,
           },
+          height: "100%",
         }}
       >
         {/* Corner ornament */}
@@ -305,7 +315,7 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
                       fontWeight: 600,
                     }}
                   >
-                    ({spotsLeft} left)
+                    ({spotsLeft} player{spotsLeft !== 1 ? "s" : ""} needed)
                   </Typography>
                 )}
               </Stack>

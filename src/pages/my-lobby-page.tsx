@@ -254,11 +254,13 @@ function ApplicantCard({
   lobbyId,
   status,
   acceptedAt,
+  message,
 }: {
   user: Partial<UserType>;
   status: ApplicantStatus;
   lobbyId: string;
   acceptedAt?: Date | string;
+  message?: string;
 }) {
   const { setLobbyApplicantStatus } = useInventory();
   const [acceptJoinRequest, { isLoading: isAccepting }] =
@@ -1166,7 +1168,8 @@ export function MyLobbyPage() {
                             fontWeight: 600,
                           }}
                         >
-                          ({spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left)
+                          ({spotsLeft} player{spotsLeft !== 1 ? "s" : ""}{" "}
+                          needed)
                         </Typography>
                       )}
                     </Stack>
@@ -1240,6 +1243,7 @@ export function MyLobbyPage() {
                         lobbyId={myLobby.id}
                         status={applicant.status}
                         acceptedAt={applicant.updatedAt}
+                        message={applicant?.message}
                       />
                     ))}
                   </Stack>

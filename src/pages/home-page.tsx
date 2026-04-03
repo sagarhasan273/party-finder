@@ -386,13 +386,24 @@ export function HomePage() {
             </Box>
           </motion.div>
         ) : (
-          <Grid container spacing={2}>
-            {lobbies.map((lobby, i) => (
-              <Grid size={{ xs: 12, md: 6, xl: 4 }} key={lobby.id}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                md: "repeat(2, 1fr)",
+                xl: "repeat(3, 1fr)",
+              },
+              gap: 2,
+              alignItems: "stretch",
+            }}
+          >
+            {lobbies.map((lobby) => (
+              <Box key={lobby.id}>
                 <LobbyCard lobby={lobby} />
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         )}
       </Container>
     </Box>

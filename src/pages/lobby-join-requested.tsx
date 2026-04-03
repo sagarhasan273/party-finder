@@ -11,6 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 
+import { GoogleSignIn } from "src/core/auth";
 import { fErrorCatchToast } from "src/lib/error-catch";
 import { useInventory, useCredentials } from "src/core/slices";
 import { useCancelJoinRequestMutation } from "src/core/apis/api-inventory";
@@ -66,19 +67,7 @@ export function LobbyJoinRequested() {
               You need to be signed in to manage your lobbies.
             </Typography>
           </Box>
-          <Button
-            variant="contained"
-            onClick={() => {}}
-            sx={{
-              background: "#FF4655",
-              fontFamily: rajdhani,
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              "&:hover": { background: "#ff6b77" },
-            }}
-          >
-            Sign In
-          </Button>
+          <GoogleSignIn />
         </Stack>
       </Box>
     );
@@ -86,13 +75,12 @@ export function LobbyJoinRequested() {
 
   return (
     <Container
-      maxWidth="md"
+      maxWidth="lg"
       sx={{
         py: 5,
         "&.MuiContainer-root": {
           px: {
             sm: 3,
-            md: 1,
           },
         },
       }}
@@ -245,8 +233,8 @@ export function LobbyJoinRequested() {
           sx={{
             display: "grid",
             gridTemplateColumns: {
-              xs: "1fr", // 1 column on mobile
-              sm: "repeat(2, 1fr)", // 2 columns on tablet and up
+              sm: "1fr", // 1 column on mobile
+              md: "repeat(2, 1fr)", // 2 columns on tablet and up
             },
             gap: 1,
             alignItems: "stretch",

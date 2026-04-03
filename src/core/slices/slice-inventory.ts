@@ -41,7 +41,6 @@ export const inventorySlice = createSlice({
 
     setMyLobbyStatus(state, action: PayloadAction<LobbyType["status"]>) {
       if (state.myLobby) state.myLobby.status = action.payload ?? "open";
-      console.log(action.payload);
     },
 
     setLobbyApplicantStatus(
@@ -120,6 +119,11 @@ export const inventorySlice = createSlice({
       const lobby = state.appliedLobbies.find((l) => l.id === lobbyId);
       if (lobby) {
         lobby.status = status;
+      }
+
+      const lobbyInLobbies = state.lobbies.find((l) => l.id === lobbyId);
+      if (lobbyInLobbies) {
+        lobbyInLobbies.status = status;
       }
     },
 

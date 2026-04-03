@@ -43,6 +43,7 @@ import { MetaChip } from "./meta-chip";
 import { AvatarUser } from "./avatar-user";
 import { formatTimeAgo } from "../lib/valorant";
 import { CountdownTimer } from "./count-down-timer";
+import { CooldownTimer } from "./callback-count-down-timer";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -595,7 +596,9 @@ export function LobbyRequestCard({
             justifyContent="space-between"
             alignItems="center"
           >
-            {myApplication?.status !== "accepted" && (
+            {!["accepted", "joining"].includes(
+              myApplication?.status as string,
+            ) && (
               <Stack direction="row" gap={1.75} alignItems="center">
                 <Stack direction="row" alignItems="center" gap={0.5}>
                   <Users size={12} color="rgba(58,64,96,1)" />
@@ -638,6 +641,15 @@ export function LobbyRequestCard({
                 </Stack>
               </Stack>
             )}
+
+            {myApplication?.status === "joining" &&
+              myApplication?.updatedAt && (
+                <CooldownTimer
+                  requestedAt={myApplication.updatedAt}
+                  cooldownMinutes={2}
+                  onReady={() => {}}
+                />
+              )}
 
             {myApplication?.status === "accepted" &&
               myApplication?.updatedAt && (

@@ -107,6 +107,27 @@ export const useSocketListeners = () => {
     [lobbies, setLobbies],
   );
 
+  const handleReceiveLobbyStatus = useCallback(
+    (data: any) => {
+      if (data?.sentTo === "host") setMyLobbyStatus(data?.status);
+      if (data?.sentTo === "applicant")
+        setAppliedLobbiesStatus({
+          lobbyId: data?.lobbyId,
+          status: data?.status,
+        });
+
+      if (data?.sentTo === "broadcast") {
+        console.log("hello, hwo ar eyou?");
+        setMyLobbyStatus(data?.status);
+        setAppliedLobbiesStatus({
+          lobbyId: data?.lobbyId,
+          status: data?.status,
+        });
+      }
+    },
+    [setMyLobbyStatus, setAppliedLobbiesStatus],
+  );
+
   const handleReceiveDeletedLobby = useCallback(
     (data: any) => {
       if (data?.lobbyId) {
@@ -252,14 +273,17 @@ export const useSocketListeners = () => {
   const handleReceiveJoiningApplicant = useCallback(
     (data: any) => {
       if (data?.applicantId) {
-        toast.error(data?.message || "Applicant has responded to join.", {
-          duration: 4000,
-          position: "top-right",
-          style: {
-            ...toastStyles.base,
-            ...toastStyles.accept,
+        toast.success(
+          data?.applicantMessage || "Applicant has responded to join.",
+          {
+            duration: data?.applicantMessage ? 8000 : 4000,
+            position: "top-right",
+            style: {
+              ...toastStyles.base,
+              ...toastStyles.accept,
+            },
           },
-        });
+        );
         setLobbyApplicantStatus({
           applicantId: data?.applicantId,
           status: "joining",
@@ -270,18 +294,6 @@ export const useSocketListeners = () => {
     [setLobbyApplicantStatus],
   );
 
-  const handleReceiveLobbyStatus = useCallback(
-    (data: any) => {
-      if (data?.sentTo === "host") setMyLobbyStatus(data?.status);
-      if (data?.sentTo === "applicant")
-        setAppliedLobbiesStatus({
-          lobbyId: data?.lobbyId,
-          status: data?.status,
-        });
-    },
-    [setMyLobbyStatus, setAppliedLobbiesStatus],
-  );
-
   useEffect(() => {
     if (!isConnected) {
       return undefined;
@@ -289,24 +301,24 @@ export const useSocketListeners = () => {
 
     // Register listeners
     on("receive-new-lobby", handleReceiveNewLobby);
+    on("receive-lobby-status", handleReceiveLobbyStatus);
     on("receive-deleted-lobby", handleReceiveDeletedLobby);
     on("receive-join-request", handleReceiveJoinRequest);
     on("receive-request-accept", handleReceiveRequestAccept);
     on("receive-request-reject", handleReceiveRequestReject);
     on("receive-suspended-applicant", handleReceiveSuspendedApplicant);
     on("receive-joining-applicant", handleReceiveJoiningApplicant);
-    on("receive-lobby-status", handleReceiveLobbyStatus);
 
     // Cleanup function
     return () => {
       off("receive-new-lobby", handleReceiveNewLobby);
+      off("receive-lobby-status", handleReceiveLobbyStatus);
       off("receive-deleted-lobby", handleReceiveDeletedLobby);
       off("receive-join-request", handleReceiveJoinRequest);
       off("receive-request-accept", handleReceiveRequestAccept);
       off("receive-request-reject", handleReceiveRequestReject);
       off("receive-suspended-applicant", handleReceiveSuspendedApplicant);
       off("receive-joining-applicant", handleReceiveJoiningApplicant);
-      off("receive-lobby-status", handleReceiveLobbyStatus);
     };
   }, [
     isConnected,
