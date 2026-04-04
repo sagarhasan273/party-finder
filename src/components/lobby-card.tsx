@@ -52,7 +52,7 @@ interface LobbyCardProps {
 }
 
 export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
-  const { isAuthenticated, user } = useCredentials();
+  const { isAuthenticated, user, setIsSignInRequired } = useCredentials();
   const { appliedLobbies, setAppliedLobbies } = useInventory();
 
   const [haveYouRequestedToJoin, setHaveYouRequestedToJoin] = useState(
@@ -79,7 +79,10 @@ export function LobbyCard({ lobby, index = 0 }: LobbyCardProps) {
         : "rgba(255,255,255,0.12)";
 
   const handleJoin = async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      setIsSignInRequired(true);
+      return;
+    }
     try {
       const response = await requestToJoinLobby({
         lobbyId: lobby?.id,

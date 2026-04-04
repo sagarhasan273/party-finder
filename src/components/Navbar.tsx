@@ -34,6 +34,7 @@ import { useSocket } from "src/contexts/socket-context";
 import { useInventory, useCredentials } from "src/core/slices";
 
 import { ApplicantReplyDialog } from "./applicant-reply-dialog";
+import { SignInRequiredDialog } from "./sign-in-required-dialog";
 import { CompleteProfileDialog } from "./complete-profile-dialog";
 
 const navLinks = [
@@ -82,7 +83,14 @@ export function Navbar() {
 
   const { isConnected } = useSocket();
 
-  const { user, isAuthenticated, isProfileUpdated, logout } = useCredentials();
+  const {
+    user,
+    isAuthenticated,
+    isProfileUpdated,
+    isSignInRequired,
+    setIsSignInRequired,
+    logout,
+  } = useCredentials();
 
   const { myLobby, hasNewRequests } = useInventory();
 
@@ -450,6 +458,11 @@ export function Navbar() {
         applicant={
           acceptedLobby?.applicants?.find((a) => a.user === user?.id) as any
         }
+      />
+
+      <SignInRequiredDialog
+        open={isSignInRequired}
+        onClose={() => setIsSignInRequired(false)}
       />
     </AppBar>
   );

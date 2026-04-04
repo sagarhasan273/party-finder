@@ -14,6 +14,7 @@ interface UserState {
   region: LocationWithRegion | null;
   isRegionLoading: boolean;
   isAuthenticated: boolean;
+  isSignInRequired: boolean;
   isLoading: boolean;
 }
 
@@ -24,6 +25,7 @@ const initialState: UserState = {
   region: null,
   isRegionLoading: false,
   isAuthenticated: false,
+  isSignInRequired: false,
   isLoading: false,
 };
 
@@ -39,6 +41,7 @@ export const accountSlice = createSlice({
         !action.payload.gamename || !action.payload.tagline
       );
     },
+
     setRegion(state, action: PayloadAction<UserState["region"]>) {
       state.region = action.payload;
       state.isRegionLoading = false;
@@ -49,6 +52,10 @@ export const accountSlice = createSlice({
       action: PayloadAction<UserState["isRegionLoading"]>,
     ) {
       state.isRegionLoading = action.payload;
+    },
+
+    setIsSignInRequired(state, action: PayloadAction<boolean>) {
+      state.isSignInRequired = action.payload;
     },
 
     setLoading(state, action: PayloadAction<boolean>) {
@@ -74,6 +81,7 @@ const {
   setLoading,
   setRegion,
   setIsProfileUpdated,
+  setIsSignInRequired,
   setRegionLoading,
 } = accountSlice.actions;
 
@@ -96,6 +104,9 @@ export const useCredentials = () => {
   const isRegionLoading = useSelector(
     (state: RootState) => state.account.isRegionLoading,
   );
+  const isSignInRequired = useSelector(
+    (state: RootState) => state.account.isSignInRequired,
+  );
 
   const memoCredentials = useMemo(
     () => ({
@@ -105,6 +116,7 @@ export const useCredentials = () => {
       isAuthenticated,
       isProfileUpdated,
       isRegionLoading,
+      isSignInRequired,
       setUser: (payload: UserState["user"]) => dispatch(setUser(payload)),
       setLoading: (payload: UserState["isLoading"]) =>
         dispatch(setLoading(payload)),
@@ -112,6 +124,8 @@ export const useCredentials = () => {
       setRegion: (payload: UserState["region"]) => dispatch(setRegion(payload)),
       setRegionLoading: (payload: UserState["isRegionLoading"]) =>
         dispatch(setRegionLoading(payload)),
+      setIsSignInRequired: (payload: boolean) =>
+        dispatch(setIsSignInRequired(payload)),
       setIsProfileUpdated: (payload: UserState["isProfileUpdated"]) =>
         dispatch(setIsProfileUpdated(payload)),
     }),
@@ -122,6 +136,7 @@ export const useCredentials = () => {
       region,
       isProfileUpdated,
       isRegionLoading,
+      isSignInRequired,
       dispatch,
     ],
   );
