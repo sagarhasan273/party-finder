@@ -1,9 +1,16 @@
 import type { LobbyType } from "src/types/type-inventory";
 
 import { toast } from "sonner";
+import { useLocation } from "react-router";
 import { useState, useEffect, useCallback } from "react";
 
+import { playRingtone } from "src/utils/play-sound";
+
+import luster from "src/assets/sounds/luster.mp3";
+import long_pop from "src/assets/sounds/long-pop.wav";
+import bewitched from "src/assets/sounds/bewitched.mp3";
 import { useSocket } from "src/contexts/socket-context";
+import universfield from "src/assets/sounds/universfield.mp3";
 import { useInventory, useCredentials } from "src/core/slices";
 
 // toaster style -------------
@@ -80,6 +87,8 @@ const getIcon = (type: string) => {
 };
 
 export const useSocketListeners = () => {
+  const location = useLocation();
+
   const { user } = useCredentials();
 
   const { on, off, isConnected } = useSocket();
@@ -88,6 +97,7 @@ export const useSocketListeners = () => {
     lobbies,
     myLobby,
     appliedLobbies,
+    setHasNewRequests,
     setMyLobbyStatus,
     setLobbies,
     setMyLobby,
@@ -117,7 +127,6 @@ export const useSocketListeners = () => {
         });
 
       if (data?.sentTo === "broadcast") {
-        console.log("hello, hwo ar eyou?");
         setMyLobbyStatus(data?.status);
         setAppliedLobbiesStatus({
           lobbyId: data?.lobbyId,
@@ -141,7 +150,7 @@ export const useSocketListeners = () => {
           setAppliedLobbies(templobby);
           setIsAccepted(false);
           setAcceptedLobby(null);
-
+          playRingtone(universfield);
           toast.info(
             data?.hostId === user.id
               ? "Lobby Deleted!"
@@ -175,6 +184,7 @@ export const useSocketListeners = () => {
       });
 
       if (data?.applicant && myLobby) {
+        playRingtone(luster);
         setMyLobby({
           ...myLobby,
           applicants: [
@@ -182,6 +192,8 @@ export const useSocketListeners = () => {
             data.applicant,
           ],
         });
+
+        setHasNewRequests(location?.pathname !== "/my-lobby");
       }
 
       if (data?.applicantId === user?.id) {
@@ -201,12 +213,21 @@ export const useSocketListeners = () => {
         );
       }
     },
-    [user?.id, myLobby, lobbies, setMyLobby, setLobbies],
+    [
+      user?.id,
+      myLobby,
+      lobbies,
+      location,
+      setMyLobby,
+      setLobbies,
+      setHasNewRequests,
+    ],
   );
 
   const handleReceiveRequestAccept = useCallback(
     (data: any) => {
       if (data?.lobbyId && data?.lobby) {
+        playRingtone(luster);
         setIsAccepted(true);
         setAcceptedLobby(data.lobby);
         setLobbyApplicantStatus({
@@ -231,6 +252,7 @@ export const useSocketListeners = () => {
           ...toastStyles.reject,
         },
       });
+      playRingtone(bewitched);
       if (data?.lobbyId) {
         setLobbyApplicantStatus({
           lobbyId: data?.lobbyId,
@@ -254,6 +276,7 @@ export const useSocketListeners = () => {
             ...toastStyles.suspended,
           },
         });
+        playRingtone(long_pop);
         setIsAccepted(false);
         setAcceptedLobby(null);
         setLobbyApplicantStatus({

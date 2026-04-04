@@ -17,6 +17,7 @@ import {
   AppBar,
   Button,
   Avatar,
+  styled,
   Toolbar,
   Divider,
   MenuItem,
@@ -38,8 +39,41 @@ import { CompleteProfileDialog } from "./complete-profile-dialog";
 const navLinks = [
   { label: "BROWSE", path: "/" },
   { label: "APPLIED LOBBIES", path: "/applied-lobbies", authOnly: true },
-  { label: "MY LOBBY", path: "/my-lobby", authOnly: true },
+  { label: "MY LOBBY", path: "/my-lobby", authOnly: true, badgeOnly: true },
 ];
+
+const PulseBadge = styled(Badge)(({ theme }) => ({
+  "& .MuiBadge-badge": {
+    backgroundColor: "#FF4655",
+    top: 8,
+    right: 4,
+    width: 10,
+    height: 10,
+    borderRadius: "50%",
+    "&::after": {
+      content: '""',
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      borderRadius: "50%",
+      animation: "ripple 1.2s infinite ease-in-out",
+      border: "1px solid #FF4655",
+      backgroundColor: "transparent",
+    },
+    "@keyframes ripple": {
+      "0%": {
+        transform: "scale(0.8)",
+        opacity: 1,
+      },
+      "100%": {
+        transform: "scale(2)",
+        opacity: 0,
+      },
+    },
+  },
+}));
 
 export function Navbar() {
   useLoadInventory();
@@ -50,7 +84,7 @@ export function Navbar() {
 
   const { user, isAuthenticated, isProfileUpdated, logout } = useCredentials();
 
-  const { myLobby } = useInventory();
+  const { myLobby, hasNewRequests } = useInventory();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -103,33 +137,73 @@ export function Navbar() {
         >
           {navLinks
             .filter((l) => !l.authOnly || isAuthenticated)
-            .map((l) => (
-              <Button
-                key={l.path}
-                component={Link}
-                to={l.path}
-                size="small"
-                sx={{
-                  fontFamily: '"Rajdhani", sans-serif',
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  fontSize: "0.78rem",
-                  color: isActive(l.path) ? "#FF4655" : "rgba(255,255,255,0.5)",
-                  backgroundColor: isActive(l.path)
-                    ? "rgba(255,70,85,0.08)"
-                    : "transparent",
-                  px: 1.5,
-                  "&:hover": {
-                    backgroundColor: "rgba(255,255,255,0.05)",
+            .map((l) => {
+              if (l.path === "/my-lobby") {
+                return (
+                  <PulseBadge
+                    key={l.path}
+                    variant="dot"
+                    invisible={!hasNewRequests}
+                  >
+                    <Button
+                      component={Link}
+                      to={l.path}
+                      size="small"
+                      sx={{
+                        fontFamily: '"Rajdhani", sans-serif',
+                        fontWeight: 700,
+                        letterSpacing: "0.08em",
+                        fontSize: "0.78rem",
+                        color: isActive(l.path)
+                          ? "#FF4655"
+                          : "rgba(255,255,255,0.5)",
+                        backgroundColor: isActive(l.path)
+                          ? "rgba(255,70,85,0.08)"
+                          : "transparent",
+                        px: 1.5,
+                        "&:hover": {
+                          backgroundColor: "rgba(255,255,255,0.05)",
+                          color: isActive(l.path)
+                            ? "#FF4655"
+                            : "rgba(255,255,255,0.8)",
+                        },
+                      }}
+                    >
+                      {l.label}
+                    </Button>
+                  </PulseBadge>
+                );
+              }
+              return (
+                <Button
+                  key={l.path}
+                  component={Link}
+                  to={l.path}
+                  size="small"
+                  sx={{
+                    fontFamily: '"Rajdhani", sans-serif',
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    fontSize: "0.78rem",
                     color: isActive(l.path)
                       ? "#FF4655"
-                      : "rgba(255,255,255,0.8)",
-                  },
-                }}
-              >
-                {l.label}
-              </Button>
-            ))}
+                      : "rgba(255,255,255,0.5)",
+                    backgroundColor: isActive(l.path)
+                      ? "rgba(255,70,85,0.08)"
+                      : "transparent",
+                    px: 1.5,
+                    "&:hover": {
+                      backgroundColor: "rgba(255,255,255,0.05)",
+                      color: isActive(l.path)
+                        ? "#FF4655"
+                        : "rgba(255,255,255,0.8)",
+                    },
+                  }}
+                >
+                  {l.label}
+                </Button>
+              );
+            })}
         </Stack>
 
         {/* Right: auth controls */}

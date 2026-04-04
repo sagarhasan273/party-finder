@@ -635,11 +635,19 @@ function ApplicantCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function MyLobbyPage() {
+  const navigate = useNavigate();
+
   const { isAuthenticated, user } = useCredentials();
-  const { myLobby, setMyLobby, myLobbyLoading } = useInventory();
+  const {
+    myLobby,
+    myLobbyLoading,
+    hasNewRequests,
+    setMyLobby,
+    setHasNewRequests,
+  } = useInventory();
+
   const [deleteLobby] = useDeleteLobbyMutation();
   const [lobbyStatus] = useLobbyStatusMutation();
-  const navigate = useNavigate();
 
   const handleToggle = async () => {
     try {
@@ -685,6 +693,12 @@ export function MyLobbyPage() {
       : myLobby?.status === "full"
         ? T.accent
         : "rgba(255,255,255,0.12)";
+
+  useEffect(() => {
+    if (hasNewRequests) {
+      setHasNewRequests(false);
+    }
+  }, [hasNewRequests, setHasNewRequests]);
 
   if (!isAuthenticated) {
     return (
