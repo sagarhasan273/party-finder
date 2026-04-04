@@ -29,7 +29,7 @@ const T = {
 
 const PERKS = [
   "Send and manage join requests",
-  "Get matched by rank & role",
+  "Get lobby by rank, role & server",
   "Receive party codes instantly",
 ];
 
