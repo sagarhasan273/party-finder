@@ -307,6 +307,7 @@ export const useSocketListeners = () => {
             },
           },
         );
+        playRingtone(universfield);
         setLobbyApplicantStatus({
           applicantId: data?.applicantId,
           status: "joining",
