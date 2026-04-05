@@ -257,6 +257,7 @@ export function ApplicantReplyDialog({
       const r = await updateJoining({
         lobbyId,
         applicantId: applicant?.user,
+        message,
       }).unwrap();
 
       if (r?.status) {
@@ -436,7 +437,7 @@ export function ApplicantReplyDialog({
                   textTransform: "uppercase",
                 }}
               >
-                Message to host
+                Toast message to host
               </Typography>
               <Typography
                 sx={{
@@ -552,7 +553,7 @@ export function ApplicantReplyDialog({
               {isSending
                 ? "Sending…"
                 : message
-                  ? "Send message"
+                  ? "Send toast message"
                   : "I'm joining"}
             </Button>
           </Stack>

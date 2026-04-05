@@ -10,7 +10,13 @@ export const inventoryApi = createApi({
   reducerPath: "inventoryApi",
   baseQuery: fetchBaseQuery({
     baseUrl: CONFIG.serverUrl,
-    prepareHeaders: (headers) => {
+    prepareHeaders: (headers, { endpoint }) => {
+      const publicEndpoints = ["getLobbies"];
+
+      if (publicEndpoints.includes(endpoint)) {
+        return headers;
+      }
+
       const accessToken = sessionStorage.getItem(CONFIG.googleAccessToken);
       if (accessToken) {
         headers.set("authorization", `Bearer ${accessToken}`);
@@ -132,6 +138,16 @@ export const inventoryApi = createApi({
         body: { lobbyId, applicantId },
       }),
     }),
+    removeJoinRequest: builder.mutation<
+      ResponseType,
+      { lobbyId: string; applicantId: string }
+    >({
+      query: ({ lobbyId, applicantId }) => ({
+        url: `inventory/lobby/remove-join-request`,
+        method: "POST",
+        body: { lobbyId, applicantId },
+      }),
+    }),
   }),
 });
 
@@ -148,4 +164,5 @@ export const {
   useRejectJoinRequestMutation,
   useCancelJoinRequestMutation,
   useApplicantJoiningMutation,
+  useRemoveJoinRequestMutation,
 } = inventoryApi;

@@ -32,8 +32,14 @@ export const GoogleSignIn = ({
 }) => {
   const navigate = useNavigate();
 
-  const { setUser, logout, region, setRegion, setRegionLoading } =
-    useCredentials();
+  const {
+    isAuthenticated,
+    setUser,
+    logout,
+    region,
+    setRegion,
+    setRegionLoading,
+  } = useCredentials();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -156,6 +162,12 @@ export const GoogleSignIn = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <Button

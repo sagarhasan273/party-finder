@@ -12,6 +12,7 @@ interface InventoryState {
   lobbies: LobbyType[];
   appliedLobbies: LobbyType[];
   myLobby: LobbyType | null;
+  hasNewRequests: boolean;
   myLobbyLoading: boolean;
   appliedLobbiesLoading: boolean;
   isLoading: boolean;
@@ -22,6 +23,7 @@ const initialState: InventoryState = {
   lobbies: [],
   appliedLobbies: [],
   myLobby: null,
+  hasNewRequests: false,
   myLobbyLoading: false,
   appliedLobbiesLoading: false,
   isLoading: false,
@@ -41,7 +43,10 @@ export const inventorySlice = createSlice({
 
     setMyLobbyStatus(state, action: PayloadAction<LobbyType["status"]>) {
       if (state.myLobby) state.myLobby.status = action.payload ?? "open";
-      console.log(action.payload);
+    },
+
+    setHasNewRequests(state, action: PayloadAction<boolean>) {
+      state.hasNewRequests = action.payload;
     },
 
     setLobbyApplicantStatus(
@@ -121,6 +126,11 @@ export const inventorySlice = createSlice({
       if (lobby) {
         lobby.status = status;
       }
+
+      const lobbyInLobbies = state.lobbies.find((l) => l.id === lobbyId);
+      if (lobbyInLobbies) {
+        lobbyInLobbies.status = status;
+      }
     },
 
     setLoading(state, action: PayloadAction<boolean>) {
@@ -138,6 +148,7 @@ export const inventorySlice = createSlice({
 const {
   setLobbies,
   setMyLobby,
+  setHasNewRequests,
   setAppliedLobbies,
   setMyLobbyStatus,
   setLobbyApplicantStatus,
@@ -167,12 +178,16 @@ export const useInventory = () => {
   const myLobbyLoading = useSelector(selectMyLobbyLoading);
   const appliedLobbies = useSelector(selectAppliedLobbies);
   const appliedLobbiesLoading = useSelector(selectAppliedLobbiesLoading);
+  const hasNewRequests = useSelector(
+    (state: RootState) => state.inventory.hasNewRequests,
+  );
 
   const memoCredentials = useMemo(
     () => ({
       lobbies,
       isLoading,
       myLobby,
+      hasNewRequests,
       myLobbyLoading,
       appliedLobbies,
       appliedLobbiesLoading,
@@ -181,6 +196,9 @@ export const useInventory = () => {
 
       setMyLobby: (payload: InventoryState["myLobby"]) =>
         dispatch(setMyLobby(payload)),
+
+      setHasNewRequests: (payload: InventoryState["hasNewRequests"]) =>
+        dispatch(setHasNewRequests(payload)),
 
       setMyLobbyStatus: (payload: LobbyType["status"]) =>
         dispatch(setMyLobbyStatus(payload)),
@@ -216,6 +234,7 @@ export const useInventory = () => {
     [
       lobbies,
       myLobby,
+      hasNewRequests,
       appliedLobbies,
       isLoading,
       myLobbyLoading,

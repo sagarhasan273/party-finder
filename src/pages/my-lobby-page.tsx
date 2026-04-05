@@ -254,11 +254,13 @@ function ApplicantCard({
   lobbyId,
   status,
   acceptedAt,
+  message,
 }: {
   user: Partial<UserType>;
   status: ApplicantStatus;
   lobbyId: string;
   acceptedAt?: Date | string;
+  message?: string;
 }) {
   const { setLobbyApplicantStatus } = useInventory();
   const [acceptJoinRequest, { isLoading: isAccepting }] =
@@ -633,11 +635,19 @@ function ApplicantCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function MyLobbyPage() {
+  const navigate = useNavigate();
+
   const { isAuthenticated, user } = useCredentials();
-  const { myLobby, setMyLobby, myLobbyLoading } = useInventory();
+  const {
+    myLobby,
+    myLobbyLoading,
+    hasNewRequests,
+    setMyLobby,
+    setHasNewRequests,
+  } = useInventory();
+
   const [deleteLobby] = useDeleteLobbyMutation();
   const [lobbyStatus] = useLobbyStatusMutation();
-  const navigate = useNavigate();
 
   const handleToggle = async () => {
     try {
@@ -683,6 +693,12 @@ export function MyLobbyPage() {
       : myLobby?.status === "full"
         ? T.accent
         : "rgba(255,255,255,0.12)";
+
+  useEffect(() => {
+    if (hasNewRequests) {
+      setHasNewRequests(false);
+    }
+  }, [hasNewRequests, setHasNewRequests]);
 
   if (!isAuthenticated) {
     return (
@@ -1166,7 +1182,8 @@ export function MyLobbyPage() {
                             fontWeight: 600,
                           }}
                         >
-                          ({spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left)
+                          ({spotsLeft} player{spotsLeft !== 1 ? "s" : ""}{" "}
+                          needed)
                         </Typography>
                       )}
                     </Stack>
@@ -1240,6 +1257,7 @@ export function MyLobbyPage() {
                         lobbyId={myLobby.id}
                         status={applicant.status}
                         acceptedAt={applicant.updatedAt}
+                        message={applicant?.message}
                       />
                     ))}
                   </Stack>

@@ -14,6 +14,8 @@ import {
 
 import { useInventory, useCredentials } from "src/core/slices";
 
+import { HomeStatusBadge } from "src/components/home-status-badge";
+
 import { LobbyCard } from "../components/lobby-card";
 import { FilterBar } from "../components/filter-bar";
 
@@ -31,7 +33,7 @@ export function HomePage() {
           position: "relative",
           overflow: "hidden",
           background: "linear-gradient(180deg, #0a0c15 0%, #0d0f1a 100%)",
-          pt: { xs: 2, md: 3 },
+          pt: { xs: 2 },
           pb: { xs: 1, md: 2 },
         }}
       >
@@ -85,46 +87,7 @@ export function HomePage() {
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
             {/* Live badge */}
-            <Box
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 0.75,
-                px: 1.5,
-                py: 0.5,
-                borderRadius: "4px",
-                background: "rgba(255,70,85,0.1)",
-                border: "1px solid rgba(255,70,85,0.3)",
-                mb: 1,
-              }}
-            >
-              <Box
-                sx={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: "#ff1c2f",
-                  animation: "pulse 2s infinite",
-                  "@keyframes pulse": {
-                    "0%,100%": { opacity: 1 },
-                    "50%": { opacity: 0.3 },
-                  },
-                }}
-              />
-              <Typography
-                sx={{
-                  fontFamily: '"Rajdhani", sans-serif',
-                  fontWeight: 700,
-                  fontSize: "0.72rem",
-                  letterSpacing: "0.1em",
-                  color: "#ff1c2f",
-                }}
-              >
-                {openCount > 0
-                  ? `${openCount} OPEN LOBBIES`
-                  : "VALORANT LOBBY FINDER"}
-              </Typography>
-            </Box>
+            <HomeStatusBadge openCount={openCount} />
 
             {/* Heading */}
             <Typography
@@ -386,13 +349,24 @@ export function HomePage() {
             </Box>
           </motion.div>
         ) : (
-          <Grid container spacing={2}>
-            {lobbies.map((lobby, i) => (
-              <Grid size={{ xs: 12, md: 6, xl: 4 }} key={lobby.id}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                md: "repeat(2, 1fr)",
+                xl: "repeat(3, 1fr)",
+              },
+              gap: 2,
+              alignItems: "stretch",
+            }}
+          >
+            {lobbies.map((lobby) => (
+              <Box key={lobby.id}>
                 <LobbyCard lobby={lobby} />
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         )}
       </Container>
     </Box>

@@ -1,9 +1,16 @@
 import type { LobbyType } from "src/types/type-inventory";
 
 import { toast } from "sonner";
+import { useLocation } from "react-router";
 import { useState, useEffect, useCallback } from "react";
 
+import { playRingtone } from "src/utils/play-sound";
+
+import luster from "src/assets/sounds/luster.mp3";
+import long_pop from "src/assets/sounds/long-pop.wav";
+import bewitched from "src/assets/sounds/bewitched.mp3";
 import { useSocket } from "src/contexts/socket-context";
+import universfield from "src/assets/sounds/universfield.mp3";
 import { useInventory, useCredentials } from "src/core/slices";
 
 // toaster style -------------
@@ -80,6 +87,8 @@ const getIcon = (type: string) => {
 };
 
 export const useSocketListeners = () => {
+  const location = useLocation();
+
   const { user } = useCredentials();
 
   const { on, off, isConnected } = useSocket();
@@ -88,6 +97,7 @@ export const useSocketListeners = () => {
     lobbies,
     myLobby,
     appliedLobbies,
+    setHasNewRequests,
     setMyLobbyStatus,
     setLobbies,
     setMyLobby,
@@ -107,6 +117,26 @@ export const useSocketListeners = () => {
     [lobbies, setLobbies],
   );
 
+  const handleReceiveLobbyStatus = useCallback(
+    (data: any) => {
+      if (data?.sentTo === "host") setMyLobbyStatus(data?.status);
+      if (data?.sentTo === "applicant")
+        setAppliedLobbiesStatus({
+          lobbyId: data?.lobbyId,
+          status: data?.status,
+        });
+
+      if (data?.sentTo === "broadcast") {
+        setMyLobbyStatus(data?.status);
+        setAppliedLobbiesStatus({
+          lobbyId: data?.lobbyId,
+          status: data?.status,
+        });
+      }
+    },
+    [setMyLobbyStatus, setAppliedLobbiesStatus],
+  );
+
   const handleReceiveDeletedLobby = useCallback(
     (data: any) => {
       if (data?.lobbyId) {
@@ -120,7 +150,7 @@ export const useSocketListeners = () => {
           setAppliedLobbies(templobby);
           setIsAccepted(false);
           setAcceptedLobby(null);
-
+          playRingtone(universfield);
           toast.info(
             data?.hostId === user.id
               ? "Lobby Deleted!"
@@ -154,6 +184,7 @@ export const useSocketListeners = () => {
       });
 
       if (data?.applicant && myLobby) {
+        playRingtone(luster);
         setMyLobby({
           ...myLobby,
           applicants: [
@@ -161,6 +192,8 @@ export const useSocketListeners = () => {
             data.applicant,
           ],
         });
+
+        setHasNewRequests(location?.pathname !== "/my-lobby");
       }
 
       if (data?.applicantId === user?.id) {
@@ -180,12 +213,21 @@ export const useSocketListeners = () => {
         );
       }
     },
-    [user?.id, myLobby, lobbies, setMyLobby, setLobbies],
+    [
+      user?.id,
+      myLobby,
+      lobbies,
+      location,
+      setMyLobby,
+      setLobbies,
+      setHasNewRequests,
+    ],
   );
 
   const handleReceiveRequestAccept = useCallback(
     (data: any) => {
       if (data?.lobbyId && data?.lobby) {
+        playRingtone(luster);
         setIsAccepted(true);
         setAcceptedLobby(data.lobby);
         setLobbyApplicantStatus({
@@ -210,6 +252,7 @@ export const useSocketListeners = () => {
           ...toastStyles.reject,
         },
       });
+      playRingtone(bewitched);
       if (data?.lobbyId) {
         setLobbyApplicantStatus({
           lobbyId: data?.lobbyId,
@@ -233,6 +276,7 @@ export const useSocketListeners = () => {
             ...toastStyles.suspended,
           },
         });
+        playRingtone(long_pop);
         setIsAccepted(false);
         setAcceptedLobby(null);
         setLobbyApplicantStatus({
@@ -252,14 +296,18 @@ export const useSocketListeners = () => {
   const handleReceiveJoiningApplicant = useCallback(
     (data: any) => {
       if (data?.applicantId) {
-        toast.error(data?.message || "Applicant has responded to join.", {
-          duration: 4000,
-          position: "top-right",
-          style: {
-            ...toastStyles.base,
-            ...toastStyles.accept,
+        toast.success(
+          data?.applicantMessage || "Applicant has responded to join.",
+          {
+            duration: data?.applicantMessage ? 8000 : 4000,
+            position: "top-right",
+            style: {
+              ...toastStyles.base,
+              ...toastStyles.accept,
+            },
           },
-        });
+        );
+        playRingtone(universfield);
         setLobbyApplicantStatus({
           applicantId: data?.applicantId,
           status: "joining",
@@ -270,18 +318,6 @@ export const useSocketListeners = () => {
     [setLobbyApplicantStatus],
   );
 
-  const handleReceiveLobbyStatus = useCallback(
-    (data: any) => {
-      if (data?.sentTo === "host") setMyLobbyStatus(data?.status);
-      if (data?.sentTo === "applicant")
-        setAppliedLobbiesStatus({
-          lobbyId: data?.lobbyId,
-          status: data?.status,
-        });
-    },
-    [setMyLobbyStatus, setAppliedLobbiesStatus],
-  );
-
   useEffect(() => {
     if (!isConnected) {
       return undefined;
@@ -289,24 +325,24 @@ export const useSocketListeners = () => {
 
     // Register listeners
     on("receive-new-lobby", handleReceiveNewLobby);
+    on("receive-lobby-status", handleReceiveLobbyStatus);
     on("receive-deleted-lobby", handleReceiveDeletedLobby);
     on("receive-join-request", handleReceiveJoinRequest);
     on("receive-request-accept", handleReceiveRequestAccept);
     on("receive-request-reject", handleReceiveRequestReject);
     on("receive-suspended-applicant", handleReceiveSuspendedApplicant);
     on("receive-joining-applicant", handleReceiveJoiningApplicant);
-    on("receive-lobby-status", handleReceiveLobbyStatus);
 
     // Cleanup function
     return () => {
       off("receive-new-lobby", handleReceiveNewLobby);
+      off("receive-lobby-status", handleReceiveLobbyStatus);
       off("receive-deleted-lobby", handleReceiveDeletedLobby);
       off("receive-join-request", handleReceiveJoinRequest);
       off("receive-request-accept", handleReceiveRequestAccept);
       off("receive-request-reject", handleReceiveRequestReject);
       off("receive-suspended-applicant", handleReceiveSuspendedApplicant);
       off("receive-joining-applicant", handleReceiveJoiningApplicant);
-      off("receive-lobby-status", handleReceiveLobbyStatus);
     };
   }, [
     isConnected,

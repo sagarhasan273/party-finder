@@ -28,7 +28,9 @@ export const useLoadInventory = () => {
   const appliedLobbiesRef = useRef(false);
 
   const { data: lobby, isLoading: mylobbyLoading } = useGetMyLobbyQuery(null, {
-    skip: location?.pathname !== "/my-lobby" || !isAuthenticated,
+    skip:
+      !["/my-lobby", "/create"].includes(location?.pathname) ||
+      !isAuthenticated,
   });
 
   const { data: appliedLobbies, isLoading: appliedLobbiesLoading } =
@@ -37,7 +39,7 @@ export const useLoadInventory = () => {
     });
 
   const { data: lobbies, isLoading } = useGetLobbiesQuery(null, {
-    skip: location?.pathname !== "/" || !isAuthenticated,
+    skip: location?.pathname !== "/",
   });
 
   const getLobbies = useCallback(() => {
