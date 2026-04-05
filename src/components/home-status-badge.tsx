@@ -4,7 +4,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { Box } from "@mui/system";
 import { Typography } from "@mui/material";
 
-import { useSocket } from "src/contexts/socket-context";
+import { useSocket } from "../contexts/socket-context";
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
 

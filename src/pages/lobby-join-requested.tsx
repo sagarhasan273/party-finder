@@ -11,12 +11,11 @@ import {
   Typography,
 } from "@mui/material";
 
-import { GoogleSignIn } from "src/core/auth";
-import { fErrorCatchToast } from "src/lib/error-catch";
-import { useInventory, useCredentials } from "src/core/slices";
-import { useCancelJoinRequestMutation } from "src/core/apis/api-inventory";
-
-import { LobbyRequestCard } from "src/components/lobby-request-card";
+import { GoogleSignIn } from "../core/auth";
+import { fErrorCatchToast } from "../lib/error-catch";
+import { useInventory, useCredentials } from "../core/slices";
+import { LobbyRequestCard } from "../components/lobby-request-card";
+import { useCancelJoinRequestMutation } from "../core/apis/api-inventory";
 
 // ─── Shared sx tokens ────────────────────────────────────────────────────────
 const rajdhani = '"Rajdhani", sans-serif';

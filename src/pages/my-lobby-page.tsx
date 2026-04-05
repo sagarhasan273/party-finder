@@ -1,6 +1,3 @@
-import type { UserType } from "src/types/type-user";
-import type { ApplicantStatus } from "src/types/type-inventory";
-
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -34,25 +31,26 @@ import {
   CircularProgress,
 } from "@mui/material";
 
-import { GoogleSignIn } from "src/core/auth";
-import { ValorantRegionalServers } from "src/@mock";
-import { fErrorCatchToast } from "src/lib/error-catch";
-import { useInventory, useCredentials } from "src/core/slices";
+import { GoogleSignIn } from "../core/auth";
+import { ValorantRegionalServers } from "../@mock";
+import { RankChip } from "../components/rank-chip";
+import { MetaChip } from "../components/meta-chip";
+import { RoleChip } from "../components/role-chip";
+import { fErrorCatchToast } from "../lib/error-catch";
+import { AvatarUser } from "../components/avatar-user";
+import { StatusChip } from "../components/status-chip";
+import { WINDOW_MS } from "../components/count-down-timer";
+import { useInventory, useCredentials } from "../core/slices";
+import { formatTimeAgo, getTrackerProfileUrl } from "../lib/valorant";
 import {
   useDeleteLobbyMutation,
   useLobbyStatusMutation,
   useAcceptJoinRequestMutation,
   useRejectJoinRequestMutation,
-} from "src/core/apis/api-inventory";
+} from "../core/apis/api-inventory";
 
-import { RankChip } from "src/components/rank-chip";
-import { MetaChip } from "src/components/meta-chip";
-import { AvatarUser } from "src/components/avatar-user";
-import { WINDOW_MS } from "src/components/count-down-timer";
-
-import { RoleChip } from "../components/role-chip";
-import { StatusChip } from "../components/status-chip";
-import { formatTimeAgo, getTrackerProfileUrl } from "../lib/valorant";
+import type { UserType } from "../types/type-user";
+import type { ApplicantStatus } from "../types/type-inventory";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 

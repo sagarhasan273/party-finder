@@ -1,11 +1,11 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { UserType, LocationWithRegion } from "src/types/type-user";
 
 import { useMemo } from "react";
 import { createSlice } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
 
 import type { RootState } from "../types";
+import type { UserType, LocationWithRegion } from "../../types/type-user";
 
 // Define auth state interface
 interface UserState {

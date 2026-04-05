@@ -1,4 +1,4 @@
-import type { LocationWithRegion } from "src/types/type-user";
+import type { LocationWithRegion } from "../types/type-user";
 
 export type Region = {
   code: "ap" | "na" | "latam" | "br" | "eu" | "kr";

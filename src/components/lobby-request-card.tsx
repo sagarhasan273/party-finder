@@ -1,5 +1,3 @@
-import type { LobbyType } from "src/types/type-inventory";
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -31,22 +29,22 @@ import {
   IconButton,
 } from "@mui/material";
 
-import { useInventory } from "src/core/slices";
-import { ValorantRegionalServers } from "src/@mock";
-import { fErrorCatchToast } from "src/lib/error-catch";
+import { MetaChip } from "./meta-chip";
+import { RoleChip } from "./role-chip";
+import { RankChip } from "./rank-chip";
+import { AvatarUser } from "./avatar-user";
+import { useInventory } from "../core/slices";
+import { formatTimeAgo } from "../lib/valorant";
+import { ValorantRegionalServers } from "../@mock";
+import { CountdownTimer } from "./count-down-timer";
+import { fErrorCatchToast } from "../lib/error-catch";
+import { RemoveJoinRequestTimer } from "./remove-join-request-timer";
 import {
   useApplicantJoiningMutation,
   useRemoveJoinRequestMutation,
-} from "src/core/apis";
+} from "../core/apis";
 
-import { RoleChip } from "src/components/role-chip";
-import { RankChip } from "src/components/rank-chip";
-
-import { MetaChip } from "./meta-chip";
-import { AvatarUser } from "./avatar-user";
-import { formatTimeAgo } from "../lib/valorant";
-import { CountdownTimer } from "./count-down-timer";
-import { RemoveJoinRequestTimer } from "./remove-join-request-timer";
+import type { LobbyType } from "../types/type-inventory";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 

@@ -1,5 +1,3 @@
-import type { LobbyType } from "src/types/type-inventory";
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Users, Clock, Globe, Server, ExternalLink } from "lucide-react";
@@ -16,17 +14,18 @@ import {
   IconButton,
 } from "@mui/material";
 
-import { ValorantRegionalServers } from "src/@mock";
-import { fErrorCatchToast } from "src/lib/error-catch";
-import { useInventory, useCredentials } from "src/core/slices";
-import { useRequestToJoinLobbyMutation } from "src/core/apis/api-inventory";
-
 import { RoleChip } from "./role-chip";
 import { RankChip } from "./rank-chip";
 import { MetaChip } from "./meta-chip";
 import { StatusChip } from "./status-chip";
 import { AvatarUser } from "./avatar-user";
 import { formatTimeAgo } from "../lib/valorant";
+import { ValorantRegionalServers } from "../@mock";
+import { fErrorCatchToast } from "../lib/error-catch";
+import { useInventory, useCredentials } from "../core/slices";
+import { useRequestToJoinLobbyMutation } from "../core/apis/api-inventory";
+
+import type { LobbyType } from "../types/type-inventory";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 

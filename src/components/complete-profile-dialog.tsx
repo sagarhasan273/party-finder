@@ -1,5 +1,3 @@
-import type { UserType } from "src/types/type-user";
-
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import React, { useState, useEffect } from "react";
@@ -22,10 +20,12 @@ import {
   InputAdornment,
 } from "@mui/material";
 
-import { useCredentials } from "src/core/slices";
-import { useUpdateUserMutation } from "src/core/apis";
-import { ValorantAgents } from "src/pages/profile-page";
-import { ValorantRegionalServers } from "src/@mock/constant";
+import { useCredentials } from "../core/slices";
+import { useUpdateUserMutation } from "../core/apis";
+import { ValorantAgents } from "../pages/profile-page";
+import { ValorantRegionalServers } from "../@mock/constant";
+
+import type { UserType } from "../types/type-user";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

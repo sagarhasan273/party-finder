@@ -1,12 +1,12 @@
 import { useLocation } from "react-router";
 import { useRef, useEffect, useCallback } from "react";
 
-import { useInventory, useCredentials } from "src/core/slices";
+import { useInventory, useCredentials } from "../core/slices";
 import {
   useGetMyLobbyQuery,
   useGetLobbiesQuery,
   useGetJoinRequestedLobbiesQuery,
-} from "src/core/apis";
+} from "../core/apis";
 
 export const useLoadInventory = () => {
   const location = useLocation();

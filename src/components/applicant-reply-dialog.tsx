@@ -15,10 +15,9 @@ import {
   DialogContent,
 } from "@mui/material";
 
-import { useInventory } from "src/core/slices";
-import { fErrorCatchToast } from "src/lib/error-catch";
-import { useApplicantJoiningMutation } from "src/core/apis";
-
+import { useInventory } from "../core/slices";
+import { fErrorCatchToast } from "../lib/error-catch";
+import { useApplicantJoiningMutation } from "../core/apis";
 import { WINDOW_MS, CountdownTimer } from "./count-down-timer";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────

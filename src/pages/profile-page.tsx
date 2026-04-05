@@ -1,5 +1,3 @@
-import type { UserType } from "src/types/type-user";
-
 import { toast } from "sonner";
 import React, { useState, useEffect } from "react";
 import { Save, Globe, ArrowUpRight } from "lucide-react";
@@ -22,11 +20,13 @@ import {
   InputAdornment,
 } from "@mui/material";
 
-import { useCredentials } from "src/core/slices";
-import { useUpdateUserMutation } from "src/core/apis";
-import { getTrackerProfileUrl } from "src/lib/valorant";
-import { ValorantRegionalServers } from "src/@mock/constant";
-import valorant_icon from "src/assets/images/valorant_icon.png";
+import { useCredentials } from "../core/slices";
+import { useUpdateUserMutation } from "../core/apis";
+import { getTrackerProfileUrl } from "../lib/valorant";
+import { ValorantRegionalServers } from "../@mock/constant";
+import valorant_icon from "../assets/images/valorant_icon.png";
+
+import type { UserType } from "../types/type-user";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

@@ -2,14 +2,12 @@ import { Route, Routes, Navigate, BrowserRouter } from "react-router-dom";
 
 import { Box } from "@mui/material";
 
-import { MyLobbyPage } from "src/pages/my-lobby-page";
-import { LobbyJoinRequested } from "src/pages/lobby-join-requested";
-
-import { Navbar } from "src/components/navbar";
-
+import { Navbar } from "../components/navbar";
 import { HomePage } from "../pages/home-page";
 import { ProfilePage } from "../pages/profile-page";
+import { MyLobbyPage } from "../pages/my-lobby-page";
 import { CreateLobbyPage } from "../pages/create-lobby-page";
+import { LobbyJoinRequested } from "../pages/lobby-join-requested";
 
 export function AppRouter() {
   return (

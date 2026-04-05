@@ -1,17 +1,16 @@
-import type { LobbyType } from "src/types/type-inventory";
-
 import { toast } from "sonner";
 import { useLocation } from "react-router";
 import { useState, useEffect, useCallback } from "react";
 
-import { playRingtone } from "src/utils/play-sound";
+import luster from "../assets/sounds/luster.mp3";
+import { playRingtone } from "../utils/play-sound";
+import long_pop from "../assets/sounds/long-pop.wav";
+import bewitched from "../assets/sounds/bewitched.mp3";
+import { useSocket } from "../contexts/socket-context";
+import universfield from "../assets/sounds/universfield.mp3";
+import { useInventory, useCredentials } from "../core/slices";
 
-import luster from "src/assets/sounds/luster.mp3";
-import long_pop from "src/assets/sounds/long-pop.wav";
-import bewitched from "src/assets/sounds/bewitched.mp3";
-import { useSocket } from "src/contexts/socket-context";
-import universfield from "src/assets/sounds/universfield.mp3";
-import { useInventory, useCredentials } from "src/core/slices";
+import type { LobbyType } from "../types/type-inventory";
 
 // toaster style -------------
 
