@@ -43,6 +43,11 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ["prop-types", "@emotion/react", "@emotion/cache"],
+    include: [
+      "prop-types",
+      "@emotion/react",
+      "@emotion/cache",
+      "@emotion/styled",
+    ],
   },
 });
