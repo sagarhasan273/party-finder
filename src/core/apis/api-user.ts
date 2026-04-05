@@ -1,10 +1,10 @@
 // services/userApi.ts
-import type { UserType } from "src/types/type-user";
-import type { ResponseType } from "src/types/type-common";
-
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-import { CONFIG } from "src/config-global";
+import { CONFIG } from "../../config-global";
+
+import type { UserType } from "../../types/type-user";
+import type { ResponseType } from "../../types/type-common";
 
 export const userApi = createApi({
   reducerPath: "userApi",

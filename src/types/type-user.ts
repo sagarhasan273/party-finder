@@ -1,7 +1,8 @@
 import type { z as zod } from "zod";
-import type { Region } from "src/@mock";
 import type { Dispatch, SetStateAction } from "react";
-import type { UserSchema } from "src/schemas/user-schema";
+
+import type { Region } from "../@mock";
+import type { UserSchema } from "../schemas/user-schema";
 
 // ----------------------------------------------------------------------
 export type UserType = zod.infer<typeof UserSchema>;

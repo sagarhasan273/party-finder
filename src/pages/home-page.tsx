@@ -12,12 +12,10 @@ import {
   Typography,
 } from "@mui/material";
 
-import { useInventory, useCredentials } from "src/core/slices";
-
-import { HomeStatusBadge } from "src/components/home-status-badge";
-
 import { LobbyCard } from "../components/lobby-card";
 import { FilterBar } from "../components/filter-bar";
+import { useInventory, useCredentials } from "../core/slices";
+import { HomeStatusBadge } from "../components/home-status-badge";
 
 export function HomePage() {
   const { isAuthenticated, isLoading } = useCredentials();

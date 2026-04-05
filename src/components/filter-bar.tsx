@@ -13,10 +13,9 @@ import {
   FormControl,
 } from "@mui/material";
 
-import { useCredentials } from "src/core/slices";
-import { ValorantRegionalServers } from "src/@mock/constant";
-
 import { RANKS } from "../lib/valorant";
+import { useCredentials } from "../core/slices";
+import { ValorantRegionalServers } from "../@mock/constant";
 
 const RegionDetection = () => {
   const [dots, setDots] = useState(".");

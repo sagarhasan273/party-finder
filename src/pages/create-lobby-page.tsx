@@ -1,5 +1,3 @@
-import type { RankTier } from "src/types/type-inventory";
-
 import { toast } from "sonner";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -33,12 +31,13 @@ import {
   CircularProgress,
 } from "@mui/material";
 
-import { GoogleSignIn } from "src/core/auth";
-import { ValorantRegionalServers } from "src/@mock";
-import { useInventory, useCredentials } from "src/core/slices";
-import { useCreateLobbyMutation } from "src/core/apis/api-inventory";
-
+import { GoogleSignIn } from "../core/auth";
+import { ValorantRegionalServers } from "../@mock";
 import { RANKS, ROLES, ROLE_COLORS } from "../lib/valorant";
+import { useInventory, useCredentials } from "../core/slices";
+import { useCreateLobbyMutation } from "../core/apis/api-inventory";
+
+import type { RankTier } from "../types/type-inventory";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 

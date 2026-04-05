@@ -7,11 +7,10 @@ import { useRef, useState, useEffect, useCallback } from "react";
 
 import { Button, SvgIcon, Typography, CircularProgress } from "@mui/material";
 
-import AXIOS, { endpoints } from "src/utils/axios";
-
-import { CONFIG } from "src/config-global";
-import { getUserRegionSmart } from "src/@mock";
-import { useCredentials } from "src/core/slices";
+import { useCredentials } from "../slices";
+import { CONFIG } from "../../config-global";
+import { getUserRegionSmart } from "../../@mock";
+import AXIOS, { endpoints } from "../../utils/axios";
 
 // utils/is-mobile.ts
 export const isMobileBrowser = (): boolean =>

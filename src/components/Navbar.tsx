@@ -25,17 +25,15 @@ import {
   ListItemIcon,
 } from "@mui/material";
 
-import { useLoadInventory } from "src/hooks/use-load-inventory";
-import { useSocketListeners } from "src/hooks/use-socket-listeners";
-
-import { CONFIG } from "src/config-global";
-import { GoogleSignIn } from "src/core/auth";
-import { useSocket } from "src/contexts/socket-context";
-import { useInventory, useCredentials } from "src/core/slices";
-
+import { CONFIG } from "../config-global";
+import { GoogleSignIn } from "../core/auth";
+import { useSocket } from "../contexts/socket-context";
+import { useInventory, useCredentials } from "../core/slices";
+import { useLoadInventory } from "../hooks/use-load-inventory";
 import { ApplicantReplyDialog } from "./applicant-reply-dialog";
 import { SignInRequiredDialog } from "./sign-in-required-dialog";
 import { CompleteProfileDialog } from "./complete-profile-dialog";
+import { useSocketListeners } from "../hooks/use-socket-listeners";
 
 const navLinks = [
   { label: "BROWSE", path: "/" },

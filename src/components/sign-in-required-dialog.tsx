@@ -10,8 +10,8 @@ import {
   DialogContent,
 } from "@mui/material";
 
-import { GoogleSignIn } from "src/core/auth";
-import { useCredentials } from "src/core/slices";
+import { GoogleSignIn } from "../core/auth";
+import { useCredentials } from "../core/slices";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 

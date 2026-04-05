@@ -1,6 +1,6 @@
-import type { LobbyStatus } from "src/types/type-inventory";
-
 import { Box, Chip } from "@mui/material";
+
+import type { LobbyStatus } from "../types/type-inventory";
 
 const STATUS_CONFIG: Record<
   LobbyStatus,

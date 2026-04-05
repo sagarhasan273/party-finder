@@ -1,11 +1,11 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { LobbyType, ApplicantStatus } from "src/types/type-inventory";
 
 import { useMemo } from "react";
 import { createSlice } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
 
 import type { RootState } from "../types";
+import type { LobbyType, ApplicantStatus } from "../../types/type-inventory";
 
 // Define auth state interface
 interface InventoryState {

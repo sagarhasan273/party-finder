@@ -11,7 +11,7 @@ import React, {
   createContext,
 } from "react";
 
-import { useCredentials } from "src/core/slices";
+import { useCredentials } from "../core/slices";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
