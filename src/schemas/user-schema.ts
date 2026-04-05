@@ -81,6 +81,7 @@ export const UserSchema = zod
     region: zod.string().optional(),
 
     agents: zod.array(AgentEnum).optional(),
+    connectedUsers: zod.number().optional(),
   })
   .strict();
 
