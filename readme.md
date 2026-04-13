@@ -53,7 +53,7 @@ When 4 friends are in a party, they **cannot** start a game — this app instant
 
 ## 🏗️ System Architecture (High-Level)
 
-```mermaid
+```
 graph TD
     subgraph "Frontend (React + MUI + TypeScript)"
         A[Landing + Auth] --> B[Profile (Rank Sync + Region)]
