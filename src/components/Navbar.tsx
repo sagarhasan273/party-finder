@@ -1,10 +1,13 @@
+// src/components/Navbar.tsx
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Plus,
   User,
+  Users,
   LogOut,
   Layout,
+  UserPlus,
   Crosshair,
   ChevronDown,
 } from "lucide-react";
@@ -37,6 +40,8 @@ import { useSocketListeners } from "../hooks/use-socket-listeners";
 
 const navLinks = [
   { label: "BROWSE", path: "/" },
+  { label: "SOCIAL", path: "/social", authOnly: true },
+  { label: "FRIENDS", path: "/friends", authOnly: true },
   { label: "APPLIED LOBBIES", path: "/applied-lobbies", authOnly: true },
   { label: "MY LOBBY", path: "/my-lobby", authOnly: true, badgeOnly: true },
 ];
@@ -98,6 +103,9 @@ export function Navbar() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const isActive = (path: string) => location.pathname === path;
+
+  // Calculate unread chat count (from your chat context/store)
+  const unreadChatCount = 2; // Replace with actual unread count from your chat state
 
   return (
     <AppBar position="sticky" elevation={0}>
@@ -271,7 +279,7 @@ export function Navbar() {
                     "& .MuiBadge-badge": {
                       backgroundColor: isConnected ? "#22c55e" : "#6b7280",
                       color: isConnected ? "#22c55e" : "#6b7280",
-                      boxShadow: "0 0 0 2px #0f172a", // border ring
+                      boxShadow: "0 0 0 2px #0f172a",
                       width: 8,
                       height: 8,
                       borderRadius: "50%",
@@ -344,6 +352,44 @@ export function Navbar() {
                     <User size={15} />
                   </ListItemIcon>
                   My Profile
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    navigate("/social");
+                    setAnchorEl(null);
+                  }}
+                  sx={{ fontSize: "0.85rem" }}
+                >
+                  <ListItemIcon sx={{ minWidth: 0 }}>
+                    <Users size={15} />
+                  </ListItemIcon>
+                  Social Hub
+                  {unreadChatCount > 0 && (
+                    <Badge
+                      badgeContent={unreadChatCount}
+                      color="error"
+                      sx={{
+                        ml: "auto",
+                        "& .MuiBadge-badge": {
+                          fontSize: 10,
+                          height: 16,
+                          minWidth: 16,
+                        },
+                      }}
+                    />
+                  )}
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    navigate("/friends");
+                    setAnchorEl(null);
+                  }}
+                  sx={{ fontSize: "0.85rem" }}
+                >
+                  <ListItemIcon sx={{ minWidth: 0 }}>
+                    <UserPlus size={15} />
+                  </ListItemIcon>
+                  Friends
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
