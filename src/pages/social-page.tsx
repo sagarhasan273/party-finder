@@ -112,6 +112,8 @@ export function SocialPage() {
     return offlinePlayers;
   };
 
+  console.log(selectedPlayer);
+
   return (
     <Box sx={{ p: 3, maxWidth: 1200, mx: "auto" }}>
       <Typography
