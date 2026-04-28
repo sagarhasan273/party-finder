@@ -22,7 +22,7 @@ import {
   ListItemAvatar,
 } from "@mui/material";
 
-import { mockConversations } from "src/@mock";
+import { mockConversations } from "../@mock";
 
 interface ChatDrawerProps {
   open: boolean;
