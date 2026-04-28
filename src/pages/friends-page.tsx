@@ -24,7 +24,7 @@ import {
   PersonRemove as PersonRemoveIcon,
 } from "@mui/icons-material";
 
-import { mockPlayers } from "../data/socialData";
+import { mockPlayers } from "../@mock";
 
 export function FriendsPage() {
   const [tabValue, setTabValue] = useState(0);
