@@ -1,18 +1,4 @@
 // src/types/social.ts
-export interface SocialPlayer {
-  id: string;
-  name: string;
-  tag: string;
-  avatar: string;
-  status: "online" | "in-game" | "offline";
-  lastActive: string;
-  rank: string;
-  role: string;
-  agents: string[];
-  isFriend: boolean;
-  requestSent?: boolean;
-}
-
 export interface FriendRequest {
   id: string;
   from: SocialPlayer;
@@ -37,4 +23,37 @@ export interface ChatConversation {
   lastMessage: string;
   lastMessageTime: string;
   unreadCount: number;
+}
+export interface SocialPlayer {
+  id: string;
+  name: string;
+  tag: string;
+  avatar: string;
+  status: "online" | "in-game" | "offline";
+  lastActive: string;
+  rank: string;
+  role: string;
+  agents: string[];
+  isFriend: boolean;
+  requestSent: boolean;
+  bio?: string;
+  playstyle?: string;
+  winRate?: number;
+  karma?: number;
+}
+
+export interface ChatRequest {
+  id: string;
+  from: {
+    id: string;
+    name: string;
+    tag: string;
+    avatar: string;
+    status: string;
+    rank: string;
+    role: string;
+  };
+  message: string;
+  sentAt: string;
+  status: "pending" | "accepted" | "rejected";
 }
