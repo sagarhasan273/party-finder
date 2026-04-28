@@ -31,9 +31,9 @@ import {
   PersonAdd as PersonAddIcon,
 } from "@mui/icons-material";
 
-import { mockPlayers, mockFriendRequests } from "../data/socialData";
+import { mockPlayers, mockFriendRequests } from "../@mock";
 
-import type { SocialPlayer } from "../types/social";
+import type { SocialPlayer } from "../types/type-social";
 
 const getStatusColor = (status: string) => {
   switch (status) {
