@@ -2,6 +2,7 @@ import type { AxiosRequestConfig } from "axios";
 
 import axios from "axios";
 
+import { getCookie } from "./cookie";
 import { CONFIG } from "../config-global";
 
 // ----------------------------------------------------------------------
@@ -13,7 +14,7 @@ const AXIOS = axios.create({
 // ✅ REQUEST INTERCEPTOR (add token here)
 AXIOS.interceptors.request.use(
   (config) => {
-    const accessToken = sessionStorage.getItem(CONFIG.googleAccessToken);
+    const accessToken = getCookie(CONFIG.googleAccessToken);
 
     if (accessToken && config.headers) {
       config.headers.set("Authorization", `Bearer ${accessToken}`);

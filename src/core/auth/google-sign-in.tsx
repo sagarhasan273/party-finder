@@ -11,6 +11,7 @@ import { useCredentials } from "../slices";
 import { CONFIG } from "../../config-global";
 import { getUserRegionSmart } from "../../@mock";
 import AXIOS, { endpoints } from "../../utils/axios";
+import { getCookie, setCookie } from "../../utils/cookie";
 
 // utils/is-mobile.ts
 export const isMobileBrowser = (): boolean =>
@@ -61,7 +62,7 @@ export const GoogleSignIn = ({
         );
 
         if (response.data?.status && response.data?.token) {
-          sessionStorage.setItem(CONFIG.googleAccessToken, response.data.token);
+          setCookie(CONFIG.googleAccessToken, response.data.token);
           setUser(response.data.user || {});
           onSuccess?.();
         } else {
@@ -91,7 +92,7 @@ export const GoogleSignIn = ({
         if (data.status) {
           if (!data.token)
             throw new Error("Access token not found in response");
-          sessionStorage.setItem(CONFIG.googleAccessToken, data.token);
+          setCookie(CONFIG.googleAccessToken, data.token);
           setUser(data.user);
           onSuccess?.();
         }
@@ -118,7 +119,8 @@ export const GoogleSignIn = ({
 
   const checkUserSession = useCallback(async () => {
     try {
-      const accessToken = sessionStorage.getItem(CONFIG.googleAccessToken);
+      const accessToken = getCookie(CONFIG.googleAccessToken);
+      console.log(accessToken);
       if (accessToken) {
         const res = await AXIOS.get(endpoints.auth.me);
 
