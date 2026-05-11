@@ -1,16 +1,6 @@
-// src/pages/SocialPage.tsx
+import { motion } from "framer-motion";
 import { useMemo, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  X,
-  Users,
-  Clock,
-  Globe,
-  Check,
-  Search,
-  UserPlus,
-  MessageCircle,
-} from "lucide-react";
+import { Users, Clock, Search, UserPlus, MessageCircle } from "lucide-react";
 
 import {
   Box,
@@ -26,53 +16,48 @@ import {
   InputAdornment,
 } from "@mui/material";
 
-import { RankChip } from "../components/rank-chip";
-import { RoleChip } from "../components/role-chip";
-import { MetaChip } from "../components/meta-chip";
-import { AvatarUser } from "../components/avatar-user";
+import { useChatRequests } from "../hooks/use-chat-requests";
+import { ChatRequestSystem } from "../components/ChatRequestSystem";
 
 import type { ChatRequest, SocialPlayer } from "../types/type-social";
 
-// ─── Design tokens (EXACT match to LobbyCard) ─────────────────────────────────
+// ─── Tokens ───────────────────────────────────────────────────────────────────
 
 const T = {
-  bg: "rgba(22, 23, 34, 0.97)",
+  bg: "rgba(13,15,26,0.97)",
   border: "rgba(255,255,255,0.07)",
   borderHover: "rgba(255,255,255,0.13)",
   accent: "#FF4655",
-  accentDim: "rgba(255,70,85,0.12)",
-  accentBorder: "rgba(255,70,85,0.25)",
   text: "#edf0f4",
   textMuted: "rgba(74,84,112,1)",
   textSub: "#8892aa",
   green: "#22c55e",
   blue: "#4fc3f7",
-  purple: "#a78bfa",
   RAJ: '"Rajdhani", sans-serif',
 } as const;
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
+// ─── Mock data ────────────────────────────────────────────────────────────────
 
-const mockChatRequests: ChatRequest[] = [
+const INITIAL_REQUESTS: ChatRequest[] = [
   {
-    id: "1",
+    id: "req-1",
     from: {
-      id: "2",
+      id: "p2",
       name: "VelocityX",
       tag: "#NA1",
       avatar: "VX",
       status: "online",
       rank: "Platinum III",
-      role: "Duelist",
+      role: "Controller",
     },
     message: "Hey! I saw you're looking for teammates. Want to play?",
     sentAt: new Date(Date.now() - 5 * 60000).toISOString(),
     status: "pending",
   },
   {
-    id: "2",
+    id: "req-2",
     from: {
-      id: "3",
+      id: "p3",
       name: "StarlightK",
       tag: "#KR1",
       avatar: "SK",
@@ -86,9 +71,9 @@ const mockChatRequests: ChatRequest[] = [
   },
 ];
 
-const mockSocialPlayers: SocialPlayer[] = [
+const INITIAL_PLAYERS: SocialPlayer[] = [
   {
-    id: "1",
+    id: "p1",
     name: "NightSabre",
     tag: "#EU1",
     avatar: "NS",
@@ -99,13 +84,13 @@ const mockSocialPlayers: SocialPlayer[] = [
     agents: ["Jett", "Reyna"],
     isFriend: false,
     requestSent: false,
-    bio: "Looking for competitive players to climb with. Good comms, chill vibes.",
+    bio: "Looking for competitive players to climb with.",
     playstyle: "Competitive",
     winRate: 58,
     karma: 4.8,
   },
   {
-    id: "2",
+    id: "p2",
     name: "VelocityX",
     tag: "#NA1",
     avatar: "VX",
@@ -116,13 +101,13 @@ const mockSocialPlayers: SocialPlayer[] = [
     agents: ["Omen", "Brimstone"],
     isFriend: true,
     requestSent: false,
-    bio: "Controller main looking for consistent duo",
+    bio: "Controller main looking for consistent duo.",
     playstyle: "Competitive",
     winRate: 62,
     karma: 4.5,
   },
   {
-    id: "3",
+    id: "p3",
     name: "StarlightK",
     tag: "#KR1",
     avatar: "SK",
@@ -133,13 +118,13 @@ const mockSocialPlayers: SocialPlayer[] = [
     agents: ["Sova", "Fade"],
     isFriend: false,
     requestSent: false,
-    bio: "Diamond player looking for serious team",
+    bio: "Diamond player looking for serious team.",
     playstyle: "Competitive",
     winRate: 55,
     karma: 4.2,
   },
   {
-    id: "4",
+    id: "p4",
     name: "TacticalMid",
     tag: "#NA4",
     avatar: "TM",
@@ -150,40 +135,83 @@ const mockSocialPlayers: SocialPlayer[] = [
     agents: ["Jett", "Reyna", "Phoenix"],
     isFriend: false,
     requestSent: true,
-    bio: "Just looking to have fun and rank up",
+    bio: "Just looking to have fun and rank up.",
     playstyle: "Balanced",
     winRate: 51,
     karma: 3.9,
   },
+  {
+    id: "p5",
+    name: "IceBreaker",
+    tag: "#EU9",
+    avatar: "IB",
+    status: "online",
+    lastActive: "Just now",
+    rank: "Ascendant II",
+    role: "Sentinel",
+    agents: ["Killjoy", "Cypher"],
+    isFriend: false,
+    requestSent: false,
+    bio: "Sentinel one-trick, high info plays.",
+    playstyle: "Strategic",
+    winRate: 60,
+    karma: 4.7,
+  },
+  {
+    id: "p6",
+    name: "FluxCore",
+    tag: "#AP2",
+    avatar: "FC",
+    status: "online",
+    lastActive: "1 min ago",
+    rank: "Immortal I",
+    role: "Duelist",
+    agents: ["Neon", "Jett"],
+    isFriend: false,
+    requestSent: false,
+    bio: "Immortal pushing for Radiant this act.",
+    playstyle: "Aggressive",
+    winRate: 65,
+    karma: 4.3,
+  },
 ];
 
-// ─── Social Player Card Component (EXACT match to LobbyCard styling) ──────────
+// ─── Status color helper ──────────────────────────────────────────────────────
 
-interface SocialPlayerCardProps {
+const statusColor = (status: SocialPlayer["status"]) => {
+  if (status === "online") return "#22c55e";
+  if (status === "in-game") return "#4fc3f7";
+  return "rgba(90,100,130,1)";
+};
+
+// ─── Player card ──────────────────────────────────────────────────────────────
+
+interface PlayerCardProps {
   player: SocialPlayer;
   index: number;
-  onSendChatRequest: (playerId: string) => void;
-  onMessage?: (playerId: string) => void;
+  onSendRequest: (id: string) => void;
+  onMessage: (id: string) => void;
 }
 
-function SocialPlayerCard({
+function PlayerCard({
   player,
   index,
-  onSendChatRequest,
+  onSendRequest,
   onMessage,
-}: SocialPlayerCardProps) {
-  const statusColor = T.blue;
+}: PlayerCardProps) {
+  const sc = statusColor(player.status);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.06, duration: 0.35, ease: "easeOut" }}
-      style={{ height: "100%", width: "100%" }}
+      transition={{ delay: index * 0.06, duration: 0.32, ease: "easeOut" }}
+      style={{ height: "100%" }}
     >
       <Paper
         elevation={0}
         sx={{
+          height: "100%",
           backgroundColor: T.bg,
           border: `1px solid ${T.border}`,
           borderRadius: "4px",
@@ -193,12 +221,10 @@ function SocialPlayerCard({
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
-          alignItems: "stretch",
-          flex: 1,
           transition: "border-color 0.2s, box-shadow 0.2s",
           "&:hover": {
             borderColor: T.borderHover,
-            boxShadow: `0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px ${statusColor}22`,
+            boxShadow: `0 8px 36px rgba(0,0,0,0.5), 0 0 0 1px ${sc}22`,
           },
           "&::before": {
             content: '""',
@@ -207,7 +233,7 @@ function SocialPlayerCard({
             left: 0,
             width: 3,
             height: "100%",
-            background: statusColor,
+            background: sc,
             zIndex: 2,
           },
           "&::after": {
@@ -217,12 +243,12 @@ function SocialPlayerCard({
             left: 3,
             right: 0,
             height: "2px",
-            background: `linear-gradient(90deg, ${statusColor}88, transparent 55%)`,
+            background: `linear-gradient(90deg, ${sc}88, transparent 55%)`,
             zIndex: 2,
           },
-          height: "100%",
         }}
       >
+        {/* Corner ornament */}
         <Box
           aria-hidden
           sx={{
@@ -233,14 +259,14 @@ function SocialPlayerCard({
             height: 0,
             borderStyle: "solid",
             borderWidth: "0 14px 14px 0",
-            borderColor: `transparent ${statusColor}44 transparent transparent`,
+            borderColor: `transparent ${sc}44 transparent transparent`,
             zIndex: 3,
           }}
         />
 
         <Box
           sx={{
-            p: "16px 18px 14px 24px",
+            p: "16px 18px 14px 22px",
             position: "relative",
             zIndex: 1,
             flex: 1,
@@ -249,95 +275,162 @@ function SocialPlayerCard({
             gap: 1.25,
           }}
         >
-          {/* Player header */}
-          <Stack direction="row" flexWrap="wrap" gap={1}>
+          {/* Header: avatar + name */}
+          <Stack direction="row" gap={1.25} alignItems="flex-start">
             <Badge
               overlap="circular"
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               variant="dot"
               sx={{
+                flexShrink: 0,
                 "& .MuiBadge-badge": {
-                  bgcolor: T.green,
+                  bgcolor: sc,
                   width: 10,
                   height: 10,
                   borderRadius: "50%",
-                  border: "2px solid #161722",
+                  border: "2px solid rgba(13,15,26,1)",
                 },
               }}
             >
-              <AvatarUser
-                avatarUrl={player.avatar}
-                name={player.name}
-                sx={{ width: 48, height: 48 }}
-              />
+              <Avatar
+                sx={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: "3px",
+                  background: `${sc}22`,
+                  border: `1px solid ${sc}44`,
+                  fontFamily: T.RAJ,
+                  fontWeight: 700,
+                  fontSize: "0.82rem",
+                  color: sc,
+                }}
+              >
+                {player.avatar}
+              </Avatar>
             </Badge>
-            <Stack>
+
+            <Box flex={1} minWidth={0}>
               <Typography
                 sx={{
                   fontFamily: T.RAJ,
                   fontWeight: 700,
                   fontSize: "0.9rem",
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
                   color: T.text,
-                  letterSpacing: "0.03em",
+                  lineHeight: 1.2,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {player.name}
-                <Typography
+                <Box
                   component="span"
-                  sx={{ color: T.textMuted, fontSize: "0.7rem", ml: 0.5 }}
+                  sx={{
+                    opacity: 0.35,
+                    fontWeight: 400,
+                    textTransform: "none",
+                    fontSize: "0.72rem",
+                    ml: 0.5,
+                  }}
                 >
                   {player.tag}
-                </Typography>
+                </Box>
               </Typography>
-              <Stack direction="row" flexWrap="wrap" gap={0.6}>
-                <MetaChip
-                  icon={<Globe size={10} />}
-                  label={player.rank.split(" ")[0]}
-                />
-                <Stack direction="row" alignItems="center" gap={0.3}>
-                  <Clock size={10} color={T.textMuted} />
-                  <Typography
-                    sx={{
-                      color: T.textMuted,
-                      fontSize: "0.65rem",
-                      fontFamily: T.RAJ,
-                    }}
-                  >
-                    {player.lastActive}
-                  </Typography>
-                </Stack>
+              <Stack direction="row" alignItems="center" gap={0.5} mt={0.25}>
+                <Clock size={9} color={T.textMuted} />
+                <Typography
+                  sx={{
+                    fontFamily: T.RAJ,
+                    fontWeight: 600,
+                    fontSize: "0.6rem",
+                    letterSpacing: "0.05em",
+                    color: T.textMuted,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {player.lastActive}
+                </Typography>
               </Stack>
-            </Stack>
+            </Box>
           </Stack>
 
-          {/* Rank and role */}
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            gap={1}
-          >
-            <RankChip rank={player.rank} />
-            <RoleChip role={player.role} />
+          {/* Rank + Role */}
+          <Stack direction="row" alignItems="center" gap={0.75} flexWrap="wrap">
+            <Chip
+              label={player.rank.toUpperCase()}
+              size="small"
+              sx={{
+                background: "rgba(255,255,255,0.05)",
+                color: T.textSub,
+                border: `1px solid ${T.border}`,
+                borderRadius: "2px",
+                fontFamily: T.RAJ,
+                fontWeight: 700,
+                fontSize: "0.6rem",
+                letterSpacing: "0.06em",
+                height: 20,
+              }}
+            />
+            <Chip
+              label={player.role.toUpperCase()}
+              size="small"
+              sx={{
+                background: "rgba(255,255,255,0.05)",
+                color: T.textSub,
+                border: `1px solid ${T.border}`,
+                borderRadius: "2px",
+                fontFamily: T.RAJ,
+                fontWeight: 700,
+                fontSize: "0.6rem",
+                letterSpacing: "0.06em",
+                height: 20,
+              }}
+            />
           </Stack>
 
           {/* Agents */}
-          {player.agents && player.agents.length > 0 && (
-            <Stack direction="row" flexWrap="wrap" gap={0.6}>
+          {player.agents.length > 0 && (
+            <Stack direction="row" flexWrap="wrap" gap={0.5}>
               {player.agents.map((agent) => (
                 <Chip
                   key={agent}
                   label={agent}
                   size="small"
                   sx={{
-                    background: "rgba(255,255,255,0.04)",
-                    color: T.textSub,
-                    fontSize: "0.65rem",
-                    height: 20,
+                    background: "rgba(255,255,255,0.03)",
+                    color: T.textMuted,
+                    border: `1px solid rgba(255,255,255,0.05)`,
+                    borderRadius: "2px",
+                    fontFamily: T.RAJ,
+                    fontWeight: 600,
+                    fontSize: "0.58rem",
+                    height: 18,
                   }}
                 />
               ))}
             </Stack>
+          )}
+
+          {/* Bio */}
+          {player.bio && (
+            <Typography
+              sx={{
+                fontFamily: T.RAJ,
+                fontWeight: 500,
+                fontSize: "0.72rem",
+                color: T.textMuted,
+                letterSpacing: "0.02em",
+                lineHeight: 1.4,
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {player.bio}
+            </Typography>
           )}
 
           <Divider
@@ -345,33 +438,24 @@ function SocialPlayerCard({
           />
 
           {/* Actions */}
-          <Stack
-            direction="row"
-            justifyContent="flex-end"
-            alignItems="center"
-            gap={1}
-          >
+          <Stack direction="row" justifyContent="flex-end">
             {player.isFriend ? (
               <Button
-                onClick={() => onMessage?.(player.id)}
                 size="small"
-                startIcon={<MessageCircle size={14} />}
+                onClick={() => onMessage(player.id)}
+                startIcon={<MessageCircle size={13} />}
                 sx={{
-                  px: 1.5,
-                  py: 0.5,
-                  borderRadius: "2px",
                   fontFamily: T.RAJ,
                   fontWeight: 700,
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.06em",
+                  fontSize: "0.68rem",
+                  letterSpacing: "0.07em",
                   textTransform: "uppercase",
-                  background: "rgba(74,222,128,0.1)",
+                  height: 28,
+                  borderRadius: "2px",
+                  background: "rgba(34,197,94,0.1)",
                   color: T.green,
-                  border: `1px solid rgba(74,222,128,0.25)`,
-                  "&:hover": {
-                    background: "rgba(74,222,128,0.15)",
-                    borderColor: "rgba(74,222,128,0.45)",
-                  },
+                  border: "1px solid rgba(34,197,94,0.25)",
+                  "&:hover": { background: "rgba(34,197,94,0.18)" },
                 }}
               >
                 Message
@@ -381,37 +465,36 @@ function SocialPlayerCard({
                 size="small"
                 disabled
                 sx={{
-                  px: 1.5,
-                  py: 0.5,
-                  borderRadius: "2px",
                   fontFamily: T.RAJ,
                   fontWeight: 700,
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.06em",
+                  fontSize: "0.68rem",
+                  letterSpacing: "0.07em",
                   textTransform: "uppercase",
-                  background: "rgba(255,255,255,0.06)",
+                  height: 28,
+                  borderRadius: "2px",
+                  background: "rgba(255,255,255,0.04)",
                   color: T.textSub,
                   border: `1px solid ${T.border}`,
                 }}
               >
-                Request Sent
+                Sent
               </Button>
             ) : (
               <Button
-                onClick={() => onSendChatRequest(player.id)}
                 size="small"
-                startIcon={<UserPlus size={14} />}
+                onClick={() => onSendRequest(player.id)}
+                startIcon={<UserPlus size={13} />}
                 sx={{
-                  px: 1.5,
-                  py: 0.5,
-                  borderRadius: "2px",
                   fontFamily: T.RAJ,
                   fontWeight: 700,
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.06em",
+                  fontSize: "0.68rem",
+                  letterSpacing: "0.07em",
                   textTransform: "uppercase",
+                  height: 28,
+                  borderRadius: "2px",
                   background: T.accent,
                   color: "#fff",
+                  border: "none",
                   "&:hover": {
                     background: "#e03040",
                     boxShadow: "0 0 14px rgba(255,70,85,0.35)",
@@ -428,360 +511,244 @@ function SocialPlayerCard({
   );
 }
 
-// ─── Chat Request Card Component (for incoming requests) ─────────────────────
-
-interface ChatRequestCardProps {
-  request: ChatRequest;
-  onAccept: (requestId: string) => void;
-  onReject: (requestId: string) => void;
-}
-
-function ChatRequestCard({
-  request,
-  onAccept,
-  onReject,
-}: ChatRequestCardProps) {
-  const statusColor = request.from.status === "online" ? T.green : T.textMuted;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.25 }}
-    >
-      <Paper
-        elevation={0}
-        sx={{
-          backgroundColor: T.bg,
-          border: `1px solid ${T.accentBorder}`,
-          borderRadius: "4px",
-          clipPath:
-            "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)",
-          position: "relative",
-          overflow: "hidden",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: 3,
-            height: "100%",
-            background: T.accent,
-            zIndex: 2,
-          },
-        }}
-      >
-        <Box sx={{ p: "14px 18px 14px 24px", position: "relative", zIndex: 1 }}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            flexWrap="wrap"
-            gap={1.5}
-          >
-            <Stack direction="row" alignItems="center" gap={1.5}>
-              <Badge
-                overlap="circular"
-                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                variant="dot"
-                sx={{
-                  "& .MuiBadge-badge": {
-                    bgcolor: statusColor,
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                  },
-                }}
-              >
-                <Avatar
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    bgcolor: T.accent,
-                    fontFamily: T.RAJ,
-                    fontWeight: 700,
-                  }}
-                >
-                  {request.from.avatar}
-                </Avatar>
-              </Badge>
-              <Box>
-                <Typography
-                  sx={{
-                    fontFamily: T.RAJ,
-                    fontWeight: 700,
-                    fontSize: "0.85rem",
-                  }}
-                >
-                  {request.from.name}
-                  {request.from.tag}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: T.textMuted,
-                    fontSize: "0.7rem",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                  }}
-                >
-                  <MessageCircle size={10} />
-                  Wants to chat
-                </Typography>
-              </Box>
-            </Stack>
-
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Button
-                size="small"
-                onClick={() => onAccept(request.id)}
-                startIcon={<Check size={14} />}
-                sx={{
-                  px: 1.5,
-                  py: 0.5,
-                  borderRadius: "2px",
-                  fontFamily: T.RAJ,
-                  fontWeight: 700,
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.06em",
-                  background: T.green,
-                  color: "#fff",
-                  "&:hover": { background: "#16a34a" },
-                }}
-              >
-                Accept
-              </Button>
-              <Button
-                size="small"
-                onClick={() => onReject(request.id)}
-                startIcon={<X size={14} />}
-                sx={{
-                  px: 1.5,
-                  py: 0.5,
-                  borderRadius: "2px",
-                  fontFamily: T.RAJ,
-                  fontWeight: 700,
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.06em",
-                  background: "rgba(255,255,255,0.06)",
-                  color: T.textSub,
-                  border: `1px solid ${T.border}`,
-                  "&:hover": { borderColor: T.accent, color: T.accent },
-                }}
-              >
-                Decline
-              </Button>
-            </Box>
-          </Stack>
-
-          {request.message && (
-            <Typography
-              sx={{
-                mt: 1.5,
-                pt: 1,
-                borderTop: `1px solid ${T.border}`,
-                fontFamily: T.RAJ,
-                fontSize: "0.75rem",
-                color: T.textSub,
-                fontStyle: "italic",
-              }}
-            >
-              {request.message}
-            </Typography>
-          )}
-        </Box>
-      </Paper>
-    </motion.div>
-  );
-}
-
-// ─── Main SocialPage Component ────────────────────────────────────────────────
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function SocialPage() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [search, setSearch] = useState("");
+  const [players, setPlayers] = useState(INITIAL_PLAYERS);
 
-  const [players, setPlayers] = useState(mockSocialPlayers);
-  const [chatRequests, setChatRequests] = useState(mockChatRequests);
+  const chatState = useChatRequests(INITIAL_REQUESTS);
 
-  const handleSendChatRequest = useCallback((playerId: string) => {
+  const handleSendRequest = useCallback((playerId: string) => {
     setPlayers((prev) =>
       prev.map((p) => (p.id === playerId ? { ...p, requestSent: true } : p)),
     );
   }, []);
 
-  const handleAcceptChatRequest = useCallback(
-    (requestId: string) => {
-      const accepted = chatRequests.find((r) => r.id === requestId);
-      setChatRequests((prev) => prev.filter((r) => r.id !== requestId));
-      if (accepted) {
-        setPlayers((prev) =>
-          prev.map((p) =>
-            p.id === accepted.from.id
-              ? { ...p, isFriend: true, requestSent: false }
-              : p,
-          ),
-        );
-      }
-    },
-    [chatRequests],
-  );
-
-  const handleRejectChatRequest = useCallback((requestId: string) => {
-    setChatRequests((prev) => prev.filter((r) => r.id !== requestId));
+  const handleMessage = useCallback((playerId: string) => {
+    console.log("open chat with", playerId);
   }, []);
 
-  const filteredPlayers = useMemo(
+  // Simulate an incoming request (for demo — wire to socket in prod)
+  const handleSimulate = useCallback(() => {
+    chatState.pushRequest({
+      id: `req-${Date.now()}`,
+      from: {
+        id: `sim-${Date.now()}`,
+        name: "FluxCore",
+        tag: "#AP2",
+        avatar: "FC",
+        status: "online",
+        rank: "Immortal I",
+        role: "Duelist",
+      },
+      message: "Immortal pushing Radiant — want to duo queue?",
+      sentAt: new Date().toISOString(),
+      status: "pending",
+    });
+  }, [chatState]);
+
+  const filtered = useMemo(
     () =>
       players.filter(
         (p) =>
-          p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.tag.toLowerCase().includes(searchTerm.toLowerCase()),
+          p.name.toLowerCase().includes(search.toLowerCase()) ||
+          p.tag.toLowerCase().includes(search.toLowerCase()),
       ),
-    [players, searchTerm],
+    [players, search],
   );
 
   const onlineCount = players.filter((p) => p.status === "online").length;
   const inGameCount = players.filter((p) => p.status === "in-game").length;
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1200, mx: "auto" }}>
-      <Typography
-        sx={{
-          fontFamily: T.RAJ,
-          fontWeight: 800,
-          fontSize: "1.75rem",
-          color: T.text,
-          mb: 1,
-        }}
+    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1200, mx: "auto" }}>
+      {/* Page header */}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="flex-start"
+        mb={3}
+        flexWrap="wrap"
+        gap={1.5}
       >
-        Social Hub
-      </Typography>
-      <Typography sx={{ color: T.textMuted, fontSize: "0.85rem", mb: 3 }}>
-        Discover players, send chat requests, and connect with the community
-      </Typography>
+        <Box>
+          <Typography
+            sx={{
+              fontFamily: T.RAJ,
+              fontWeight: 900,
+              fontSize: "1.8rem",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              color: T.text,
+              lineHeight: 1,
+            }}
+          >
+            Social Hub
+          </Typography>
+          <Typography
+            sx={{
+              color: T.textMuted,
+              fontSize: "0.8rem",
+              mt: 0.5,
+              fontFamily: T.RAJ,
+              fontWeight: 500,
+            }}
+          >
+            Discover active players and send chat requests
+          </Typography>
+        </Box>
 
-      {/* Chat Requests Section */}
-      <AnimatePresence>
-        {chatRequests.length > 0 && (
-          <Box sx={{ mb: 3 }}>
+        {/* Simulate button — remove in prod */}
+        <Button
+          size="small"
+          onClick={handleSimulate}
+          sx={{
+            fontFamily: T.RAJ,
+            fontWeight: 700,
+            fontSize: "0.65rem",
+            letterSpacing: "0.07em",
+            textTransform: "uppercase",
+            height: 28,
+            borderRadius: "2px",
+            border: "1px dashed rgba(255,255,255,0.15)",
+            color: T.textMuted,
+            "&:hover": { borderColor: T.accent, color: T.accent },
+          }}
+        >
+          + Simulate Request
+        </Button>
+      </Stack>
+
+      {/* Stats row */}
+      <Stack direction="row" gap={1} mb={2.5} flexWrap="wrap">
+        {[
+          { label: "Online", value: onlineCount, color: T.green },
+          { label: "In Game", value: inGameCount, color: "#4fc3f7" },
+          { label: "Total", value: players.length, color: T.textSub },
+        ].map(({ label, value, color }) => (
+          <Box
+            key={label}
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.6,
+              px: 1.1,
+              py: "4px",
+              borderRadius: "2px",
+              background: `${color}12`,
+              border: `1px solid ${color}28`,
+            }}
+          >
+            <Box
+              sx={{
+                width: 5,
+                height: 5,
+                borderRadius: "50%",
+                background: color,
+                flexShrink: 0,
+              }}
+            />
             <Typography
               sx={{
                 fontFamily: T.RAJ,
                 fontWeight: 700,
-                fontSize: "0.85rem",
-                color: T.accent,
-                mb: 1.5,
+                fontSize: "0.62rem",
                 letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color,
               }}
             >
-              INCOMING CHAT REQUESTS ({chatRequests.length})
+              {label}: {value}
             </Typography>
-            <Stack spacing={1.5}>
-              {chatRequests.map((request) => (
-                <ChatRequestCard
-                  key={request.id}
-                  request={request}
-                  onAccept={handleAcceptChatRequest}
-                  onReject={handleRejectChatRequest}
-                />
-              ))}
-            </Stack>
           </Box>
-        )}
-      </AnimatePresence>
+        ))}
+      </Stack>
 
       {/* Search */}
       <TextField
-        placeholder="Search players by name or tag..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Search by name or tag..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
         fullWidth
-        sx={{ mb: 2.5 }}
+        size="small"
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <Search size={16} color={T.textMuted} />
+              <Search size={14} color={T.textMuted} />
             </InputAdornment>
           ),
           sx: {
-            bgcolor: "#1c1d22",
+            background: "rgba(255,255,255,0.03)",
             border: `1px solid ${T.border}`,
             borderRadius: "4px",
             fontFamily: T.RAJ,
+            fontWeight: 600,
+            fontSize: "0.82rem",
+            "& fieldset": { border: "none" },
             "&:hover": { borderColor: T.borderHover },
+            "&.Mui-focused": { borderColor: "rgba(255,70,85,0.4)" },
           },
         }}
+        sx={{ mb: 2.5 }}
       />
 
-      {/* Stats Row */}
-      <Stack direction="row" spacing={2} sx={{ mb: 2.5 }}>
-        <Chip
-          label={`Online: ${onlineCount}`}
-          sx={{
-            bgcolor: "rgba(74,222,128,0.1)",
-            color: T.green,
-            border: `1px solid rgba(74,222,128,0.25)`,
-          }}
-        />
-        <Chip
-          label={`In Game: ${inGameCount}`}
-          sx={{
-            bgcolor: "rgba(79,195,247,0.1)",
-            color: T.blue,
-            border: `1px solid rgba(79,195,247,0.25)`,
-          }}
-        />
-        <Chip
-          label={`Total: ${players.length}`}
-          sx={{ bgcolor: "rgba(255,255,255,0.04)", color: T.textSub }}
-        />
-      </Stack>
-
-      {/* Players Grid */}
+      {/* Player grid */}
       <Box
         sx={{
           display: "grid",
           gap: 2,
-          gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" },
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "1fr 1fr",
+            md: "1fr 1fr 1fr",
+          },
         }}
       >
-        {filteredPlayers.map((player, idx) => (
-          <SocialPlayerCard
+        {filtered.map((player, idx) => (
+          <PlayerCard
             key={player.id}
             player={player}
             index={idx}
-            onSendChatRequest={handleSendChatRequest}
+            onSendRequest={handleSendRequest}
+            onMessage={handleMessage}
           />
         ))}
       </Box>
 
-      {/* Empty State */}
-      {filteredPlayers.length === 0 && (
-        <Paper
+      {/* Empty state */}
+      {filtered.length === 0 && (
+        <Box
           sx={{
+            py: 10,
             textAlign: "center",
-            py: 6,
-            bgcolor: T.bg,
-            border: `1px solid ${T.border}`,
+            border: "1px dashed rgba(255,255,255,0.07)",
+            borderRadius: "4px",
+            mt: 2,
           }}
         >
           <Users
-            size={48}
-            color={T.textMuted}
-            style={{ marginBottom: 16, opacity: 0.4 }}
+            size={36}
+            color="rgba(74,84,112,0.4)"
+            style={{ marginBottom: 12 }}
           />
           <Typography
-            sx={{ fontFamily: T.RAJ, fontWeight: 700, color: T.textSub }}
+            sx={{
+              fontFamily: T.RAJ,
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: T.textMuted,
+            }}
           >
             No players found
           </Typography>
-          <Typography sx={{ color: T.textMuted, fontSize: "0.8rem", mt: 0.5 }}>
-            Try adjusting your search
-          </Typography>
-        </Paper>
+        </Box>
       )}
+
+      {/* ── Chat request system (tray + button + drawer) ── */}
+      <ChatRequestSystem {...chatState} />
     </Box>
   );
 }

@@ -57,3 +57,6 @@ export interface ChatRequest {
   sentAt: string;
   status: "pending" | "accepted" | "rejected";
 }
+
+export type PlayerStatus = "online" | "in-game" | "offline";
+export type RequestStatus = "pending" | "accepted" | "rejected";
