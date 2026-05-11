@@ -10,10 +10,20 @@ export interface FriendRequest {
 export interface ChatMessage {
   id: string;
   senderId: string;
-  receiverId: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
+  text: string;
+  sentAt: string;
+}
+
+export interface ActiveChat {
+  id: string; // unique chat id
+  playerId: string;
+  playerName: string;
+  playerTag: string;
+  playerAvatar: string;
+  playerStatus: PlayerStatus;
+  messages: ChatMessage[];
+  minimized: boolean;
+  unreadCount: number;
 }
 
 export interface ChatConversation {
@@ -29,7 +39,7 @@ export interface SocialPlayer {
   name: string;
   tag: string;
   avatar: string;
-  status: "online" | "in-game" | "offline";
+  status: PlayerStatus;
   lastActive: string;
   rank: string;
   role: string;
@@ -49,13 +59,13 @@ export interface ChatRequest {
     name: string;
     tag: string;
     avatar: string;
-    status: string;
+    status: PlayerStatus;
     rank: string;
     role: string;
   };
   message: string;
   sentAt: string;
-  status: "pending" | "accepted" | "rejected";
+  status: RequestStatus;
 }
 
 export type PlayerStatus = "online" | "in-game" | "offline";

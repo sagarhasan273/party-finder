@@ -236,12 +236,12 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
                     borderRadius: 2,
                   }}
                 >
-                  <Typography variant="body2">{msg.message}</Typography>
+                  <Typography variant="body2">{msg.text}</Typography>
                   <Typography
                     variant="caption"
                     sx={{ opacity: 0.7, display: "block", mt: 0.5 }}
                   >
-                    {new Date(msg.timestamp).toLocaleTimeString([], {
+                    {new Date(msg.sentAt).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}

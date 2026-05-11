@@ -1,6 +1,14 @@
 import { motion } from "framer-motion";
 import { useMemo, useState, useCallback } from "react";
-import { Users, Clock, Search, UserPlus, MessageCircle } from "lucide-react";
+import {
+  Star,
+  Users,
+  Clock,
+  Search,
+  Swords,
+  UserPlus,
+  MessageCircle,
+} from "lucide-react";
 
 import {
   Box,
@@ -13,7 +21,9 @@ import {
   Divider,
   TextField,
   Typography,
+  ToggleButton,
   InputAdornment,
+  ToggleButtonGroup,
 } from "@mui/material";
 
 import { useChatRequests } from "../hooks/use-chat-requests";
@@ -25,12 +35,13 @@ import type { ChatRequest, SocialPlayer } from "../types/type-social";
 
 const T = {
   bg: "rgba(13,15,26,0.97)",
+  bgCard: "rgba(14,16,28,0.97)",
   border: "rgba(255,255,255,0.07)",
   borderHover: "rgba(255,255,255,0.13)",
   accent: "#FF4655",
-  text: "#edf0f4",
+  text: "#dde3f0",
   textMuted: "rgba(74,84,112,1)",
-  textSub: "#8892aa",
+  textSub: "#7f8fad",
   green: "#22c55e",
   blue: "#4fc3f7",
   RAJ: '"Rajdhani", sans-serif',
@@ -174,23 +185,63 @@ const INITIAL_PLAYERS: SocialPlayer[] = [
     winRate: 65,
     karma: 4.3,
   },
+  {
+    id: "p7",
+    name: "ZenithQ",
+    tag: "#EU3",
+    avatar: "ZQ",
+    status: "online",
+    lastActive: "Just now",
+    rank: "Diamond III",
+    role: "Controller",
+    agents: ["Astra", "Viper"],
+    isFriend: false,
+    requestSent: false,
+    bio: "Smokes main, love the strategic side of the game.",
+    playstyle: "Strategic",
+    winRate: 57,
+    karma: 4.6,
+  },
+  {
+    id: "p8",
+    name: "RiftSlayer",
+    tag: "#BR2",
+    avatar: "RS",
+    status: "in-game",
+    lastActive: "In match",
+    rank: "Platinum I",
+    role: "Initiator",
+    agents: ["Breach", "Gekko"],
+    isFriend: false,
+    requestSent: false,
+    bio: "Always flashing for the team, never tilting.",
+    playstyle: "Supportive",
+    winRate: 53,
+    karma: 4.1,
+  },
 ];
 
-// ─── Status color helper ──────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const statusColor = (status: SocialPlayer["status"]) => {
-  if (status === "online") return "#22c55e";
-  if (status === "in-game") return "#4fc3f7";
-  return "rgba(90,100,130,1)";
+  if (status === "online") return T.green;
+  if (status === "in-game") return T.blue;
+  return "rgba(58,64,96,1)";
 };
 
-// ─── Player card ──────────────────────────────────────────────────────────────
+const statusLabel = (status: SocialPlayer["status"]) => {
+  if (status === "online") return "Online";
+  if (status === "in-game") return "In Game";
+  return "Offline";
+};
+
+// ─── PlayerCard ───────────────────────────────────────────────────────────────
 
 interface PlayerCardProps {
   player: SocialPlayer;
   index: number;
   onSendRequest: (id: string) => void;
-  onMessage: (id: string) => void;
+  onMessage: (player: SocialPlayer) => void;
 }
 
 function PlayerCard({
@@ -205,14 +256,14 @@ function PlayerCard({
     <motion.div
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.06, duration: 0.32, ease: "easeOut" }}
+      transition={{ delay: index * 0.055, duration: 0.3, ease: "easeOut" }}
       style={{ height: "100%" }}
     >
       <Paper
         elevation={0}
         sx={{
           height: "100%",
-          backgroundColor: T.bg,
+          backgroundColor: T.bgCard,
           border: `1px solid ${T.border}`,
           borderRadius: "4px",
           clipPath:
@@ -243,7 +294,7 @@ function PlayerCard({
             left: 3,
             right: 0,
             height: "2px",
-            background: `linear-gradient(90deg, ${sc}88, transparent 55%)`,
+            background: `linear-gradient(90deg, ${sc}77, transparent 55%)`,
             zIndex: 2,
           },
         }}
@@ -272,10 +323,10 @@ function PlayerCard({
             flex: 1,
             display: "flex",
             flexDirection: "column",
-            gap: 1.25,
+            gap: 1.1,
           }}
         >
-          {/* Header: avatar + name */}
+          {/* Header */}
           <Stack direction="row" gap={1.25} alignItems="flex-start">
             <Badge
               overlap="circular"
@@ -288,20 +339,20 @@ function PlayerCard({
                   width: 10,
                   height: 10,
                   borderRadius: "50%",
-                  border: "2px solid rgba(13,15,26,1)",
+                  border: "2px solid rgba(14,16,28,1)",
                 },
               }}
             >
               <Avatar
                 sx={{
-                  width: 42,
-                  height: 42,
+                  width: 44,
+                  height: 44,
                   borderRadius: "3px",
-                  background: `${sc}22`,
-                  border: `1px solid ${sc}44`,
+                  background: `${sc}18`,
+                  border: `1px solid ${sc}33`,
                   fontFamily: T.RAJ,
                   fontWeight: 700,
-                  fontSize: "0.82rem",
+                  fontSize: "0.85rem",
                   color: sc,
                 }}
               >
@@ -328,24 +379,47 @@ function PlayerCard({
                 <Box
                   component="span"
                   sx={{
-                    opacity: 0.35,
+                    opacity: 0.32,
                     fontWeight: 400,
                     textTransform: "none",
-                    fontSize: "0.72rem",
+                    fontSize: "0.7rem",
                     ml: 0.5,
                   }}
                 >
                   {player.tag}
                 </Box>
               </Typography>
-              <Stack direction="row" alignItems="center" gap={0.5} mt={0.25}>
+              <Stack direction="row" alignItems="center" gap={0.5} mt={0.3}>
+                <Box
+                  sx={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: "50%",
+                    background: sc,
+                  }}
+                />
+                <Typography
+                  sx={{
+                    fontFamily: T.RAJ,
+                    fontWeight: 600,
+                    fontSize: "0.58rem",
+                    letterSpacing: "0.07em",
+                    color: sc,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {statusLabel(player.status)}
+                </Typography>
+                <Typography sx={{ color: T.textMuted, fontSize: "0.55rem" }}>
+                  ·
+                </Typography>
                 <Clock size={9} color={T.textMuted} />
                 <Typography
                   sx={{
                     fontFamily: T.RAJ,
                     fontWeight: 600,
-                    fontSize: "0.6rem",
-                    letterSpacing: "0.05em",
+                    fontSize: "0.58rem",
+                    letterSpacing: "0.04em",
                     color: T.textMuted,
                     textTransform: "uppercase",
                   }}
@@ -357,37 +431,25 @@ function PlayerCard({
           </Stack>
 
           {/* Rank + Role */}
-          <Stack direction="row" alignItems="center" gap={0.75} flexWrap="wrap">
-            <Chip
-              label={player.rank.toUpperCase()}
-              size="small"
-              sx={{
-                background: "rgba(255,255,255,0.05)",
-                color: T.textSub,
-                border: `1px solid ${T.border}`,
-                borderRadius: "2px",
-                fontFamily: T.RAJ,
-                fontWeight: 700,
-                fontSize: "0.6rem",
-                letterSpacing: "0.06em",
-                height: 20,
-              }}
-            />
-            <Chip
-              label={player.role.toUpperCase()}
-              size="small"
-              sx={{
-                background: "rgba(255,255,255,0.05)",
-                color: T.textSub,
-                border: `1px solid ${T.border}`,
-                borderRadius: "2px",
-                fontFamily: T.RAJ,
-                fontWeight: 700,
-                fontSize: "0.6rem",
-                letterSpacing: "0.06em",
-                height: 20,
-              }}
-            />
+          <Stack direction="row" gap={0.6} flexWrap="wrap">
+            {[player.rank, player.role].map((label) => (
+              <Chip
+                key={label}
+                label={label.toUpperCase()}
+                size="small"
+                sx={{
+                  background: "rgba(255,255,255,0.04)",
+                  color: T.textSub,
+                  border: `1px solid ${T.border}`,
+                  borderRadius: "2px",
+                  fontFamily: T.RAJ,
+                  fontWeight: 700,
+                  fontSize: "0.58rem",
+                  letterSpacing: "0.06em",
+                  height: 19,
+                }}
+              />
+            ))}
           </Stack>
 
           {/* Agents */}
@@ -399,19 +461,65 @@ function PlayerCard({
                   label={agent}
                   size="small"
                   sx={{
-                    background: "rgba(255,255,255,0.03)",
+                    background: "rgba(255,255,255,0.025)",
                     color: T.textMuted,
                     border: `1px solid rgba(255,255,255,0.05)`,
                     borderRadius: "2px",
                     fontFamily: T.RAJ,
                     fontWeight: 600,
-                    fontSize: "0.58rem",
-                    height: 18,
+                    fontSize: "0.56rem",
+                    height: 17,
                   }}
                 />
               ))}
             </Stack>
           )}
+
+          {/* Stats row */}
+          <Stack direction="row" gap={1.5}>
+            <Stack direction="row" alignItems="center" gap={0.5}>
+              <Swords size={10} color={T.textMuted} />
+              <Typography
+                sx={{
+                  fontFamily: T.RAJ,
+                  fontWeight: 700,
+                  fontSize: "0.65rem",
+                  color: T.textSub,
+                  letterSpacing: "0.04em",
+                }}
+              >
+                {player.winRate}% WR
+              </Typography>
+            </Stack>
+            <Stack direction="row" alignItems="center" gap={0.5}>
+              <Star size={10} color={T.textMuted} />
+              <Typography
+                sx={{
+                  fontFamily: T.RAJ,
+                  fontWeight: 700,
+                  fontSize: "0.65rem",
+                  color: T.textSub,
+                  letterSpacing: "0.04em",
+                }}
+              >
+                {player.karma} Karma
+              </Typography>
+            </Stack>
+            <Chip
+              label={player.playstyle}
+              size="small"
+              sx={{
+                background: "transparent",
+                color: T.textMuted,
+                border: `1px solid rgba(255,255,255,0.05)`,
+                borderRadius: "2px",
+                fontFamily: T.RAJ,
+                fontWeight: 600,
+                fontSize: "0.56rem",
+                height: 17,
+              }}
+            />
+          </Stack>
 
           {/* Bio */}
           {player.bio && (
@@ -419,10 +527,10 @@ function PlayerCard({
               sx={{
                 fontFamily: T.RAJ,
                 fontWeight: 500,
-                fontSize: "0.72rem",
+                fontSize: "0.7rem",
                 color: T.textMuted,
                 letterSpacing: "0.02em",
-                lineHeight: 1.4,
+                lineHeight: 1.45,
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
@@ -433,21 +541,19 @@ function PlayerCard({
             </Typography>
           )}
 
-          <Divider
-            sx={{ borderColor: "rgba(255,255,255,0.055)", mt: "auto" }}
-          />
+          <Divider sx={{ borderColor: "rgba(255,255,255,0.05)", mt: "auto" }} />
 
           {/* Actions */}
-          <Stack direction="row" justifyContent="flex-end">
+          <Stack direction="row" justifyContent="flex-end" gap={0.75}>
             {player.isFriend ? (
               <Button
                 size="small"
-                onClick={() => onMessage(player.id)}
-                startIcon={<MessageCircle size={13} />}
+                onClick={() => onMessage(player)}
+                startIcon={<MessageCircle size={12} />}
                 sx={{
                   fontFamily: T.RAJ,
                   fontWeight: 700,
-                  fontSize: "0.68rem",
+                  fontSize: "0.65rem",
                   letterSpacing: "0.07em",
                   textTransform: "uppercase",
                   height: 28,
@@ -467,7 +573,7 @@ function PlayerCard({
                 sx={{
                   fontFamily: T.RAJ,
                   fontWeight: 700,
-                  fontSize: "0.68rem",
+                  fontSize: "0.65rem",
                   letterSpacing: "0.07em",
                   textTransform: "uppercase",
                   height: 28,
@@ -477,17 +583,17 @@ function PlayerCard({
                   border: `1px solid ${T.border}`,
                 }}
               >
-                Sent
+                Request Sent
               </Button>
             ) : (
               <Button
                 size="small"
                 onClick={() => onSendRequest(player.id)}
-                startIcon={<UserPlus size={13} />}
+                startIcon={<UserPlus size={12} />}
                 sx={{
                   fontFamily: T.RAJ,
                   fontWeight: 700,
-                  fontSize: "0.68rem",
+                  fontSize: "0.65rem",
                   letterSpacing: "0.07em",
                   textTransform: "uppercase",
                   height: 28,
@@ -495,9 +601,10 @@ function PlayerCard({
                   background: T.accent,
                   color: "#fff",
                   border: "none",
+                  boxShadow: "none",
                   "&:hover": {
                     background: "#e03040",
-                    boxShadow: "0 0 14px rgba(255,70,85,0.35)",
+                    boxShadow: "0 0 14px rgba(255,70,85,0.3)",
                   },
                 }}
               >
@@ -513,8 +620,11 @@ function PlayerCard({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+type FilterTab = "all" | "online" | "friends";
+
 export function SocialPage() {
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<FilterTab>("all");
   const [players, setPlayers] = useState(INITIAL_PLAYERS);
 
   const chatState = useChatRequests(INITIAL_REQUESTS);
@@ -525,11 +635,30 @@ export function SocialPage() {
     );
   }, []);
 
-  const handleMessage = useCallback((playerId: string) => {
-    console.log("open chat with", playerId);
-  }, []);
+  const handleMessage = useCallback(
+    (player: SocialPlayer) => {
+      // Open a chat window directly for friends
+      const fakeRequest = {
+        id: `direct-${player.id}`,
+        from: {
+          id: player.id,
+          name: player.name,
+          tag: player.tag,
+          avatar: player.avatar,
+          status: player.status,
+          rank: player.rank,
+          role: player.role,
+        },
+        message: "",
+        sentAt: new Date().toISOString(),
+        status: "accepted" as const,
+      };
+      chatState.openChat(fakeRequest);
+    },
+    [chatState],
+  );
 
-  // Simulate an incoming request (for demo — wire to socket in prod)
+  // Simulate incoming request
   const handleSimulate = useCallback(() => {
     chatState.pushRequest({
       id: `req-${Date.now()}`,
@@ -548,27 +677,34 @@ export function SocialPage() {
     });
   }, [chatState]);
 
-  const filtered = useMemo(
-    () =>
-      players.filter(
+  const filtered = useMemo(() => {
+    let list = players;
+    if (filter === "online")
+      list = list.filter(
+        (p) => p.status === "online" || p.status === "in-game",
+      );
+    if (filter === "friends") list = list.filter((p) => p.isFriend);
+    if (search)
+      list = list.filter(
         (p) =>
           p.name.toLowerCase().includes(search.toLowerCase()) ||
           p.tag.toLowerCase().includes(search.toLowerCase()),
-      ),
-    [players, search],
-  );
+      );
+    return list;
+  }, [players, search, filter]);
 
   const onlineCount = players.filter((p) => p.status === "online").length;
   const inGameCount = players.filter((p) => p.status === "in-game").length;
+  const friendCount = players.filter((p) => p.isFriend).length;
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1200, mx: "auto" }}>
-      {/* Page header */}
+      {/* ── Page header ── */}
       <Stack
         direction="row"
         justifyContent="space-between"
         alignItems="flex-start"
-        mb={3}
+        mb={2.5}
         flexWrap="wrap"
         gap={1.5}
       >
@@ -588,30 +724,31 @@ export function SocialPage() {
           </Typography>
           <Typography
             sx={{
-              color: T.textMuted,
-              fontSize: "0.8rem",
-              mt: 0.5,
               fontFamily: T.RAJ,
               fontWeight: 500,
+              fontSize: "0.75rem",
+              color: T.textMuted,
+              mt: 0.5,
+              letterSpacing: "0.04em",
             }}
           >
-            Discover active players and send chat requests
+            Discover active players · send chat requests · start conversations
           </Typography>
         </Box>
 
-        {/* Simulate button — remove in prod */}
+        {/* Dev: simulate incoming request */}
         <Button
           size="small"
           onClick={handleSimulate}
           sx={{
             fontFamily: T.RAJ,
             fontWeight: 700,
-            fontSize: "0.65rem",
+            fontSize: "0.62rem",
             letterSpacing: "0.07em",
             textTransform: "uppercase",
             height: 28,
             borderRadius: "2px",
-            border: "1px dashed rgba(255,255,255,0.15)",
+            border: "1px dashed rgba(255,255,255,0.12)",
             color: T.textMuted,
             "&:hover": { borderColor: T.accent, color: T.accent },
           }}
@@ -620,11 +757,12 @@ export function SocialPage() {
         </Button>
       </Stack>
 
-      {/* Stats row */}
+      {/* ── Stats ── */}
       <Stack direction="row" gap={1} mb={2.5} flexWrap="wrap">
         {[
           { label: "Online", value: onlineCount, color: T.green },
-          { label: "In Game", value: inGameCount, color: "#4fc3f7" },
+          { label: "In Game", value: inGameCount, color: T.blue },
+          { label: "Friends", value: friendCount, color: "#f59e0b" },
           { label: "Total", value: players.length, color: T.textSub },
         ].map(({ label, value, color }) => (
           <Box
@@ -636,8 +774,8 @@ export function SocialPage() {
               px: 1.1,
               py: "4px",
               borderRadius: "2px",
-              background: `${color}12`,
-              border: `1px solid ${color}28`,
+              background: `${color}10`,
+              border: `1px solid ${color}25`,
             }}
           >
             <Box
@@ -653,7 +791,7 @@ export function SocialPage() {
               sx={{
                 fontFamily: T.RAJ,
                 fontWeight: 700,
-                fontSize: "0.62rem",
+                fontSize: "0.6rem",
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
                 color,
@@ -665,35 +803,76 @@ export function SocialPage() {
         ))}
       </Stack>
 
-      {/* Search */}
-      <TextField
-        placeholder="Search by name or tag..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        fullWidth
-        size="small"
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Search size={14} color={T.textMuted} />
-            </InputAdornment>
-          ),
-          sx: {
-            background: "rgba(255,255,255,0.03)",
-            border: `1px solid ${T.border}`,
-            borderRadius: "4px",
-            fontFamily: T.RAJ,
-            fontWeight: 600,
-            fontSize: "0.82rem",
-            "& fieldset": { border: "none" },
-            "&:hover": { borderColor: T.borderHover },
-            "&.Mui-focused": { borderColor: "rgba(255,70,85,0.4)" },
-          },
-        }}
-        sx={{ mb: 2.5 }}
-      />
+      {/* ── Search + filter ── */}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        gap={1.5}
+        mb={2.5}
+        alignItems="center"
+      >
+        <TextField
+          placeholder="Search by name or tag…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          fullWidth
+          size="small"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search size={13} color={T.textMuted} />
+              </InputAdornment>
+            ),
+            sx: {
+              background: "rgba(255,255,255,0.03)",
+              border: `1px solid ${T.border}`,
+              borderRadius: "4px",
+              fontFamily: T.RAJ,
+              fontWeight: 600,
+              fontSize: "0.82rem",
+              "& fieldset": { border: "none" },
+              "&:hover": { borderColor: T.borderHover },
+              "&.Mui-focused": { borderColor: "rgba(255,70,85,0.4)" },
+            },
+          }}
+        />
 
-      {/* Player grid */}
+        <ToggleButtonGroup
+          value={filter}
+          exclusive
+          onChange={(_, v) => v && setFilter(v)}
+          size="small"
+          sx={{ flexShrink: 0 }}
+        >
+          {(["all", "online", "friends"] as FilterTab[]).map((tab) => (
+            <ToggleButton
+              key={tab}
+              value={tab}
+              sx={{
+                fontFamily: T.RAJ,
+                fontWeight: 700,
+                fontSize: "0.62rem",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                px: 1.5,
+                py: "4px",
+                borderRadius: "2px",
+                border: `1px solid ${T.border}`,
+                color: T.textMuted,
+                "&.Mui-selected": {
+                  background: "rgba(255,70,85,0.12)",
+                  color: T.accent,
+                  borderColor: "rgba(255,70,85,0.3)",
+                },
+                "&:hover": { borderColor: T.borderHover, color: T.text },
+              }}
+            >
+              {tab}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+      </Stack>
+
+      {/* ── Player grid ── */}
       <Box
         sx={{
           display: "grid",
@@ -702,6 +881,7 @@ export function SocialPage() {
             xs: "1fr",
             sm: "1fr 1fr",
             md: "1fr 1fr 1fr",
+            lg: "1fr 1fr 1fr 1fr",
           },
         }}
       >
@@ -716,7 +896,7 @@ export function SocialPage() {
         ))}
       </Box>
 
-      {/* Empty state */}
+      {/* ── Empty state ── */}
       {filtered.length === 0 && (
         <Box
           sx={{
@@ -747,7 +927,7 @@ export function SocialPage() {
         </Box>
       )}
 
-      {/* ── Chat request system (tray + button + drawer) ── */}
+      {/* ── Chat request system + bottom chat windows ── */}
       <ChatRequestSystem {...chatState} />
     </Box>
   );

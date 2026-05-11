@@ -3,11 +3,13 @@ import {
   X,
   Check,
   Inbox,
-  MessageCircle,
-  CheckCircle2,
   XCircle,
+  CheckCircle2,
+  MessageCircle,
 } from "lucide-react";
-import { Avatar, Box, Button, Divider, Stack, Typography } from "@mui/material";
+
+import { Box, Stack, Avatar, Button, Divider, Typography } from "@mui/material";
+
 import type { ChatRequest } from "../types/type-social";
 
 const RAJ = '"Rajdhani", sans-serif';
@@ -48,9 +50,7 @@ function RequestRow({
             ? "rgba(255,70,85,0.04)"
             : "rgba(255,255,255,0.02)",
           border: `1px solid ${
-            isPending
-              ? "rgba(255,70,85,0.15)"
-              : "rgba(255,255,255,0.06)"
+            isPending ? "rgba(255,70,85,0.15)" : "rgba(255,255,255,0.06)"
           }`,
           position: "relative",
           overflow: "hidden",
@@ -73,7 +73,12 @@ function RequestRow({
         }}
       >
         {/* Player row */}
-        <Stack direction="row" alignItems="flex-start" gap={1.25} mb={isPending ? 1 : 0}>
+        <Stack
+          direction="row"
+          alignItems="flex-start"
+          gap={1.25}
+          mb={isPending ? 1 : 0}
+        >
           <Avatar
             sx={{
               width: 34,
@@ -92,7 +97,11 @@ function RequestRow({
           </Avatar>
 
           <Box flex={1} minWidth={0}>
-            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="flex-start"
+            >
               <Box>
                 <Typography
                   sx={{
@@ -106,7 +115,14 @@ function RequestRow({
                   }}
                 >
                   {request.from.name}
-                  <Box component="span" sx={{ opacity: 0.35, fontWeight: 400, textTransform: "none" }}>
+                  <Box
+                    component="span"
+                    sx={{
+                      opacity: 0.35,
+                      fontWeight: 400,
+                      textTransform: "none",
+                    }}
+                  >
                     {request.from.tag}
                   </Box>
                 </Typography>
@@ -188,7 +204,7 @@ function RequestRow({
                   overflow: "hidden",
                 }}
               >
-                "{request.message}"
+                {request.message}
               </Typography>
             )}
           </Box>
@@ -340,7 +356,11 @@ export function ChatRequestDrawer({
                   },
                 }}
               >
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
                   <Stack direction="row" alignItems="center" gap={1}>
                     <Box
                       sx={{
@@ -413,7 +433,16 @@ export function ChatRequestDrawer({
               </Box>
 
               {/* Body — scrollable */}
-              <Box sx={{ flex: 1, overflowY: "auto", p: "14px 14px 80px", display: "flex", flexDirection: "column", gap: 1 }}>
+              <Box
+                sx={{
+                  flex: 1,
+                  overflowY: "auto",
+                  p: "14px 14px 80px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1,
+                }}
+              >
                 {/* Pending section */}
                 {pending.length > 0 && (
                   <>
@@ -445,7 +474,9 @@ export function ChatRequestDrawer({
                 {/* Resolved section */}
                 {resolved.length > 0 && (
                   <>
-                    <Divider sx={{ borderColor: "rgba(255,255,255,0.05)", my: 0.5 }} />
+                    <Divider
+                      sx={{ borderColor: "rgba(255,255,255,0.05)", my: 0.5 }}
+                    />
                     <Typography
                       sx={{
                         fontFamily: RAJ,

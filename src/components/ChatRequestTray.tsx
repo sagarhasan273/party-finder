@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { X, Check, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MessageCircle, Check, UserCheck } from "lucide-react";
-import { Avatar, Box, Button, Stack, Typography } from "@mui/material";
+
+import { Box, Stack, Avatar, Button, Typography } from "@mui/material";
+
 import type { ChatRequest } from "../types/type-social";
 
 const RAJ = '"Rajdhani", sans-serif';
@@ -35,7 +37,7 @@ export function ChatRequestTray({
     if (!visible) {
       setProgress(100);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      return;
+      return undefined;
     }
 
     startRef.current = Date.now();
@@ -246,12 +248,21 @@ export function ChatRequestTray({
                     {request.from.name}
                     <Box
                       component="span"
-                      sx={{ opacity: 0.38, fontWeight: 400, textTransform: "none" }}
+                      sx={{
+                        opacity: 0.38,
+                        fontWeight: 400,
+                        textTransform: "none",
+                      }}
                     >
                       {request.from.tag}
                     </Box>
                   </Typography>
-                  <Stack direction="row" alignItems="center" gap={0.6} mt={0.25}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    gap={0.6}
+                    mt={0.25}
+                  >
                     <Box
                       sx={{
                         width: 5,
@@ -306,7 +317,7 @@ export function ChatRequestTray({
                       overflow: "hidden",
                     }}
                   >
-                    "{request.message}"
+                    {request.message}
                   </Typography>
                 </Box>
               )}

@@ -1,5 +1,6 @@
-import { motion, AnimatePresence } from "framer-motion";
 import { Inbox } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
 import { Box, Typography } from "@mui/material";
 
 const RAJ = '"Rajdhani", sans-serif';
@@ -10,7 +11,11 @@ interface ChatInboxButtonProps {
   onClick: () => void;
 }
 
-export function ChatInboxButton({ visible, count, onClick }: ChatInboxButtonProps) {
+export function ChatInboxButton({
+  visible,
+  count,
+  onClick,
+}: ChatInboxButtonProps) {
   return (
     <AnimatePresence>
       {visible && (

@@ -1,7 +1,13 @@
+import { AnimatePresence } from "framer-motion";
+
+import { ChatWindow } from "./ChatWindow";
 import { ChatRequestTray } from "./ChatRequestTray";
 import { ChatInboxButton } from "./ChatInboxButton";
 import { ChatRequestDrawer } from "./ChatRequestDrawer";
+
 import type { UseChatRequestsReturn } from "../hooks/use-chat-requests";
+
+const ME_ID = "me";
 
 /**
  * Drop this once anywhere in your app tree (e.g. in App.tsx or layout).
@@ -21,6 +27,11 @@ export function ChatRequestSystem({
   pendingCount,
   acceptRequest,
   rejectRequest,
+  // Chat windows
+  activeChats,
+  closeChat,
+  toggleMinimizeChat,
+  sendMessage,
 }: UseChatRequestsReturn) {
   return (
     <>
@@ -35,7 +46,7 @@ export function ChatRequestSystem({
         pendingCount={pendingCount}
       />
 
-      {/* 2. Persistent inbox button — appears after tray dismisses */}
+      {/* 2. Persistent inbox button */}
       <ChatInboxButton
         visible={showInboxButton && !drawerOpen}
         count={pendingCount}
@@ -50,6 +61,21 @@ export function ChatRequestSystem({
         onAccept={acceptRequest}
         onReject={rejectRequest}
       />
+
+      {/* 4. LinkedIn-style bottom chat windows */}
+      <AnimatePresence>
+        {activeChats.map((chat, idx) => (
+          <ChatWindow
+            key={chat.id}
+            chat={chat}
+            currentUserId={ME_ID}
+            onClose={closeChat}
+            onToggleMinimize={toggleMinimizeChat}
+            onSendMessage={sendMessage}
+            index={idx}
+          />
+        ))}
+      </AnimatePresence>
     </>
   );
 }
