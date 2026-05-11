@@ -172,12 +172,7 @@ function SocialPlayerCard({
   onSendChatRequest,
   onMessage,
 }: SocialPlayerCardProps) {
-  const statusColor =
-    player.status === "online"
-      ? T.green
-      : player.status === "in-game"
-        ? T.blue
-        : T.textMuted;
+  const statusColor = T.blue;
 
   return (
     <motion.div
@@ -262,7 +257,7 @@ function SocialPlayerCard({
               variant="dot"
               sx={{
                 "& .MuiBadge-badge": {
-                  bgcolor: statusColor,
+                  bgcolor: T.green,
                   width: 10,
                   height: 10,
                   borderRadius: "50%",
@@ -326,40 +321,9 @@ function SocialPlayerCard({
             <RoleChip role={player.role} />
           </Stack>
 
-          {/* Bio */}
-          {player.bio && (
-            <Typography
-              variant="body2"
-              sx={{
-                fontFamily: T.RAJ,
-                fontWeight: 500,
-                color: T.textMuted,
-                fontSize: "0.75rem",
-                letterSpacing: "0.02em",
-                lineHeight: 1.5,
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-            >
-              {player.bio}
-            </Typography>
-          )}
-
           {/* Agents */}
           {player.agents && player.agents.length > 0 && (
             <Stack direction="row" flexWrap="wrap" gap={0.6}>
-              <Typography
-                sx={{
-                  color: T.textMuted,
-                  fontSize: "0.6rem",
-                  fontFamily: T.RAJ,
-                  fontWeight: 600,
-                }}
-              >
-                MAINS:
-              </Typography>
               {player.agents.map((agent) => (
                 <Chip
                   key={agent}
