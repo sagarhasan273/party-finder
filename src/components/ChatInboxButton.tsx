@@ -9,12 +9,14 @@ interface ChatInboxButtonProps {
   visible: boolean;
   count: number;
   onClick: () => void;
+  style?: any;
 }
 
 export function ChatInboxButton({
   visible,
   count,
   onClick,
+  style = {},
 }: ChatInboxButtonProps) {
   return (
     <AnimatePresence>
@@ -25,10 +27,8 @@ export function ChatInboxButton({
           exit={{ opacity: 0, scale: 0.8, y: 10 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
           style={{
-            position: "fixed",
-            bottom: 24,
-            right: 24,
-            zIndex: 1300,
+            position: "relative",
+            ...style,
           }}
         >
           <Box

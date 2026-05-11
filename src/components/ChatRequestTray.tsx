@@ -81,7 +81,7 @@ export function ChatRequestTray({
           transition={{ duration: 0.25, ease: "easeOut" }}
           style={{
             position: "fixed",
-            bottom: 88,
+            bottom: 24,
             right: 24,
             zIndex: 1400,
             width: 320,

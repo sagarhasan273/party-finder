@@ -41,7 +41,6 @@ import { useSocketListeners } from "../hooks/use-socket-listeners";
 const navLinks = [
   { label: "BROWSE", path: "/" },
   { label: "SOCIAL", path: "/social", authOnly: true },
-  { label: "FRIENDS", path: "/friends", authOnly: true },
   { label: "APPLIED LOBBIES", path: "/applied-lobbies", authOnly: true },
   { label: "MY LOBBY", path: "/my-lobby", authOnly: true, badgeOnly: true },
 ];

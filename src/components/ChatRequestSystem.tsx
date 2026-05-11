@@ -2,7 +2,6 @@ import { AnimatePresence } from "framer-motion";
 
 import { ChatWindow } from "./ChatWindow";
 import { ChatRequestTray } from "./ChatRequestTray";
-import { ChatInboxButton } from "./ChatInboxButton";
 import { ChatRequestDrawer } from "./ChatRequestDrawer";
 
 import type { UseChatRequestsReturn } from "../hooks/use-chat-requests";
@@ -46,14 +45,7 @@ export function ChatRequestSystem({
         pendingCount={pendingCount}
       />
 
-      {/* 2. Persistent inbox button */}
-      <ChatInboxButton
-        visible={showInboxButton && !drawerOpen}
-        count={pendingCount}
-        onClick={openDrawer}
-      />
-
-      {/* 3. Full drawer */}
+      {/* 2. Full drawer */}
       <ChatRequestDrawer
         open={drawerOpen}
         requests={requests}
@@ -62,7 +54,7 @@ export function ChatRequestSystem({
         onReject={rejectRequest}
       />
 
-      {/* 4. LinkedIn-style bottom chat windows */}
+      {/* 3. LinkedIn-style bottom chat windows */}
       <AnimatePresence>
         {activeChats.map((chat, idx) => (
           <ChatWindow

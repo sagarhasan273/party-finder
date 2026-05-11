@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useMemo, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import {
   Star,
   Users,
@@ -21,12 +21,11 @@ import {
   Divider,
   TextField,
   Typography,
-  ToggleButton,
   InputAdornment,
-  ToggleButtonGroup,
 } from "@mui/material";
 
 import { useChatRequests } from "../hooks/use-chat-requests";
+import { ChatInboxButton } from "../components/ChatInboxButton";
 import { ChatRequestSystem } from "../components/ChatRequestSystem";
 
 import type { ChatRequest, SocialPlayer } from "../types/type-social";
@@ -620,11 +619,9 @@ function PlayerCard({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type FilterTab = "all" | "online" | "friends";
-
 export function SocialPage() {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<FilterTab>("all");
+
   const [players, setPlayers] = useState(INITIAL_PLAYERS);
 
   const chatState = useChatRequests(INITIAL_REQUESTS);
@@ -676,22 +673,6 @@ export function SocialPage() {
       status: "pending",
     });
   }, [chatState]);
-
-  const filtered = useMemo(() => {
-    let list = players;
-    if (filter === "online")
-      list = list.filter(
-        (p) => p.status === "online" || p.status === "in-game",
-      );
-    if (filter === "friends") list = list.filter((p) => p.isFriend);
-    if (search)
-      list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(search.toLowerCase()) ||
-          p.tag.toLowerCase().includes(search.toLowerCase()),
-      );
-    return list;
-  }, [players, search, filter]);
 
   const onlineCount = players.filter((p) => p.status === "online").length;
   const inGameCount = players.filter((p) => p.status === "in-game").length;
@@ -836,40 +817,11 @@ export function SocialPage() {
           }}
         />
 
-        <ToggleButtonGroup
-          value={filter}
-          exclusive
-          onChange={(_, v) => v && setFilter(v)}
-          size="small"
-          sx={{ flexShrink: 0 }}
-        >
-          {(["all", "online", "friends"] as FilterTab[]).map((tab) => (
-            <ToggleButton
-              key={tab}
-              value={tab}
-              sx={{
-                fontFamily: T.RAJ,
-                fontWeight: 700,
-                fontSize: "0.62rem",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                px: 1.5,
-                py: "4px",
-                borderRadius: "2px",
-                border: `1px solid ${T.border}`,
-                color: T.textMuted,
-                "&.Mui-selected": {
-                  background: "rgba(255,70,85,0.12)",
-                  color: T.accent,
-                  borderColor: "rgba(255,70,85,0.3)",
-                },
-                "&:hover": { borderColor: T.borderHover, color: T.text },
-              }}
-            >
-              {tab}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
+        <ChatInboxButton
+          visible={chatState.showInboxButton}
+          count={chatState.pendingCount}
+          onClick={chatState.openDrawer}
+        />
       </Stack>
 
       {/* ── Player grid ── */}
@@ -885,7 +837,7 @@ export function SocialPage() {
           },
         }}
       >
-        {filtered.map((player, idx) => (
+        {players.map((player, idx) => (
           <PlayerCard
             key={player.id}
             player={player}
@@ -897,7 +849,7 @@ export function SocialPage() {
       </Box>
 
       {/* ── Empty state ── */}
-      {filtered.length === 0 && (
+      {players.length === 0 && (
         <Box
           sx={{
             py: 10,
