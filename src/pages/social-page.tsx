@@ -1,29 +1,21 @@
 import { motion } from "framer-motion";
 import { useState, useCallback } from "react";
-import {
-  Star,
-  Users,
-  Clock,
-  Search,
-  Swords,
-  UserPlus,
-  MessageCircle,
-} from "lucide-react";
+import { Users, Clock, Search, UserPlus, MessageCircle } from "lucide-react";
 
 import {
   Box,
   Chip,
   Stack,
   Paper,
-  Badge,
   Button,
-  Avatar,
   Divider,
   TextField,
   Typography,
   InputAdornment,
 } from "@mui/material";
 
+import { mockPlayers } from "../@mock";
+import { AvatarUser } from "../components/avatar-user";
 import { useChatRequests } from "../hooks/use-chat-requests";
 import { ChatInboxButton } from "../components/ChatInboxButton";
 import { ChatRequestSystem } from "../components/ChatRequestSystem";
@@ -78,145 +70,6 @@ const INITIAL_REQUESTS: ChatRequest[] = [
     message: "Your playstyle matches what we need. Let's team up!",
     sentAt: new Date(Date.now() - 30 * 60000).toISOString(),
     status: "pending",
-  },
-];
-
-const INITIAL_PLAYERS: SocialPlayer[] = [
-  {
-    id: "p1",
-    name: "NightSabre",
-    tag: "#EU1",
-    avatar: "NS",
-    status: "online",
-    lastActive: "Just now",
-    rank: "Gold II",
-    role: "Duelist",
-    agents: ["Jett", "Reyna"],
-    isFriend: false,
-    requestSent: false,
-    bio: "Looking for competitive players to climb with.",
-    playstyle: "Competitive",
-    winRate: 58,
-    karma: 4.8,
-  },
-  {
-    id: "p2",
-    name: "VelocityX",
-    tag: "#NA1",
-    avatar: "VX",
-    status: "in-game",
-    lastActive: "In match",
-    rank: "Platinum III",
-    role: "Controller",
-    agents: ["Omen", "Brimstone"],
-    isFriend: true,
-    requestSent: false,
-    bio: "Controller main looking for consistent duo.",
-    playstyle: "Competitive",
-    winRate: 62,
-    karma: 4.5,
-  },
-  {
-    id: "p3",
-    name: "StarlightK",
-    tag: "#KR1",
-    avatar: "SK",
-    status: "online",
-    lastActive: "5 min ago",
-    rank: "Diamond I",
-    role: "Initiator",
-    agents: ["Sova", "Fade"],
-    isFriend: false,
-    requestSent: false,
-    bio: "Diamond player looking for serious team.",
-    playstyle: "Competitive",
-    winRate: 55,
-    karma: 4.2,
-  },
-  {
-    id: "p4",
-    name: "TacticalMid",
-    tag: "#NA4",
-    avatar: "TM",
-    status: "offline",
-    lastActive: "2 hours ago",
-    rank: "Gold III",
-    role: "Duelist",
-    agents: ["Jett", "Reyna", "Phoenix"],
-    isFriend: false,
-    requestSent: true,
-    bio: "Just looking to have fun and rank up.",
-    playstyle: "Balanced",
-    winRate: 51,
-    karma: 3.9,
-  },
-  {
-    id: "p5",
-    name: "IceBreaker",
-    tag: "#EU9",
-    avatar: "IB",
-    status: "online",
-    lastActive: "Just now",
-    rank: "Ascendant II",
-    role: "Sentinel",
-    agents: ["Killjoy", "Cypher"],
-    isFriend: false,
-    requestSent: false,
-    bio: "Sentinel one-trick, high info plays.",
-    playstyle: "Strategic",
-    winRate: 60,
-    karma: 4.7,
-  },
-  {
-    id: "p6",
-    name: "FluxCore",
-    tag: "#AP2",
-    avatar: "FC",
-    status: "online",
-    lastActive: "1 min ago",
-    rank: "Immortal I",
-    role: "Duelist",
-    agents: ["Neon", "Jett"],
-    isFriend: false,
-    requestSent: false,
-    bio: "Immortal pushing for Radiant this act.",
-    playstyle: "Aggressive",
-    winRate: 65,
-    karma: 4.3,
-  },
-  {
-    id: "p7",
-    name: "ZenithQ",
-    tag: "#EU3",
-    avatar: "ZQ",
-    status: "online",
-    lastActive: "Just now",
-    rank: "Diamond III",
-    role: "Controller",
-    agents: ["Astra", "Viper"],
-    isFriend: false,
-    requestSent: false,
-    bio: "Smokes main, love the strategic side of the game.",
-    playstyle: "Strategic",
-    winRate: 57,
-    karma: 4.6,
-  },
-  {
-    id: "p8",
-    name: "RiftSlayer",
-    tag: "#BR2",
-    avatar: "RS",
-    status: "in-game",
-    lastActive: "In match",
-    rank: "Platinum I",
-    role: "Initiator",
-    agents: ["Breach", "Gekko"],
-    isFriend: false,
-    requestSent: false,
-    bio: "Always flashing for the team, never tilting.",
-    playstyle: "Supportive",
-    winRate: 53,
-    karma: 4.1,
   },
 ];
 
@@ -327,37 +180,22 @@ function PlayerCard({
         >
           {/* Header */}
           <Stack direction="row" gap={1.25} alignItems="flex-start">
-            <Badge
-              overlap="circular"
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              variant="dot"
+            <AvatarUser
+              avatarUrl={player.avatar}
+              name={player.name}
+              verified
               sx={{
-                flexShrink: 0,
-                "& .MuiBadge-badge": {
-                  bgcolor: sc,
-                  width: 10,
-                  height: 10,
-                  borderRadius: "50%",
-                  border: "2px solid rgba(14,16,28,1)",
-                },
+                width: 44,
+                height: 44,
+                borderRadius: "3px",
+                background: `${sc}18`,
+                border: `1px solid ${sc}33`,
+                fontFamily: T.RAJ,
+                fontWeight: 700,
+                fontSize: "0.85rem",
+                color: sc,
               }}
-            >
-              <Avatar
-                sx={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: "3px",
-                  background: `${sc}18`,
-                  border: `1px solid ${sc}33`,
-                  fontFamily: T.RAJ,
-                  fontWeight: 700,
-                  fontSize: "0.85rem",
-                  color: sc,
-                }}
-              >
-                {player.avatar}
-              </Avatar>
-            </Badge>
+            />
 
             <Box flex={1} minWidth={0}>
               <Typography
@@ -434,7 +272,7 @@ function PlayerCard({
             {[player.rank, player.role].map((label) => (
               <Chip
                 key={label}
-                label={label.toUpperCase()}
+                label={label?.toUpperCase()}
                 size="small"
                 sx={{
                   background: "rgba(255,255,255,0.04)",
@@ -452,9 +290,9 @@ function PlayerCard({
           </Stack>
 
           {/* Agents */}
-          {player.agents.length > 0 && (
+          {Number(player?.agents?.length) > 0 && (
             <Stack direction="row" flexWrap="wrap" gap={0.5}>
-              {player.agents.map((agent) => (
+              {player?.agents?.map((agent) => (
                 <Chip
                   key={agent}
                   label={agent}
@@ -473,52 +311,6 @@ function PlayerCard({
               ))}
             </Stack>
           )}
-
-          {/* Stats row */}
-          <Stack direction="row" gap={1.5}>
-            <Stack direction="row" alignItems="center" gap={0.5}>
-              <Swords size={10} color={T.textMuted} />
-              <Typography
-                sx={{
-                  fontFamily: T.RAJ,
-                  fontWeight: 700,
-                  fontSize: "0.65rem",
-                  color: T.textSub,
-                  letterSpacing: "0.04em",
-                }}
-              >
-                {player.winRate}% WR
-              </Typography>
-            </Stack>
-            <Stack direction="row" alignItems="center" gap={0.5}>
-              <Star size={10} color={T.textMuted} />
-              <Typography
-                sx={{
-                  fontFamily: T.RAJ,
-                  fontWeight: 700,
-                  fontSize: "0.65rem",
-                  color: T.textSub,
-                  letterSpacing: "0.04em",
-                }}
-              >
-                {player.karma} Karma
-              </Typography>
-            </Stack>
-            <Chip
-              label={player.playstyle}
-              size="small"
-              sx={{
-                background: "transparent",
-                color: T.textMuted,
-                border: `1px solid rgba(255,255,255,0.05)`,
-                borderRadius: "2px",
-                fontFamily: T.RAJ,
-                fontWeight: 600,
-                fontSize: "0.56rem",
-                height: 17,
-              }}
-            />
-          </Stack>
 
           {/* Bio */}
           {player.bio && (
@@ -622,7 +414,7 @@ function PlayerCard({
 export function SocialPage() {
   const [search, setSearch] = useState("");
 
-  const [players, setPlayers] = useState(INITIAL_PLAYERS);
+  const [players, setPlayers] = useState(mockPlayers);
 
   const chatState = useChatRequests(INITIAL_REQUESTS);
 

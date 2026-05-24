@@ -42,8 +42,8 @@ export interface SocialPlayer {
   status: PlayerStatus;
   lastActive: string;
   rank: string;
-  role: string;
-  agents: string[];
+  role?: string;
+  agents?: string[];
   isFriend: boolean;
   requestSent: boolean;
   bio?: string;
@@ -60,8 +60,8 @@ export interface ChatRequest {
     tag: string;
     avatar: string;
     status: PlayerStatus;
-    rank: string;
-    role: string;
+    rank?: string;
+    role?: string;
   };
   message: string;
   sentAt: string;
