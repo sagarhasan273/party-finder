@@ -12,7 +12,7 @@ import {
 
 import { mockPlayers } from "../@mock";
 import { PlayerCard } from "../sections/section-social";
-import { useChatRequests } from "../hooks/use-chat-requests";
+import { useChatRequests } from "../hooks/use-chat-inventory";
 import { ChatInboxButton } from "../components/ChatInboxButton";
 import { ChatRequestSystem } from "../components/ChatRequestSystem";
 

@@ -4,7 +4,7 @@ import { ChatWindow } from "./ChatWindow";
 import { ChatRequestTray } from "./ChatRequestTray";
 import { ChatRequestDrawer } from "./ChatRequestDrawer";
 
-import type { UseChatRequestsReturn } from "../hooks/use-chat-requests";
+import type { UseChatRequestsReturn } from "../hooks/use-chat-inventory";
 
 const ME_ID = "me";
 
