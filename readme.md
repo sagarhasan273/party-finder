@@ -1,4 +1,4 @@
-# Valorant 5th Player Finder (LFG App)
+# Valorant 5th Player Finder
 
 **"Never queue as a cursed 4-stack again."**
 
