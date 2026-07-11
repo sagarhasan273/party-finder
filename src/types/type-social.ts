@@ -70,3 +70,83 @@ export interface ChatRequest {
 
 export type PlayerStatus = "online" | "in-game" | "offline";
 export type RequestStatus = "pending" | "accepted" | "rejected";
+
+export interface Player {
+  id: string;
+  username: string;
+  tagline: string;
+  rank: string;
+  rankTier: string;
+  rankIcon: string;
+  status: "searching" | "in-party" | "offline";
+  mainAgent: string;
+  role: "Duelist" | "Sentinel" | "Controller" | "Initiator";
+  lookingFor: string;
+  partySize: number;
+  partyMax: number;
+  microphone: boolean;
+  languages: string[];
+  personality: string;
+}
+
+export interface Profile {
+  username: string;
+  tagline: string;
+  rank: string;
+  rankIcon: string;
+  role: string;
+  status: string;
+  isSearching: boolean;
+  partySize: number;
+  partyMax: number;
+  winRate: string;
+  headshotRate: string;
+  favoriteMap: string;
+  clutchWon: string;
+  avatarUrl: string | null;
+  bio: string;
+}
+
+export interface Message {
+  id: string;
+  sender: "me" | "them";
+  text: string;
+  timestamp: string;
+}
+
+export interface Invite {
+  id: string;
+  sender: Player;
+  message: string;
+  time: string;
+}
+
+export interface Toast {
+  id: number;
+  text: string;
+  type: "success" | "warning" | "message" | "invite" | "info";
+}
+
+export interface Filters {
+  search: string;
+  rank: string;
+  role: string;
+  mode: string;
+  micRequired: boolean;
+}
+
+export interface ChatState {
+  [playerId: string]: Message[];
+}
+
+export interface InputMessages {
+  [playerId: string]: string;
+}
+
+export interface ThinkingStatus {
+  [playerId: string]: boolean;
+}
+
+export interface ExpandedChats {
+  [playerId: string]: boolean;
+}
