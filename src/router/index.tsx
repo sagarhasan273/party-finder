@@ -11,6 +11,7 @@ import { CreateLobbyPage } from "../pages/create-lobby-page";
 import { LobbyJoinRequested } from "../pages/lobby-join-requested";
 
 export function AppRouter() {
+  console.log("AppRouter rendered");
   return (
     <BrowserRouter>
       <Box
