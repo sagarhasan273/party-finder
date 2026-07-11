@@ -2,9 +2,9 @@ import { Route, Routes, Navigate, BrowserRouter } from "react-router-dom";
 
 import { Box } from "@mui/material";
 
+import { SocialPage } from "../pages/social";
 import { HomePage } from "../pages/home-page";
 import { Navbar } from "../components/Navbar";
-import { SocialPage } from "../pages/social-page";
 import { ProfilePage } from "../pages/profile-page";
 import { MyLobbyPage } from "../pages/my-lobby-page";
 import { CreateLobbyPage } from "../pages/create-lobby-page";
