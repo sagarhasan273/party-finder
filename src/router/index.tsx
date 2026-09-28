@@ -3,7 +3,6 @@ import { Route, Routes, Navigate, BrowserRouter } from "react-router-dom";
 import { Box } from "@mui/material";
 
 import { HomePage } from "../pages/home-page";
-import { Navbar } from "../components/Navbar";
 import { ProfilePage } from "../pages/profile-page";
 import { MyLobbyPage } from "../pages/my-lobby-page";
 import { CreateLobbyPage } from "../pages/create-lobby-page";
@@ -15,7 +14,6 @@ export function AppRouter() {
       <Box
         sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
       >
-        <Navbar />
         <Box component="main" sx={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<HomePage />} />
