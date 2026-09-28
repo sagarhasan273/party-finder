@@ -11,24 +11,16 @@ import React, {
   createContext,
 } from "react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 interface SocketContextValue {
   socket: Socket;
   socketId: string | null;
   isConnected: boolean;
   emit: (event: string, ...args: any[]) => void;
-  /** Subscribe to an event. Returns an unsubscribe function. */
   on: <T = any>(event: string, listener: (payload: T) => void) => () => void;
-  /** Explicitly remove a listener */
   off: (event: string, listener?: (...args: any[]) => void) => void;
 }
 
-// ─── Context ──────────────────────────────────────────────────────────────────
-
 const SocketContext = createContext<SocketContextValue | null>(null);
-
-// ─── Provider ─────────────────────────────────────────────────────────────────
 
 interface SocketProviderProps {
   url: string;
@@ -39,7 +31,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
   url,
   children,
 }) => {
-  // 1. Create a single socket instance per URL (no duplicate useEffect + useState)
   const socket = useMemo<Socket>(
     () =>
       io(url, {
@@ -54,7 +45,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
   const disconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Cancel any pending StrictMode cleanup disconnect
     if (disconnectTimerRef.current) {
       clearTimeout(disconnectTimerRef.current);
       disconnectTimerRef.current = null;
@@ -73,7 +63,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
 
-    // Sync state if already connected, otherwise connect once
     if (socket.connected) {
       handleConnect();
     } else {
@@ -84,8 +73,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
 
-      // Defer disconnect to next tick so React StrictMode's instant remount
-      // doesn't disconnect and reconnect the socket a second time
       disconnectTimerRef.current = setTimeout(() => {
         socket.disconnect();
       }, 0);
@@ -134,8 +121,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
     <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
   );
 };
-
-// ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export const useSocket = (): SocketContextValue => {
   const ctx = useContext(SocketContext);

@@ -50,6 +50,16 @@ const ICE_SERVERS: RTCConfiguration = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:global.stun.twilio.com:3478" },
+    {
+      urls: "turn:openrelay.metered.ca:80",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
+    {
+      urls: "turn:openrelay.metered.ca:443",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
   ],
 };
 
@@ -179,7 +189,8 @@ const now = (): string =>
   });
 
 export function HomePage(): JSX.Element {
-  const { emit, on, isConnected } = useSocket();
+  // Directly consume everything from the Socket Provider
+  const { emit, on, isConnected, socketId } = useSocket();
 
   const [username, setUsername] = useState<string>(
     `Agent#${Math.floor(1000 + Math.random() * 9000)}`,
@@ -217,12 +228,19 @@ export function HomePage(): JSX.Element {
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   const flushPendingIce = async (pc: RTCPeerConnection): Promise<void> => {
-    await Promise.all(
-      pendingIceRef.current.map((c) =>
-        pc.addIceCandidate(new RTCIceCandidate(c)),
-      ),
-    );
+    if (!pendingIceRef.current.length) return;
+    const candidates = [...pendingIceRef.current];
     pendingIceRef.current = [];
+
+    await Promise.allSettled(
+      candidates.map(async (c) => {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(c));
+        } catch (err) {
+          console.warn("[WebRTC] Error adding buffered ICE candidate:", err);
+        }
+      }),
+    );
   };
 
   const setupVAD = useCallback(
@@ -278,12 +296,27 @@ export function HomePage(): JSX.Element {
       if (v.ctx.state !== "closed") v.ctx.close().catch(() => undefined);
     });
     vadRef.current = [];
-    localStreamRef.current?.getTracks().forEach((t) => t.stop());
-    localStreamRef.current = null;
-    dcRef.current?.close();
-    dcRef.current = null;
-    pcRef.current?.close();
-    pcRef.current = null;
+
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((t) => t.stop());
+      localStreamRef.current = null;
+    }
+
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.pause();
+      remoteAudioRef.current.srcObject = null;
+    }
+
+    if (dcRef.current) {
+      dcRef.current.close();
+      dcRef.current = null;
+    }
+
+    if (pcRef.current) {
+      pcRef.current.close();
+      pcRef.current = null;
+    }
+
     pendingIceRef.current = [];
     setIsLocalSpeaking(false);
     setIsRemoteSpeaking(false);
@@ -291,8 +324,18 @@ export function HomePage(): JSX.Element {
 
   const initWebRTC = useCallback(
     async (isInitiator: boolean, peerSocketId: string): Promise<void> => {
+      teardownWebRTC();
+
       const pc = new RTCPeerConnection(ICE_SERVERS);
       pcRef.current = pc;
+
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === "failed") {
+          setValidationError(
+            "Voice channel connection failed. Verify TURN network access.",
+          );
+        }
+      };
 
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -303,12 +346,18 @@ export function HomePage(): JSX.Element {
         setupVAD(stream, false);
       } catch {
         setValidationError(
-          "Microphone permission blocked. Enable mic access to join voice comms.",
+          "Microphone permission denied. Voice comms are disabled.",
         );
       }
 
       pc.ontrack = (e: RTCTrackEvent) => {
         remoteAudioRef.current.srcObject = e.streams[0];
+        remoteAudioRef.current.play().catch((err) => {
+          console.warn(
+            "[WebRTC] Autoplay was prevented by browser policy:",
+            err,
+          );
+        });
         setupVAD(e.streams[0], true);
       };
 
@@ -325,6 +374,7 @@ export function HomePage(): JSX.Element {
         const dc = pc.createDataChannel("valorantComm");
         bindDataChannel(dc);
         dcRef.current = dc;
+
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         emit("webrtc-offer", { targetSocketId: peerSocketId, offer });
@@ -335,9 +385,10 @@ export function HomePage(): JSX.Element {
         };
       }
     },
-    [bindDataChannel, setupVAD, emit],
+    [bindDataChannel, setupVAD, emit, teardownWebRTC],
   );
 
+  // Bind Provider listeners
   useEffect(() => {
     remoteAudioRef.current.autoplay = true;
 
@@ -382,8 +433,12 @@ export function HomePage(): JSX.Element {
         async ({ candidate }) => {
           const pc = pcRef.current;
           if (!pc || !candidate) return;
-          if (pc.remoteDescription) {
-            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          if (pc.remoteDescription && pc.remoteDescription.type) {
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            } catch (err) {
+              console.warn("[WebRTC] Error adding ICE candidate:", err);
+            }
           } else {
             pendingIceRef.current.push(candidate);
           }
@@ -403,7 +458,7 @@ export function HomePage(): JSX.Element {
     ];
 
     return () => {
-      unsubscribe.forEach((off) => off());
+      unsubscribe.forEach((offFn) => offFn());
       teardownWebRTC();
     };
   }, [on, emit, initWebRTC, teardownWebRTC]);
@@ -516,8 +571,8 @@ export function HomePage(): JSX.Element {
         <Stack direction="row" alignItems="center" gap={1} sx={{ mr: 4 }}>
           <Box
             sx={{
-              width: 32,
-              height: 32,
+              width: 28,
+              height: 28,
               borderRadius: "6px",
               background: "#FF4655",
               display: "flex",
@@ -529,11 +584,11 @@ export function HomePage(): JSX.Element {
           </Box>
           <Typography
             sx={{
-              fontFamily: '"Rajdhani", sans-serif',
-              fontWeight: 900,
-              fontSize: "1.35rem",
-              letterSpacing: "0.06em",
-              color: "#e8ecf0",
+              fontFamily: SYSTEM_FONT,
+              fontWeight: 700,
+              fontSize: "1.15rem",
+              letterSpacing: "-0.01em",
+              color: "#ECE8E1",
               lineHeight: 1,
             }}
           >
@@ -565,7 +620,7 @@ export function HomePage(): JSX.Element {
               fontSize: "0.78rem",
             }}
           >
-            {username}
+            {username} {socketId && `(${socketId.slice(0, 5)})`}
           </Typography>
         </Box>
       </Box>
@@ -614,7 +669,7 @@ export function HomePage(): JSX.Element {
             <Radar sx={{ color: "#FF4655", fontSize: 18 }} /> Find Teammates
           </Typography>
 
-          {/* Form Fields */}
+          {/* Form Matrix */}
           <Box
             sx={{
               display: "grid",
