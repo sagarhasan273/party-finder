@@ -2,6 +2,7 @@ import type { Socket } from "socket.io-client";
 
 import { io } from "socket.io-client";
 import React, {
+  useRef,
   useMemo,
   useState,
   useEffect,
@@ -13,6 +14,7 @@ import React, {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface SocketContextValue {
+  socket: Socket;
   socketId: string | null;
   isConnected: boolean;
   emit: (event: string, ...args: any[]) => void;
@@ -37,31 +39,32 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
   url,
   children,
 }) => {
-  const [socket, setSocket] = useState<Socket>(() =>
-    io(url, { autoConnect: false, transports: ["websocket", "polling"] }),
+  // 1. Create a single socket instance per URL (no duplicate useEffect + useState)
+  const socket = useMemo<Socket>(
+    () =>
+      io(url, {
+        autoConnect: false,
+        transports: ["websocket", "polling"],
+      }),
+    [url],
   );
 
   const [socketId, setSocketId] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-
-  // Re-instantiate if URL changes
-  useEffect(() => {
-    const currentSocket = io(url, {
-      autoConnect: false,
-      transports: ["websocket", "polling"],
-    });
-    setSocket(currentSocket);
-
-    return () => {
-      currentSocket.disconnect();
-    };
-  }, [url]);
+  const disconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    // Cancel any pending StrictMode cleanup disconnect
+    if (disconnectTimerRef.current) {
+      clearTimeout(disconnectTimerRef.current);
+      disconnectTimerRef.current = null;
+    }
+
     const handleConnect = (): void => {
       setIsConnected(true);
       setSocketId(socket.id ?? null);
     };
+
     const handleDisconnect = (): void => {
       setIsConnected(false);
       setSocketId(null);
@@ -70,14 +73,22 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
 
-    if (!socket.connected) {
+    // Sync state if already connected, otherwise connect once
+    if (socket.connected) {
+      handleConnect();
+    } else {
       socket.connect();
     }
 
     return () => {
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
-      socket.disconnect();
+
+      // Defer disconnect to next tick so React StrictMode's instant remount
+      // doesn't disconnect and reconnect the socket a second time
+      disconnectTimerRef.current = setTimeout(() => {
+        socket.disconnect();
+      }, 0);
     };
   }, [socket]);
 
@@ -115,8 +126,8 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
   );
 
   const value = useMemo(
-    () => ({ socketId, isConnected, emit, on, off }),
-    [socketId, isConnected, emit, on, off],
+    () => ({ socket, socketId, isConnected, emit, on, off }),
+    [socket, socketId, isConnected, emit, on, off],
   );
 
   return (
