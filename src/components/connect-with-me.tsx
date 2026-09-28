@@ -21,8 +21,6 @@ import {
 const SYSTEM_FONT =
   'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
-// ─── Interfaces ───────────────────────────────────────────────────────────────
-
 interface PersonalLink {
   name: string;
   handle: string;
@@ -38,61 +36,60 @@ interface SharePlatform {
   accent: string;
 }
 
-// ─── Static Data ──────────────────────────────────────────────────────────────
-
 const PERSONAL_LINKS: PersonalLink[] = [
   {
     name: "Facebook",
-    handle: "fb.com/sagarhasan273",
-    url: "https://www.facebook.com/share/1EZr8K6Tjm/",
+    handle: "fb.com/sagarhasan",
+    url: "https://facebook.com/your_profile",
     icon: <FacebookIcon sx={{ fontSize: 20 }} />,
     accent: "#1877F2",
   },
   {
     name: "WhatsApp",
     handle: "+880 1XXXXXXXXX",
-    url: "https://wa.me/8801941717226",
+    url: "https://wa.me/8801XXXXXXXXX",
     icon: <WhatsAppIcon sx={{ fontSize: 20 }} />,
     accent: "#25D366",
   },
   {
     name: "Discord",
-    handle: "sagarhasan273#2846",
-    url: "https://discord.com/users/783664230494371860",
+    handle: "sagarhasan#0000",
+    url: "https://discord.gg/your_server",
     icon: <DiscordIcon sx={{ fontSize: 20 }} />,
     accent: "#5865F2",
   },
   {
     name: "Instagram",
-    handle: "sagar.hasan.273",
-    url: "https://www.instagram.com/sagar.hasan.273?stkn=djRlNjhwd2xlZ255",
+    handle: "@sagar_hasan",
+    url: "https://instagram.com/your_profile",
     icon: <InstagramIcon sx={{ fontSize: 20 }} />,
     accent: "#E4405F",
   },
 ];
 
-// const TECH_STACK: string[] = [
-//   "React + MUI",
-//   "Node.js + Express",
-//   "WebRTC P2P",
-//   "MongoDB",
-//   "Socket.io",
-// ];
-
-// ─── Component ────────────────────────────────────────────────────────────────
+const TECH_STACK: string[] = [
+  "React + MUI",
+  "Node.js + Express",
+  "WebRTC P2P",
+  "MongoDB",
+  "Socket.io",
+];
 
 export default function ConnectAndShare(): JSX.Element {
   const [copied, setCopied] = useState<boolean>(false);
 
-  const currentAppUrl: string = "https://www.val5th-finder.com";
+  const currentAppUrl: string =
+    typeof window !== "undefined"
+      ? window.location.href
+      : "https://your-valorant-lfg-app.com";
 
   const sharePitch: string =
-    "Looking for a 5th teammate for ranked Valorant? Check out this instant matchmaking lobby tool built by Sagar Hasan:";
+    "Looking for a 5th teammate for ranked Valorant? Check out this instant matchmaking & WebRTC lobby tool built by Sagar Hasan:";
 
   const SHARE_PLATFORMS: SharePlatform[] = [
     {
       name: "WhatsApp",
-      url: `https://api.whatsapp.com/send?text=${encodeURIComponent(`${sharePitch}${currentAppUrl}`)}`,
+      url: `https://api.whatsapp.com/send?text=${encodeURIComponent(`${sharePitch} ${currentAppUrl}`)}`,
       icon: <WhatsAppIcon sx={{ fontSize: 18 }} />,
       accent: "#25D366",
     },
@@ -134,7 +131,7 @@ export default function ConnectAndShare(): JSX.Element {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      /* Clipboard write fallback */
+      /* Fallback for disabled permissions */
     }
   };
 
@@ -148,158 +145,6 @@ export default function ConnectAndShare(): JSX.Element {
         fontFamily: SYSTEM_FONT,
       }}
     >
-      {/* ── Section 1: Share With Friends ── */}
-      <Box
-        sx={{
-          p: { xs: 2, sm: 2.5 },
-          bgcolor: "#17212B",
-          borderRadius: "8px",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-          <BroadcastIcon sx={{ color: "#FF4655", fontSize: 20 }} />
-          <Typography
-            sx={{
-              fontFamily: SYSTEM_FONT,
-              fontWeight: 600,
-              fontSize: { xs: "0.95rem", sm: "1.05rem" },
-              color: "#F0F3F6",
-            }}
-          >
-            Share with friends
-          </Typography>
-        </Box>
-
-        <Typography
-          sx={{
-            fontFamily: SYSTEM_FONT,
-            color: "#8E9AA8",
-            fontSize: "0.75rem",
-            mb: 2,
-          }}
-        >
-          Click any platform to post a direct invite link to your feed or chat:
-        </Typography>
-
-        {/* Share Buttons */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "repeat(2, 1fr)",
-              sm: "repeat(3, 1fr)",
-              md: "repeat(6, 1fr)",
-            },
-            gap: 1,
-          }}
-        >
-          {SHARE_PLATFORMS.map((platform, idx) => (
-            <Button
-              key={idx}
-              component="a"
-              href={platform.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="outlined"
-              sx={{
-                py: 1,
-                px: 1.2,
-                display: "flex",
-                alignItems: "center",
-                gap: 0.8,
-                bgcolor: "#141D26",
-                borderColor: "rgba(255, 255, 255, 0.08)",
-                color: "#F0F3F6",
-                borderRadius: "6px",
-                textTransform: "none",
-                fontFamily: SYSTEM_FONT,
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                transition: "all 0.15s ease",
-                "&:hover": {
-                  borderColor: platform.accent,
-                  bgcolor: "rgba(255, 255, 255, 0.04)",
-                },
-              }}
-            >
-              <Box sx={{ color: platform.accent, display: "flex" }}>
-                {platform.icon}
-              </Box>
-              <Typography
-                sx={{
-                  fontFamily: SYSTEM_FONT,
-                  fontSize: "0.75rem",
-                  fontWeight: 500,
-                }}
-              >
-                {platform.name}
-              </Typography>
-            </Button>
-          ))}
-        </Box>
-
-        {/* Copy Fallback Bar */}
-        <Box
-          sx={{
-            mt: 2,
-            p: 1.2,
-            bgcolor: "#141D26",
-            borderRadius: "6px",
-            border: "1px solid rgba(255, 255, 255, 0.06)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 1.5,
-          }}
-        >
-          <Typography
-            sx={{
-              fontFamily: SYSTEM_FONT,
-              color: "#8E9AA8",
-              fontSize: "0.75rem",
-              textOverflow: "ellipsis",
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {currentAppUrl}
-          </Typography>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={handleCopy}
-            startIcon={
-              copied ? (
-                <CheckIcon sx={{ fontSize: 14 }} />
-              ) : (
-                <CopyIcon sx={{ fontSize: 14 }} />
-              )
-            }
-            sx={{
-              flexShrink: 0,
-              py: 0.4,
-              px: 1.5,
-              fontSize: "0.72rem",
-              fontFamily: SYSTEM_FONT,
-              fontWeight: 600,
-              textTransform: "none",
-              borderRadius: "4px",
-              boxShadow: "none",
-              bgcolor: copied ? "#2ED573" : "#FF4655",
-              color: copied ? "#0E151D" : "#FFFFFF",
-              "&:hover": {
-                bgcolor: copied ? "#26AF5F" : "#E03B49",
-                boxShadow: "none",
-              },
-            }}
-          >
-            {copied ? "Copied" : "Copy Link"}
-          </Button>
-        </Box>
-      </Box>
-
-      {/* ── Section 2: About Me & Personal Media ── */}
       <Box
         sx={{
           p: { xs: 2, sm: 2.5 },
@@ -329,7 +174,6 @@ export default function ConnectAndShare(): JSX.Element {
             gap: 2,
           }}
         >
-          {/* Personal Bio */}
           <Box
             sx={{
               p: 2,
@@ -392,7 +236,7 @@ export default function ConnectAndShare(): JSX.Element {
               on the team, and share their party codes instantly.
             </Typography>
 
-            {/* <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.8 }}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.8 }}>
               {TECH_STACK.map((tech) => (
                 <Chip
                   key={tech}
@@ -409,10 +253,9 @@ export default function ConnectAndShare(): JSX.Element {
                   }}
                 />
               ))}
-            </Box> */}
+            </Box>
           </Box>
 
-          {/* Direct Social Links */}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
             <Typography
               sx={{
@@ -480,6 +323,154 @@ export default function ConnectAndShare(): JSX.Element {
               </Box>
             ))}
           </Box>
+        </Box>
+      </Box>
+
+      <Box
+        sx={{
+          p: { xs: 2, sm: 2.5 },
+          bgcolor: "#17212B",
+          borderRadius: "8px",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+          <BroadcastIcon sx={{ color: "#FF4655", fontSize: 20 }} />
+          <Typography
+            sx={{
+              fontFamily: SYSTEM_FONT,
+              fontWeight: 600,
+              fontSize: { xs: "0.95rem", sm: "1.05rem" },
+              color: "#F0F3F6",
+            }}
+          >
+            Share with friends
+          </Typography>
+        </Box>
+
+        <Typography
+          sx={{
+            fontFamily: SYSTEM_FONT,
+            color: "#8E9AA8",
+            fontSize: "0.75rem",
+            mb: 2,
+          }}
+        >
+          Click any platform to post a direct invite link to your feed or chat:
+        </Typography>
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "repeat(2, 1fr)",
+              sm: "repeat(3, 1fr)",
+              md: "repeat(6, 1fr)",
+            },
+            gap: 1,
+          }}
+        >
+          {SHARE_PLATFORMS.map((platform, idx) => (
+            <Button
+              key={idx}
+              component="a"
+              href={platform.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="outlined"
+              sx={{
+                py: 1,
+                px: 1.2,
+                display: "flex",
+                alignItems: "center",
+                gap: 0.8,
+                bgcolor: "#141D26",
+                borderColor: "rgba(255, 255, 255, 0.08)",
+                color: "#F0F3F6",
+                borderRadius: "6px",
+                textTransform: "none",
+                fontFamily: SYSTEM_FONT,
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                transition: "all 0.15s ease",
+                "&:hover": {
+                  borderColor: platform.accent,
+                  bgcolor: "rgba(255, 255, 255, 0.04)",
+                },
+              }}
+            >
+              <Box sx={{ color: platform.accent, display: "flex" }}>
+                {platform.icon}
+              </Box>
+              <Typography
+                sx={{
+                  fontFamily: SYSTEM_FONT,
+                  fontSize: "0.75rem",
+                  fontWeight: 500,
+                }}
+              >
+                {platform.name}
+              </Typography>
+            </Button>
+          ))}
+        </Box>
+
+        <Box
+          sx={{
+            mt: 2,
+            p: 1.2,
+            bgcolor: "#141D26",
+            borderRadius: "6px",
+            border: "1px solid rgba(255, 255, 255, 0.06)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1.5,
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: SYSTEM_FONT,
+              color: "#8E9AA8",
+              fontSize: "0.75rem",
+              textOverflow: "ellipsis",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {currentAppUrl}
+          </Typography>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={handleCopy}
+            startIcon={
+              copied ? (
+                <CheckIcon sx={{ fontSize: 14 }} />
+              ) : (
+                <CopyIcon sx={{ fontSize: 14 }} />
+              )
+            }
+            sx={{
+              flexShrink: 0,
+              py: 0.4,
+              px: 1.5,
+              fontSize: "0.72rem",
+              fontFamily: SYSTEM_FONT,
+              fontWeight: 600,
+              textTransform: "none",
+              borderRadius: "4px",
+              boxShadow: "none",
+              bgcolor: copied ? "#2ED573" : "#FF4655",
+              color: copied ? "#0E151D" : "#FFFFFF",
+              "&:hover": {
+                bgcolor: copied ? "#26AF5F" : "#E03B49",
+                boxShadow: "none",
+              },
+            }}
+          >
+            {copied ? "Copied" : "Copy Link"}
+          </Button>
         </Box>
       </Box>
     </Box>

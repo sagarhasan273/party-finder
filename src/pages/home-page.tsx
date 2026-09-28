@@ -189,7 +189,7 @@ const now = (): string =>
   });
 
 export function HomePage(): JSX.Element {
-  // Directly consume everything from the Socket Provider
+  // Consumed exclusively from the Socket Provider
   const { emit, on, isConnected, socketId } = useSocket();
 
   const [username, setUsername] = useState<string>(
@@ -388,7 +388,6 @@ export function HomePage(): JSX.Element {
     [bindDataChannel, setupVAD, emit, teardownWebRTC],
   );
 
-  // Bind Provider listeners
   useEffect(() => {
     remoteAudioRef.current.autoplay = true;
 
@@ -428,7 +427,7 @@ export function HomePage(): JSX.Element {
           await flushPendingIce(pc);
         },
       ),
-      on<{ candidate: RTCIceCandidateInit }>(
+      on<{ senderSocketId: string; candidate: RTCIceCandidateInit }>(
         "webrtc-ice-candidate",
         async ({ candidate }) => {
           const pc = pcRef.current;
@@ -555,7 +554,6 @@ export function HomePage(): JSX.Element {
         fontFamily: SYSTEM_FONT,
       }}
     >
-      {/* ── Top Header ── */}
       <Box
         sx={{
           display: "flex",
@@ -644,7 +642,6 @@ export function HomePage(): JSX.Element {
         </Alert>
       )}
 
-      {/* ── Main Workspace ── */}
       {queueState !== "matched" || !matchData ? (
         <Box
           sx={{
@@ -669,7 +666,6 @@ export function HomePage(): JSX.Element {
             <Radar sx={{ color: "#FF4655", fontSize: 18 }} /> Find Teammates
           </Typography>
 
-          {/* Form Matrix */}
           <Box
             sx={{
               display: "grid",
@@ -866,7 +862,6 @@ export function HomePage(): JSX.Element {
             </FormControl>
           </Box>
 
-          {/* Ranks Row */}
           <Box
             sx={{
               display: "grid",
@@ -888,7 +883,6 @@ export function HomePage(): JSX.Element {
             />
           </Box>
 
-          {/* Live Telemetry Display */}
           <Box
             sx={{
               mt: 2,
@@ -940,7 +934,6 @@ export function HomePage(): JSX.Element {
             </Typography>
           </Box>
 
-          {/* Search Trigger */}
           <Box sx={{ mt: 2 }}>
             {queueState === "searching" ? (
               <Box
@@ -1015,7 +1008,7 @@ export function HomePage(): JSX.Element {
           </Box>
         </Box>
       ) : (
-        /* ── Tactical Room Link (Match Found) ── */
+        /* Tactical Room Link */
         <Box
           sx={{
             display: "grid",
@@ -1024,7 +1017,6 @@ export function HomePage(): JSX.Element {
           }}
         >
           <Box sx={{ display: "grid", gap: 2, alignContent: "start" }}>
-            {/* Operator Voice Comms Box */}
             <Box
               sx={{
                 p: { xs: 2, sm: 2.5 },
@@ -1125,7 +1117,6 @@ export function HomePage(): JSX.Element {
                 </Box>
               </Box>
 
-              {/* Roster Cards */}
               <Typography
                 sx={{
                   fontFamily: SYSTEM_FONT,
@@ -1216,7 +1207,6 @@ export function HomePage(): JSX.Element {
               </Box>
             </Box>
 
-            {/* Direct Party Code Box */}
             <Box
               sx={{
                 p: { xs: 2, sm: 2.5 },
@@ -1323,7 +1313,6 @@ export function HomePage(): JSX.Element {
             </Box>
           </Box>
 
-          {/* Text Chat */}
           <Box
             sx={{
               p: { xs: 2, sm: 2.5 },
@@ -1451,7 +1440,6 @@ export function HomePage(): JSX.Element {
         </Box>
       )}
 
-      {/* ── Footer Dossier & Viral Share ── */}
       <ConnectWithMe />
     </Container>
   );
