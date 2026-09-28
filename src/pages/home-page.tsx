@@ -1,5 +1,6 @@
 import type { SelectChangeEvent } from "@mui/material";
 
+import { Crosshair } from "lucide-react";
 import React, { useRef, useState, useEffect, useCallback } from "react";
 
 import {
@@ -18,6 +19,7 @@ import {
   Box,
   Chip,
   Alert,
+  Stack,
   Button,
   Select,
   MenuItem,
@@ -511,28 +513,33 @@ export function HomePage(): JSX.Element {
           borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Stack direction="row" alignItems="center" gap={1} sx={{ mr: 4 }}>
           <Box
             sx={{
-              width: 8,
-              height: 8,
-              bgcolor: "#FF4655",
-              borderRadius: "2px",
+              width: 32,
+              height: 32,
+              borderRadius: "6px",
+              background: "#FF4655",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
-          />
+          >
+            <Crosshair size={16} color="#fff" />
+          </Box>
           <Typography
             sx={{
-              fontFamily: SYSTEM_FONT,
-              fontWeight: 700,
-              fontSize: { xs: "1.05rem", sm: "1.2rem" },
-              color: "#F0F3F6",
-              m: 0,
+              fontFamily: '"Rajdhani", sans-serif',
+              fontWeight: 900,
+              fontSize: "1.35rem",
+              letterSpacing: "0.06em",
+              color: "#e8ecf0",
               lineHeight: 1,
             }}
           >
-            Valorant 5th Finder
+            Valorant <span style={{ color: "#FF4655" }}>5</span>th Finder
           </Typography>
-        </Box>
+        </Stack>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Chip
