@@ -41,17 +41,28 @@ const SYSTEM_FONT =
 
 const ICE_SERVERS: RTCConfiguration = {
   iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:global.stun.twilio.com:3478" },
     {
-      urls: "turn:openrelay.metered.ca:80",
-      username: "openrelayproject",
-      credential: "openrelayproject",
+      urls: "stun:stun.relay.metered.ca:80",
     },
     {
-      urls: "turn:openrelay.metered.ca:443",
-      username: "openrelayproject",
-      credential: "openrelayproject",
+      urls: "turn:global.relay.metered.ca:80",
+      username: "74d8e1bcc14d1fcb6eb152c3",
+      credential: "ybp27pjQ9oRDsDcx",
+    },
+    {
+      urls: "turn:global.relay.metered.ca:80?transport=tcp",
+      username: "74d8e1bcc14d1fcb6eb152c3",
+      credential: "ybp27pjQ9oRDsDcx",
+    },
+    {
+      urls: "turn:global.relay.metered.ca:443",
+      username: "74d8e1bcc14d1fcb6eb152c3",
+      credential: "ybp27pjQ9oRDsDcx",
+    },
+    {
+      urls: "turns:global.relay.metered.ca:443?transport=tcp",
+      username: "74d8e1bcc14d1fcb6eb152c3",
+      credential: "ybp27pjQ9oRDsDcx",
     },
   ],
 };
