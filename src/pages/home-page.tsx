@@ -100,9 +100,15 @@ export function HomePage(): JSX.Element {
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const dcRef = useRef<RTCDataChannel | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
-  const remoteAudioRef = useRef<HTMLAudioElement>(new Audio());
+
+  // Use a ref for the physical DOM element to bypass autoplay restrictions
+  const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
+
   const vadRef = useRef<Vad[]>([]);
   const pendingIceRef = useRef<RTCIceCandidateInit[]>([]);
+
+  // Create a tracking Promise to solve the WebRTC Answer race condition
+  const mediaReadyPromiseRef = useRef<Promise<void> | null>(null);
 
   const flushPendingIce = async (pc: RTCPeerConnection): Promise<void> => {
     if (!pendingIceRef.current.length) return;
@@ -193,6 +199,7 @@ export function HomePage(): JSX.Element {
     }
 
     pendingIceRef.current = [];
+    mediaReadyPromiseRef.current = null;
     setIsLocalSpeaking(false);
     setIsRemoteSpeaking(false);
   }, []);
@@ -222,10 +229,12 @@ export function HomePage(): JSX.Element {
       };
 
       pc.ontrack = (e: RTCTrackEvent) => {
-        remoteAudioRef.current.srcObject = e.streams[0];
-        remoteAudioRef.current.play().catch((err) => {
-          console.warn("[WebRTC] Autoplay prevented:", err);
-        });
+        if (remoteAudioRef.current) {
+          remoteAudioRef.current.srcObject = e.streams[0];
+          remoteAudioRef.current.play().catch((err) => {
+            console.warn("[WebRTC] Autoplay prevented:", err);
+          });
+        }
         setupVAD(e.streams[0], true);
       };
 
@@ -240,22 +249,29 @@ export function HomePage(): JSX.Element {
 
       const pc = getOrCreatePeerConnection(peerSocketId);
 
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-          },
-        });
-        localStreamRef.current = stream;
-        stream.getTracks().forEach((t) => pc.addTrack(t, stream));
-        setupVAD(stream, false);
-      } catch {
-        setValidationError(
-          "Microphone permission denied. Voice comms are disabled.",
-        );
-      }
+      // Track the async microphone fetch so we don't accidentally answer
+      // an incoming offer before the mic track is added.
+      mediaReadyPromiseRef.current = (async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            },
+          });
+          localStreamRef.current = stream;
+          stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+          setupVAD(stream, false);
+        } catch {
+          setValidationError(
+            "Microphone permission denied. Voice comms are disabled.",
+          );
+        }
+      })();
+
+      // Wait until the mic is fully captured or denied
+      await mediaReadyPromiseRef.current;
 
       if (isInitiator) {
         const dc = pc.createDataChannel("valorantComm", { ordered: true });
@@ -280,8 +296,6 @@ export function HomePage(): JSX.Element {
   );
 
   useEffect(() => {
-    remoteAudioRef.current.autoplay = true;
-
     const unsubscribe = [
       on<Telemetry>("telemetry-update", setTelemetry),
       on<{ status: QueueState }>("queue-status", (d) =>
@@ -307,6 +321,11 @@ export function HomePage(): JSX.Element {
           }
 
           try {
+            // CRITICAL FIX: Ensure local mic has been added BEFORE answering
+            if (mediaReadyPromiseRef.current) {
+              await mediaReadyPromiseRef.current;
+            }
+
             await pc.setRemoteDescription(new RTCSessionDescription(offer));
             await flushPendingIce(pc);
             const answer = await pc.createAnswer();
@@ -672,6 +691,11 @@ export function HomePage(): JSX.Element {
       )}
 
       <ConnectWithMe />
+
+      {/* Hidden Audio element for rendering WebRTC remote tracks correctly */}
+      <audio ref={remoteAudioRef} autoPlay style={{ display: "none" }}>
+        <track kind="captions" />
+      </audio>
     </Container>
   );
 }
