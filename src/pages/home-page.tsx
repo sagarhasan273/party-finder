@@ -1,8 +1,6 @@
-import type { SelectChangeEvent } from "@mui/material";
-
-import { Crosshair } from "lucide-react";
 import React, { useRef, useState, useEffect, useCallback } from "react";
-
+import type { SelectChangeEvent } from "@mui/material";
+import { Crosshair } from "lucide-react";
 import {
   Mic,
   Send,
@@ -143,9 +141,7 @@ interface RankSelectProps {
 
 const RankSelect = ({ label, value, onChange }: RankSelectProps) => (
   <FormControl fullWidth size="small">
-    <InputLabel
-      sx={{ color: "#8E9AA8", fontFamily: SYSTEM_FONT, fontSize: "0.8rem" }}
-    >
+    <InputLabel sx={{ color: "#8E9AA8", fontFamily: SYSTEM_FONT, fontSize: "0.8rem" }}>
       {label}
     </InputLabel>
     <Select
@@ -189,11 +185,10 @@ const now = (): string =>
   });
 
 export function HomePage(): JSX.Element {
-  // Consumed exclusively from the Socket Provider
   const { emit, on, isConnected, socketId } = useSocket();
 
   const [username, setUsername] = useState<string>(
-    `Agent#${Math.floor(1000 + Math.random() * 9000)}`,
+    `Agent#${Math.floor(1000 + Math.random() * 9000)}`
   );
   const [region, setRegion] = useState<string>("AP");
   const [server, setServer] = useState<string>(VALORANT_REGIONS.AP[0]);
@@ -239,48 +234,55 @@ export function HomePage(): JSX.Element {
         } catch (err) {
           console.warn("[WebRTC] Error adding buffered ICE candidate:", err);
         }
-      }),
+      })
     );
   };
 
-  const setupVAD = useCallback(
-    (stream: MediaStream, isRemote: boolean): void => {
-      try {
-        const Ctx =
-          window.AudioContext ||
-          (window as unknown as { webkitAudioContext: typeof AudioContext })
-            .webkitAudioContext;
-        const ctx = new Ctx();
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 512;
-        ctx.createMediaStreamSource(stream).connect(analyser);
-        const data = new Uint8Array(analyser.frequencyBinCount);
-        const vad: Vad = { ctx, frame: null };
-        const tick = (): void => {
-          analyser.getByteFrequencyData(data);
-          const avg = data.reduce((a, v) => a + v, 0) / data.length;
-          (isRemote ? setIsRemoteSpeaking : setIsLocalSpeaking)(avg > 22);
-          vad.frame = requestAnimationFrame(tick);
-        };
-        tick();
-        vadRef.current.push(vad);
-      } catch (e) {
-        console.warn("VAD error:", e);
-      }
-    },
-    [],
-  );
+  const setupVAD = useCallback((stream: MediaStream, isRemote: boolean): void => {
+    try {
+      const Ctx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new Ctx();
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 512;
+      ctx.createMediaStreamSource(stream).connect(analyser);
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      const vad: Vad = { ctx, frame: null };
+      const tick = (): void => {
+        analyser.getByteFrequencyData(data);
+        const avg = data.reduce((a, v) => a + v, 0) / data.length;
+        (isRemote ? setIsRemoteSpeaking : setIsLocalSpeaking)(avg > 22);
+        vad.frame = requestAnimationFrame(tick);
+      };
+      tick();
+      vadRef.current.push(vad);
+    } catch (e) {
+      console.warn("VAD error:", e);
+    }
+  }, []);
 
   const bindDataChannel = useCallback((dc: RTCDataChannel): void => {
+    dcRef.current = dc;
+
+    dc.onopen = () => {
+      console.log("[WebRTC] DataChannel Open");
+    };
+
+    dc.onclose = () => {
+      console.log("[WebRTC] DataChannel Closed");
+    };
+
+    dc.onerror = (e) => {
+      console.warn("[WebRTC] DataChannel Error:", e);
+    };
+
     dc.onmessage = (event: MessageEvent<string>) => {
       try {
         const payload = JSON.parse(event.data) as DataChannelPayload;
         if (payload.type === "CHAT") {
           setChatMessages((p) => [...p, payload.data]);
-          setTimeout(
-            () => chatScrollRef.current?.scrollIntoView({ behavior: "smooth" }),
-            40,
-          );
+          setTimeout(() => chatScrollRef.current?.scrollIntoView({ behavior: "smooth" }), 40);
         } else if (payload.type === "PARTY_CODE") {
           setReceivedPartyCode(payload.data.partyCode);
         }
@@ -322,58 +324,58 @@ export function HomePage(): JSX.Element {
     setIsRemoteSpeaking(false);
   }, []);
 
+  const getOrCreatePeerConnection = useCallback((peerSocketId: string): RTCPeerConnection => {
+    if (pcRef.current) return pcRef.current;
+
+    const pc = new RTCPeerConnection(ICE_SERVERS);
+    pcRef.current = pc;
+
+    pc.oniceconnectionstatechange = () => {
+      if (pc.iceConnectionState === "failed") {
+        setValidationError("Voice channel connection failed. Verify TURN network access.");
+      }
+    };
+
+    pc.onicecandidate = (e: RTCPeerConnectionIceEvent) => {
+      if (e.candidate) {
+        emit("webrtc-ice-candidate", {
+          targetSocketId: peerSocketId,
+          candidate: e.candidate,
+        });
+      }
+    };
+
+    pc.ontrack = (e: RTCTrackEvent) => {
+      remoteAudioRef.current.srcObject = e.streams[0];
+      remoteAudioRef.current.play().catch((err) => {
+        console.warn("[WebRTC] Autoplay prevented:", err);
+      });
+      setupVAD(e.streams[0], true);
+    };
+
+    return pc;
+  }, [emit, setupVAD]);
+
   const initWebRTC = useCallback(
     async (isInitiator: boolean, peerSocketId: string): Promise<void> => {
       teardownWebRTC();
 
-      const pc = new RTCPeerConnection(ICE_SERVERS);
-      pcRef.current = pc;
+      const pc = getOrCreatePeerConnection(peerSocketId);
 
-      pc.oniceconnectionstatechange = () => {
-        if (pc.iceConnectionState === "failed") {
-          setValidationError(
-            "Voice channel connection failed. Verify TURN network access.",
-          );
-        }
-      };
-
+      // 1. Fetch user microphone audio
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         localStreamRef.current = stream;
         stream.getTracks().forEach((t) => pc.addTrack(t, stream));
         setupVAD(stream, false);
       } catch {
-        setValidationError(
-          "Microphone permission denied. Voice comms are disabled.",
-        );
+        setValidationError("Microphone permission denied. Voice comms are disabled.");
       }
 
-      pc.ontrack = (e: RTCTrackEvent) => {
-        remoteAudioRef.current.srcObject = e.streams[0];
-        remoteAudioRef.current.play().catch((err) => {
-          console.warn(
-            "[WebRTC] Autoplay was prevented by browser policy:",
-            err,
-          );
-        });
-        setupVAD(e.streams[0], true);
-      };
-
-      pc.onicecandidate = (e: RTCPeerConnectionIceEvent) => {
-        if (e.candidate) {
-          emit("webrtc-ice-candidate", {
-            targetSocketId: peerSocketId,
-            candidate: e.candidate,
-          });
-        }
-      };
-
+      // 2. Negotiate DataChannel & Offer
       if (isInitiator) {
-        const dc = pc.createDataChannel("valorantComm");
+        const dc = pc.createDataChannel("valorantComm", { ordered: true });
         bindDataChannel(dc);
-        dcRef.current = dc;
 
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
@@ -381,11 +383,10 @@ export function HomePage(): JSX.Element {
       } else {
         pc.ondatachannel = (e: RTCDataChannelEvent) => {
           bindDataChannel(e.channel);
-          dcRef.current = e.channel;
         };
       }
     },
-    [bindDataChannel, setupVAD, emit, teardownWebRTC],
+    [bindDataChannel, getOrCreatePeerConnection, emit, setupVAD, teardownWebRTC]
   );
 
   useEffect(() => {
@@ -393,9 +394,7 @@ export function HomePage(): JSX.Element {
 
     const unsubscribe = [
       on<Telemetry>("telemetry-update", setTelemetry),
-      on<{ status: QueueState }>("queue-status", (d) =>
-        setQueueState(d.status),
-      ),
+      on<{ status: QueueState }>("queue-status", (d) => setQueueState(d.status)),
       on<{ message: string }>("error-msg", (d) => {
         setValidationError(d.message);
         setQueueState("idle");
@@ -406,27 +405,39 @@ export function HomePage(): JSX.Element {
         setValidationError("");
         await initWebRTC(d.isInitiator, d.peerSocketId);
       }),
+
+      // Robust Offer Handler: Prevents race condition if offer arrives early
       on<{ senderSocketId: string; offer: RTCSessionDescriptionInit }>(
         "webrtc-offer",
         async ({ senderSocketId, offer }) => {
-          const pc = pcRef.current;
-          if (!pc) return;
-          await pc.setRemoteDescription(new RTCSessionDescription(offer));
-          await flushPendingIce(pc);
-          const answer = await pc.createAnswer();
-          await pc.setLocalDescription(answer);
-          emit("webrtc-answer", { targetSocketId: senderSocketId, answer });
-        },
+          let pc = pcRef.current;
+          if (!pc) {
+            pc = getOrCreatePeerConnection(senderSocketId);
+          }
+
+          try {
+            await pc.setRemoteDescription(new RTCSessionDescription(offer));
+            await flushPendingIce(pc);
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            emit("webrtc-answer", { targetSocketId: senderSocketId, answer });
+          } catch (err) {
+            console.error("[WebRTC] Error handling offer:", err);
+          }
+        }
       ),
-      on<{ answer: RTCSessionDescriptionInit }>(
-        "webrtc-answer",
-        async ({ answer }) => {
-          const pc = pcRef.current;
-          if (!pc) return;
+
+      on<{ answer: RTCSessionDescriptionInit }>("webrtc-answer", async ({ answer }) => {
+        const pc = pcRef.current;
+        if (!pc) return;
+        try {
           await pc.setRemoteDescription(new RTCSessionDescription(answer));
           await flushPendingIce(pc);
-        },
-      ),
+        } catch (err) {
+          console.error("[WebRTC] Error handling answer:", err);
+        }
+      }),
+
       on<{ senderSocketId: string; candidate: RTCIceCandidateInit }>(
         "webrtc-ice-candidate",
         async ({ candidate }) => {
@@ -441,8 +452,19 @@ export function HomePage(): JSX.Element {
           } else {
             pendingIceRef.current.push(candidate);
           }
-        },
+        }
       ),
+
+      // Fallback/Server Socket.io Room Relay Listeners
+      on<ChatMessage>("room-chat", (msg) => {
+        setChatMessages((p) => [...p, msg]);
+        setTimeout(() => chatScrollRef.current?.scrollIntoView({ behavior: "smooth" }), 40);
+      }),
+
+      on<{ partyCode: string }>("party-code-updated", ({ partyCode }) => {
+        setReceivedPartyCode(partyCode);
+      }),
+
       on("peer-left", () => {
         setChatMessages((p) => [
           ...p,
@@ -460,7 +482,7 @@ export function HomePage(): JSX.Element {
       unsubscribe.forEach((offFn) => offFn());
       teardownWebRTC();
     };
-  }, [on, emit, initWebRTC, teardownWebRTC]);
+  }, [on, emit, initWebRTC, getOrCreatePeerConnection, teardownWebRTC]);
 
   const handleToggleMic = (): void => {
     const track = localStreamRef.current?.getAudioTracks()[0];
@@ -494,34 +516,51 @@ export function HomePage(): JSX.Element {
     setQueueState("idle");
   };
 
-  const sendOverChannel = (payload: DataChannelPayload): void => {
-    if (dcRef.current?.readyState === "open") {
+  const sendPayload = (payload: DataChannelPayload): void => {
+    // If WebRTC Data Channel is ready, send directly P2P
+    if (dcRef.current && dcRef.current.readyState === "open") {
       dcRef.current.send(JSON.stringify(payload));
+      return;
+    }
+
+    // Failover: Emit via active Socket.IO room
+    if (matchData?.roomId) {
+      if (payload.type === "CHAT") {
+        emit("send-room-chat", {
+          roomId: matchData.roomId,
+          ...payload.data,
+        });
+      } else if (payload.type === "PARTY_CODE") {
+        emit("send-party-code", {
+          roomId: matchData.roomId,
+          partyCode: payload.data.partyCode,
+        });
+      }
     }
   };
 
   const handleSendMessage = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (!messageInput.trim()) return;
+
     const msg: ChatMessage = {
       sender: username,
       message: messageInput.trim(),
       timestamp: now(),
     };
-    sendOverChannel({ type: "CHAT", data: msg });
+
+    sendPayload({ type: "CHAT", data: msg });
     setChatMessages((p) => [...p, msg]);
     setMessageInput("");
-    setTimeout(
-      () => chatScrollRef.current?.scrollIntoView({ behavior: "smooth" }),
-      40,
-    );
+    setTimeout(() => chatScrollRef.current?.scrollIntoView({ behavior: "smooth" }), 40);
   };
 
   const handleBroadcastPartyCode = (): void => {
     if (!partyCodeInput.trim()) return;
     const partyCode = partyCodeInput.trim().toUpperCase();
-    sendOverChannel({ type: "PARTY_CODE", data: { partyCode } });
+    sendPayload({ type: "PARTY_CODE", data: { partyCode } });
     setReceivedPartyCode(partyCode);
+    setPartyCodeInput("");
   };
 
   const handleLeaveLobby = (): void => {
@@ -539,7 +578,7 @@ export function HomePage(): JSX.Element {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch {
-      /* clipboard write rejected */
+      /* write rejected */
     }
   };
 
@@ -834,28 +873,16 @@ export function HomePage(): JSX.Element {
                   },
                 }}
               >
-                <MenuItem
-                  value="4"
-                  sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
-                >
+                <MenuItem value="4" sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}>
                   4 players (need 1 solo)
                 </MenuItem>
-                <MenuItem
-                  value="3"
-                  sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
-                >
+                <MenuItem value="3" sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}>
                   3 players (need 2 players)
                 </MenuItem>
-                <MenuItem
-                  value="2"
-                  sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
-                >
+                <MenuItem value="2" sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}>
                   2 players (need 3 players)
                 </MenuItem>
-                <MenuItem
-                  value="1"
-                  sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
-                >
+                <MenuItem value="1" sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}>
                   Solo (need 4 players)
                 </MenuItem>
               </Select>
@@ -871,16 +898,8 @@ export function HomePage(): JSX.Element {
             }}
           >
             <RankSelect label="Your Rank" value={myRank} onChange={setMyRank} />
-            <RankSelect
-              label="Min Rank"
-              value={minRank}
-              onChange={setMinRank}
-            />
-            <RankSelect
-              label="Max Rank"
-              value={maxRank}
-              onChange={setMaxRank}
-            />
+            <RankSelect label="Min Rank" value={minRank} onChange={setMinRank} />
+            <RankSelect label="Max Rank" value={maxRank} onChange={setMaxRank} />
           </Box>
 
           <Box
@@ -955,8 +974,7 @@ export function HomePage(): JSX.Element {
                     color: "#FF4655",
                   }}
                 >
-                  Searching {server} for {needed} teammate
-                  {needed > 1 ? "s" : ""}...
+                  Searching {server} for {needed} teammate{needed > 1 ? "s" : ""}...
                 </Typography>
                 <Button
                   size="small"
@@ -1361,9 +1379,7 @@ export function HomePage(): JSX.Element {
               )}
               {chatMessages.map((m, i) => (
                 <Box key={i} sx={{ py: 0.4 }}>
-                  <Box
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
+                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                     <Typography
                       sx={{
                         color: m.sender === "System" ? "#FF4655" : "#2ED573",
