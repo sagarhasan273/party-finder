@@ -1,11 +1,31 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Crosshair } from "lucide-react";
-import { Box, Chip, Alert, Stack, Container, Typography, Snackbar } from "@mui/material";
+import React, { useRef, useState, useEffect, useCallback } from "react";
+
+import {
+  Box,
+  Chip,
+  Alert,
+  Stack,
+  Button,
+  Dialog,
+  Snackbar,
+  Container,
+  Typography,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 
 import { useSocket } from "../contexts/socket-context";
 import ConnectWithMe from "../components/connect-with-me";
-
-
+import { LobbyChat } from "../sections/match-making/lobby-chat";
+import { PartyCodeShare } from "../sections/match-making/party-code-share";
+import { ConnectedPlayers } from "../sections/match-making/connected-players";
+import {
+  VALORANT_RANKS,
+  MatchSearchForm,
+  VALORANT_REGIONS,
+} from "../sections/match-making/match-search-form";
 
 import type {
   Telemetry,
@@ -15,10 +35,6 @@ import type {
   SearchRequest,
   DataChannelPayload,
 } from "../types/type-common";
-import { MatchSearchForm, VALORANT_RANKS, VALORANT_REGIONS } from "../sections/match-making/match-search-form";
-import { ConnectedPlayers } from "../sections/match-making/connected-players";
-import { PartyCodeShare } from "../sections/match-making/party-code-share";
-import { LobbyChat } from "../sections/match-making/lobby-chat";
 
 const SYSTEM_FONT =
   'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -56,7 +72,7 @@ export function HomePage(): JSX.Element {
   const { emit, on, isConnected, socketId } = useSocket();
 
   const [username, setUsername] = useState<string>(
-    `Agent#${Math.floor(1000 + Math.random() * 9000)}`
+    `Agent#${Math.floor(1000 + Math.random() * 9000)}`,
   );
   const [region, setRegion] = useState<string>("AP");
   const [server, setServer] = useState<string>(VALORANT_REGIONS.AP[0]);
@@ -75,6 +91,7 @@ export function HomePage(): JSX.Element {
   const [receivedPartyCode, setReceivedPartyCode] = useState("");
   const [validationError, setValidationError] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [peerLeftPopupOpen, setPeerLeftPopupOpen] = useState(false);
 
   const [isMuted, setIsMuted] = useState(false);
   const [isLocalSpeaking, setIsLocalSpeaking] = useState(false);
@@ -99,33 +116,37 @@ export function HomePage(): JSX.Element {
         } catch (err) {
           console.warn("[WebRTC] Error adding buffered ICE candidate:", err);
         }
-      })
+      }),
     );
   };
 
-  const setupVAD = useCallback((stream: MediaStream, isRemote: boolean): void => {
-    try {
-      const Ctx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const ctx = new Ctx();
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 512;
-      ctx.createMediaStreamSource(stream).connect(analyser);
-      const data = new Uint8Array(analyser.frequencyBinCount);
-      const vad: Vad = { ctx, frame: null };
-      const tick = (): void => {
-        analyser.getByteFrequencyData(data);
-        const avg = data.reduce((a, v) => a + v, 0) / data.length;
-        (isRemote ? setIsRemoteSpeaking : setIsLocalSpeaking)(avg > 22);
-        vad.frame = requestAnimationFrame(tick);
-      };
-      tick();
-      vadRef.current.push(vad);
-    } catch (e) {
-      console.warn("VAD error:", e);
-    }
-  }, []);
+  const setupVAD = useCallback(
+    (stream: MediaStream, isRemote: boolean): void => {
+      try {
+        const Ctx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext })
+            .webkitAudioContext;
+        const ctx = new Ctx();
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 512;
+        ctx.createMediaStreamSource(stream).connect(analyser);
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        const vad: Vad = { ctx, frame: null };
+        const tick = (): void => {
+          analyser.getByteFrequencyData(data);
+          const avg = data.reduce((a, v) => a + v, 0) / data.length;
+          (isRemote ? setIsRemoteSpeaking : setIsLocalSpeaking)(avg > 22);
+          vad.frame = requestAnimationFrame(tick);
+        };
+        tick();
+        vadRef.current.push(vad);
+      } catch (e) {
+        console.warn("VAD error:", e);
+      }
+    },
+    [],
+  );
 
   const bindDataChannel = useCallback((dc: RTCDataChannel): void => {
     dcRef.current = dc;
@@ -176,37 +197,42 @@ export function HomePage(): JSX.Element {
     setIsRemoteSpeaking(false);
   }, []);
 
-  const getOrCreatePeerConnection = useCallback((peerSocketId: string): RTCPeerConnection => {
-    if (pcRef.current) return pcRef.current;
+  const getOrCreatePeerConnection = useCallback(
+    (peerSocketId: string): RTCPeerConnection => {
+      if (pcRef.current) return pcRef.current;
 
-    const pc = new RTCPeerConnection(ICE_SERVERS);
-    pcRef.current = pc;
+      const pc = new RTCPeerConnection(ICE_SERVERS);
+      pcRef.current = pc;
 
-    pc.oniceconnectionstatechange = () => {
-      if (pc.iceConnectionState === "failed") {
-        setValidationError("Voice channel connection failed. Verify TURN network access.");
-      }
-    };
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === "failed") {
+          setValidationError(
+            "Voice channel connection failed. Verify TURN network access.",
+          );
+        }
+      };
 
-    pc.onicecandidate = (e: RTCPeerConnectionIceEvent) => {
-      if (e.candidate) {
-        emit("webrtc-ice-candidate", {
-          targetSocketId: peerSocketId,
-          candidate: e.candidate,
+      pc.onicecandidate = (e: RTCPeerConnectionIceEvent) => {
+        if (e.candidate) {
+          emit("webrtc-ice-candidate", {
+            targetSocketId: peerSocketId,
+            candidate: e.candidate,
+          });
+        }
+      };
+
+      pc.ontrack = (e: RTCTrackEvent) => {
+        remoteAudioRef.current.srcObject = e.streams[0];
+        remoteAudioRef.current.play().catch((err) => {
+          console.warn("[WebRTC] Autoplay prevented:", err);
         });
-      }
-    };
+        setupVAD(e.streams[0], true);
+      };
 
-    pc.ontrack = (e: RTCTrackEvent) => {
-      remoteAudioRef.current.srcObject = e.streams[0];
-      remoteAudioRef.current.play().catch((err) => {
-        console.warn("[WebRTC] Autoplay prevented:", err);
-      });
-      setupVAD(e.streams[0], true);
-    };
-
-    return pc;
-  }, [emit, setupVAD]);
+      return pc;
+    },
+    [emit, setupVAD],
+  );
 
   const initWebRTC = useCallback(
     async (isInitiator: boolean, peerSocketId: string): Promise<void> => {
@@ -215,12 +241,20 @@ export function HomePage(): JSX.Element {
       const pc = getOrCreatePeerConnection(peerSocketId);
 
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
         localStreamRef.current = stream;
         stream.getTracks().forEach((t) => pc.addTrack(t, stream));
         setupVAD(stream, false);
       } catch {
-        setValidationError("Microphone permission denied. Voice comms are disabled.");
+        setValidationError(
+          "Microphone permission denied. Voice comms are disabled.",
+        );
       }
 
       if (isInitiator) {
@@ -236,7 +270,13 @@ export function HomePage(): JSX.Element {
         };
       }
     },
-    [bindDataChannel, getOrCreatePeerConnection, emit, setupVAD, teardownWebRTC]
+    [
+      bindDataChannel,
+      getOrCreatePeerConnection,
+      emit,
+      setupVAD,
+      teardownWebRTC,
+    ],
   );
 
   useEffect(() => {
@@ -244,7 +284,9 @@ export function HomePage(): JSX.Element {
 
     const unsubscribe = [
       on<Telemetry>("telemetry-update", setTelemetry),
-      on<{ status: QueueState }>("queue-status", (d) => setQueueState(d.status)),
+      on<{ status: QueueState }>("queue-status", (d) =>
+        setQueueState(d.status),
+      ),
       on<{ message: string }>("error-msg", (d) => {
         setValidationError(d.message);
         setQueueState("idle");
@@ -273,19 +315,22 @@ export function HomePage(): JSX.Element {
           } catch (err) {
             console.error("[WebRTC] Error handling offer:", err);
           }
-        }
+        },
       ),
 
-      on<{ answer: RTCSessionDescriptionInit }>("webrtc-answer", async ({ answer }) => {
-        const pc = pcRef.current;
-        if (!pc) return;
-        try {
-          await pc.setRemoteDescription(new RTCSessionDescription(answer));
-          await flushPendingIce(pc);
-        } catch (err) {
-          console.error("[WebRTC] Error handling answer:", err);
-        }
-      }),
+      on<{ answer: RTCSessionDescriptionInit }>(
+        "webrtc-answer",
+        async ({ answer }) => {
+          const pc = pcRef.current;
+          if (!pc) return;
+          try {
+            await pc.setRemoteDescription(new RTCSessionDescription(answer));
+            await flushPendingIce(pc);
+          } catch (err) {
+            console.error("[WebRTC] Error handling answer:", err);
+          }
+        },
+      ),
 
       on<{ senderSocketId: string; candidate: RTCIceCandidateInit }>(
         "webrtc-ice-candidate",
@@ -301,7 +346,7 @@ export function HomePage(): JSX.Element {
           } else {
             pendingIceRef.current.push(candidate);
           }
-        }
+        },
       ),
 
       on<ChatMessage>("room-chat", (msg) => {
@@ -318,7 +363,7 @@ export function HomePage(): JSX.Element {
         setChatMessages([]);
         setReceivedPartyCode("");
         setQueueState("idle");
-        setToastMessage("Your teammate left the lobby. Returned to matchmaking.");
+        setPeerLeftPopupOpen(true);
       }),
     ];
 
@@ -435,6 +480,52 @@ export function HomePage(): JSX.Element {
           {toastMessage}
         </Alert>
       </Snackbar>
+
+      <Dialog
+        open={peerLeftPopupOpen}
+        onClose={() => setPeerLeftPopupOpen(false)}
+        PaperProps={{
+          sx: {
+            bgcolor: "#17212B",
+            border: "1px solid rgba(255, 70, 85, 0.4)",
+            borderRadius: "8px",
+            minWidth: { xs: "90vw", sm: "400px" },
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{ fontFamily: SYSTEM_FONT, color: "#FF4655", fontWeight: 600 }}
+        >
+          Lobby Closed
+        </DialogTitle>
+        <DialogContent>
+          <Typography
+            sx={{
+              fontFamily: SYSTEM_FONT,
+              color: "#F0F3F6",
+              fontSize: "0.9rem",
+            }}
+          >
+            Your teammate has left the lobby. You have been disconnected and
+            returned to matchmaking.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            variant="contained"
+            onClick={() => setPeerLeftPopupOpen(false)}
+            sx={{
+              fontFamily: SYSTEM_FONT,
+              textTransform: "none",
+              bgcolor: "#FF4655",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "#E03B49" },
+            }}
+          >
+            Acknowledge
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Box
         sx={{

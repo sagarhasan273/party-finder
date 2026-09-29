@@ -67,13 +67,13 @@ const PERSONAL_LINKS: PersonalLink[] = [
   },
 ];
 
-const TECH_STACK: string[] = [
-  "React + MUI",
-  "Node.js + Express",
-  "WebRTC P2P",
-  "MongoDB",
-  "Socket.io",
-];
+// const TECH_STACK: string[] = [
+//   "React + MUI",
+//   "Node.js + Express",
+//   "WebRTC P2P",
+//   "MongoDB",
+//   "Socket.io",
+// ];
 
 export default function ConnectAndShare(): JSX.Element {
   const [copied, setCopied] = useState<boolean>(false);
@@ -81,7 +81,7 @@ export default function ConnectAndShare(): JSX.Element {
   const currentAppUrl: string =
     typeof window !== "undefined"
       ? window.location.href
-      : "https://your-valorant-lfg-app.com";
+      : "https://www.val5th-finder.com";
 
   const sharePitch: string =
     "Looking for a 5th teammate for ranked Valorant? Check out this instant matchmaking & WebRTC lobby tool built by Sagar Hasan:";
@@ -145,187 +145,6 @@ export default function ConnectAndShare(): JSX.Element {
         fontFamily: SYSTEM_FONT,
       }}
     >
-      <Box
-        sx={{
-          p: { xs: 2, sm: 2.5 },
-          bgcolor: "#17212B",
-          borderRadius: "8px",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-          <BioIcon sx={{ color: "#2ED573", fontSize: 20 }} />
-          <Typography
-            sx={{
-              fontFamily: SYSTEM_FONT,
-              fontWeight: 600,
-              fontSize: { xs: "0.95rem", sm: "1.05rem" },
-              color: "#F0F3F6",
-            }}
-          >
-            About Sagar Hasan
-          </Typography>
-        </Box>
-
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "1.3fr 1fr" },
-            gap: 2,
-          }}
-        >
-          <Box
-            sx={{
-              p: 2,
-              bgcolor: "#141D26",
-              borderRadius: "6px",
-              border: "1px solid rgba(255, 255, 255, 0.05)",
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: 1,
-                mb: 1.2,
-              }}
-            >
-              <CodeIcon sx={{ color: "#FF4655", fontSize: 18 }} />
-              <Typography
-                sx={{
-                  fontFamily: SYSTEM_FONT,
-                  fontWeight: 600,
-                  fontSize: "0.92rem",
-                  color: "#F0F3F6",
-                }}
-              >
-                Sagar Hasan
-              </Typography>
-              <Chip
-                label="Solo Developer"
-                size="small"
-                sx={{
-                  height: 20,
-                  borderRadius: "4px",
-                  bgcolor: "rgba(46, 213, 115, 0.12)",
-                  color: "#2ED573",
-                  border: "1px solid rgba(46, 213, 115, 0.3)",
-                  fontFamily: SYSTEM_FONT,
-                  fontSize: "0.68rem",
-                  fontWeight: 500,
-                }}
-              />
-            </Box>
-
-            <Typography
-              sx={{
-                fontFamily: SYSTEM_FONT,
-                color: "#CBD5E1",
-                lineHeight: 1.6,
-                mb: 1.8,
-                fontSize: "0.82rem",
-              }}
-            >
-              Hello! I&apos;m <strong>Sagar Hasan</strong>. I designed and
-              developed this Valorant Player Finder project entirely on my own.
-              Tired of having solo-queue throwers or struggling to find the 5th
-              player to fill out a full competitive stack, I built this platform
-              using real-time WebRTC audio streams, direct P2P data channels,
-              and smart matchmaking so players can jump into voice comms, agree
-              on the team, and share their party codes instantly.
-            </Typography>
-
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.8 }}>
-              {TECH_STACK.map((tech) => (
-                <Chip
-                  key={tech}
-                  label={tech}
-                  size="small"
-                  sx={{
-                    height: 22,
-                    borderRadius: "4px",
-                    bgcolor: "rgba(255, 255, 255, 0.05)",
-                    color: "#8E9AA8",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
-                    fontFamily: SYSTEM_FONT,
-                    fontSize: "0.72rem",
-                  }}
-                />
-              ))}
-            </Box>
-          </Box>
-
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <Typography
-              sx={{
-                fontFamily: SYSTEM_FONT,
-                color: "#8E9AA8",
-                fontSize: "0.75rem",
-                fontWeight: 500,
-              }}
-            >
-              Connect with me
-            </Typography>
-
-            {PERSONAL_LINKS.map((item, idx) => (
-              <Box
-                key={idx}
-                component="a"
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{
-                  px: 1.5,
-                  py: 1,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  textDecoration: "none",
-                  bgcolor: "#141D26",
-                  borderRadius: "6px",
-                  border: "1px solid rgba(255, 255, 255, 0.06)",
-                  transition: "all 0.15s ease",
-                  "&:hover": {
-                    borderColor: item.accent,
-                    bgcolor: "rgba(255, 255, 255, 0.04)",
-                  },
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
-                  <Box sx={{ color: item.accent, display: "flex" }}>
-                    {item.icon}
-                  </Box>
-                  <Box>
-                    <Typography
-                      sx={{
-                        fontFamily: SYSTEM_FONT,
-                        fontWeight: 600,
-                        color: "#F0F3F6",
-                        fontSize: "0.8rem",
-                        lineHeight: 1.2,
-                      }}
-                    >
-                      {item.name}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontFamily: SYSTEM_FONT,
-                        color: "#8E9AA8",
-                        fontSize: "0.72rem",
-                      }}
-                    >
-                      {item.handle}
-                    </Typography>
-                  </Box>
-                </Box>
-                <ExternalIcon sx={{ fontSize: 15, color: "#8E9AA8" }} />
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      </Box>
-
       <Box
         sx={{
           p: { xs: 2, sm: 2.5 },
@@ -471,6 +290,187 @@ export default function ConnectAndShare(): JSX.Element {
           >
             {copied ? "Copied" : "Copy Link"}
           </Button>
+        </Box>
+      </Box>
+
+      <Box
+        sx={{
+          p: { xs: 2, sm: 2.5 },
+          bgcolor: "#17212B",
+          borderRadius: "8px",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+          <BioIcon sx={{ color: "#2ED573", fontSize: 20 }} />
+          <Typography
+            sx={{
+              fontFamily: SYSTEM_FONT,
+              fontWeight: 600,
+              fontSize: { xs: "0.95rem", sm: "1.05rem" },
+              color: "#F0F3F6",
+            }}
+          >
+            About Sagar Hasan
+          </Typography>
+        </Box>
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "1.3fr 1fr" },
+            gap: 2,
+          }}
+        >
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: "#141D26",
+              borderRadius: "6px",
+              border: "1px solid rgba(255, 255, 255, 0.05)",
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 1,
+                mb: 1.2,
+              }}
+            >
+              <CodeIcon sx={{ color: "#FF4655", fontSize: 18 }} />
+              <Typography
+                sx={{
+                  fontFamily: SYSTEM_FONT,
+                  fontWeight: 600,
+                  fontSize: "0.92rem",
+                  color: "#F0F3F6",
+                }}
+              >
+                Sagar Hasan
+              </Typography>
+              <Chip
+                label="Solo Developer"
+                size="small"
+                sx={{
+                  height: 20,
+                  borderRadius: "4px",
+                  bgcolor: "rgba(46, 213, 115, 0.12)",
+                  color: "#2ED573",
+                  border: "1px solid rgba(46, 213, 115, 0.3)",
+                  fontFamily: SYSTEM_FONT,
+                  fontSize: "0.68rem",
+                  fontWeight: 500,
+                }}
+              />
+            </Box>
+
+            <Typography
+              sx={{
+                fontFamily: SYSTEM_FONT,
+                color: "#CBD5E1",
+                lineHeight: 1.6,
+                mb: 1.8,
+                fontSize: "0.82rem",
+              }}
+            >
+              Hello! I&apos;m <strong>Sagar Hasan</strong>. I designed and
+              developed this Valorant Player Finder project entirely on my own.
+              Tired of having solo-queue throwers or struggling to find the 5th
+              player to fill out a full competitive stack, I built this platform
+              using real-time WebRTC audio streams, direct P2P data channels,
+              and smart matchmaking so players can jump into voice comms, agree
+              on the team, and share their party codes instantly.
+            </Typography>
+
+            {/* <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.8 }}>
+              {TECH_STACK.map((tech) => (
+                <Chip
+                  key={tech}
+                  label={tech}
+                  size="small"
+                  sx={{
+                    height: 22,
+                    borderRadius: "4px",
+                    bgcolor: "rgba(255, 255, 255, 0.05)",
+                    color: "#8E9AA8",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    fontFamily: SYSTEM_FONT,
+                    fontSize: "0.72rem",
+                  }}
+                />
+              ))}
+            </Box> */}
+          </Box>
+
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            <Typography
+              sx={{
+                fontFamily: SYSTEM_FONT,
+                color: "#8E9AA8",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+              }}
+            >
+              Connect with me
+            </Typography>
+
+            {PERSONAL_LINKS.map((item, idx) => (
+              <Box
+                key={idx}
+                component="a"
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  px: 1.5,
+                  py: 1,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  textDecoration: "none",
+                  bgcolor: "#141D26",
+                  borderRadius: "6px",
+                  border: "1px solid rgba(255, 255, 255, 0.06)",
+                  transition: "all 0.15s ease",
+                  "&:hover": {
+                    borderColor: item.accent,
+                    bgcolor: "rgba(255, 255, 255, 0.04)",
+                  },
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
+                  <Box sx={{ color: item.accent, display: "flex" }}>
+                    {item.icon}
+                  </Box>
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontFamily: SYSTEM_FONT,
+                        fontWeight: 600,
+                        color: "#F0F3F6",
+                        fontSize: "0.8rem",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {item.name}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: SYSTEM_FONT,
+                        color: "#8E9AA8",
+                        fontSize: "0.72rem",
+                      }}
+                    >
+                      {item.handle}
+                    </Typography>
+                  </Box>
+                </Box>
+                <ExternalIcon sx={{ fontSize: 15, color: "#8E9AA8" }} />
+              </Box>
+            ))}
+          </Box>
         </Box>
       </Box>
     </Box>

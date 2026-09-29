@@ -1,6 +1,14 @@
 import React, { useState } from "react";
-import { Box, Typography, TextField, Button, Alert, IconButton } from "@mui/material";
+
 import { ContentCopy, CheckCircle } from "@mui/icons-material";
+import {
+  Box,
+  Alert,
+  Button,
+  TextField,
+  Typography,
+  IconButton,
+} from "@mui/material";
 
 const SYSTEM_FONT =
   'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -81,8 +89,13 @@ export const PartyCodeShare: React.FC<PartyCodeShareProps> = ({
             "& .MuiAlert-message": { py: 0.2 },
           }}
           action={
-            <IconButton size="small" onClick={() => copyToClipboard(receivedPartyCode)}>
-              <ContentCopy sx={{ color: isCopied ? "#2ED573" : "#8E9AA8", fontSize: 14 }} />
+            <IconButton
+              size="small"
+              onClick={() => copyToClipboard(receivedPartyCode)}
+            >
+              <ContentCopy
+                sx={{ color: isCopied ? "#2ED573" : "#8E9AA8", fontSize: 14 }}
+              />
             </IconButton>
           }
         >

@@ -3,10 +3,6 @@ import { Route, Routes, Navigate, BrowserRouter } from "react-router-dom";
 import { Box } from "@mui/material";
 
 import { HomePage } from "../pages/home-page";
-import { ProfilePage } from "../pages/profile-page";
-import { MyLobbyPage } from "../pages/my-lobby-page";
-import { CreateLobbyPage } from "../pages/create-lobby-page";
-import { LobbyJoinRequested } from "../pages/lobby-join-requested";
 
 export function AppRouter() {
   return (
@@ -17,10 +13,6 @@ export function AppRouter() {
         <Box component="main" sx={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/create" element={<CreateLobbyPage />} />
-            <Route path="/applied-lobbies" element={<LobbyJoinRequested />} />
-            <Route path="/my-lobby" element={<MyLobbyPage />} />
             {/* Catch all - redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

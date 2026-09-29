@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Box, Typography, TextField, IconButton } from "@mui/material";
+
 import { Send } from "@mui/icons-material";
+import { Box, TextField, Typography, IconButton } from "@mui/material";
+
 import type { ChatMessage } from "../../types/type-common";
 
 const SYSTEM_FONT =
@@ -37,6 +39,9 @@ export const LobbyChat: React.FC<LobbyChatProps> = ({
   return (
     <Box
       sx={{
+        boxSizing: "border-box", // Ensures padding doesn't add to the total width
+        minWidth: 0, // Prevents flex/grid blowouts
+        overflowX: "hidden", // Double-safeguard against horizontal scroll
         p: { xs: 2, sm: 2.5 },
         bgcolor: "#17212B",
         borderRadius: "8px",
@@ -65,6 +70,8 @@ export const LobbyChat: React.FC<LobbyChatProps> = ({
           minHeight: 180,
           maxHeight: { xs: 220, md: 360 },
           overflowY: "auto",
+          overflowX: "hidden",
+          minWidth: 0,
           bgcolor: "#141D26",
           border: "1px solid rgba(255, 255, 255, 0.05)",
           borderRadius: "6px",
@@ -86,14 +93,28 @@ export const LobbyChat: React.FC<LobbyChatProps> = ({
         )}
 
         {messages.map((m, i) => (
-          <Box key={`${m.sender}-${m.timestamp}-${i}`} sx={{ py: 0.4 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+          <Box
+            key={`${m.sender}-${m.timestamp}-${i}`}
+            sx={{ py: 0.4, minWidth: 0 }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 1,
+                minWidth: 0,
+              }}
+            >
               <Typography
                 sx={{
                   color: m.sender === "System" ? "#FF4655" : "#2ED573",
                   fontWeight: 600,
                   fontFamily: SYSTEM_FONT,
                   fontSize: "0.72rem",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
               >
                 {m.sender}
@@ -103,6 +124,7 @@ export const LobbyChat: React.FC<LobbyChatProps> = ({
                   color: "#8E9AA8",
                   fontFamily: SYSTEM_FONT,
                   fontSize: "0.65rem",
+                  flexShrink: 0,
                 }}
               >
                 {m.timestamp}
@@ -112,6 +134,7 @@ export const LobbyChat: React.FC<LobbyChatProps> = ({
               sx={{
                 color: "#F0F3F6",
                 wordBreak: "break-word",
+                overflowWrap: "anywhere",
                 mt: 0.1,
                 fontSize: "0.78rem",
               }}
@@ -122,7 +145,11 @@ export const LobbyChat: React.FC<LobbyChatProps> = ({
         ))}
       </Box>
 
-      <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", gap: 0.8 }}>
+      <Box
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{ display: "flex", gap: 0.8, minWidth: 0 }}
+      >
         <TextField
           fullWidth
           size="small"
@@ -130,13 +157,14 @@ export const LobbyChat: React.FC<LobbyChatProps> = ({
           value={messageInput}
           onChange={(e) => setMessageInput(e.target.value)}
           sx={{
+            minWidth: 0,
             bgcolor: "#141D26",
             "& .MuiOutlinedInput-root": {
               color: "#F0F3F6",
               borderRadius: "6px",
               fontFamily: SYSTEM_FONT,
               fontSize: "0.82rem",
-              "& input": { py: 0.8, px: 1.2 },
+              "& input": { py: 0.8, px: 1.2, boxSizing: "border-box" },
               "& fieldset": { borderColor: "rgba(255, 255, 255, 0.1)" },
             },
           }}
@@ -145,6 +173,7 @@ export const LobbyChat: React.FC<LobbyChatProps> = ({
           type="submit"
           size="small"
           sx={{
+            flexShrink: 0,
             p: 0.9,
             bgcolor: "rgba(255, 70, 85, 0.15)",
             color: "#FF4655",

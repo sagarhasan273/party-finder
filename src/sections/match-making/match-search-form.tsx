@@ -1,5 +1,8 @@
-import React from "react";
 import type { SelectChangeEvent } from "@mui/material";
+
+import React from "react";
+
+import { Radar, Groups, FiberManualRecord } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -10,8 +13,8 @@ import {
   InputLabel,
   FormControl,
 } from "@mui/material";
+
 import type { Telemetry, QueueState } from "../../types/type-common";
-import { Radar, Groups, FiberManualRecord } from "@mui/icons-material";
 
 const SYSTEM_FONT =
   'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -56,14 +59,30 @@ export const VALORANT_REGIONS: Record<string, string[]> = {
 };
 
 export const VALORANT_RANKS: string[] = [
-  "Iron 1", "Iron 2", "Iron 3",
-  "Bronze 1", "Bronze 2", "Bronze 3",
-  "Silver 1", "Silver 2", "Silver 3",
-  "Gold 1", "Gold 2", "Gold 3",
-  "Platinum 1", "Platinum 2", "Platinum 3",
-  "Diamond 1", "Diamond 2", "Diamond 3",
-  "Ascendant 1", "Ascendant 2", "Ascendant 3",
-  "Immortal 1", "Immortal 2", "Immortal 3",
+  "Iron 1",
+  "Iron 2",
+  "Iron 3",
+  "Bronze 1",
+  "Bronze 2",
+  "Bronze 3",
+  "Silver 1",
+  "Silver 2",
+  "Silver 3",
+  "Gold 1",
+  "Gold 2",
+  "Gold 3",
+  "Platinum 1",
+  "Platinum 2",
+  "Platinum 3",
+  "Diamond 1",
+  "Diamond 2",
+  "Diamond 3",
+  "Ascendant 1",
+  "Ascendant 2",
+  "Ascendant 3",
+  "Immortal 1",
+  "Immortal 2",
+  "Immortal 3",
   "Radiant",
 ];
 
@@ -77,7 +96,9 @@ const RankSelect = ({
   onChange: (v: string) => void;
 }) => (
   <FormControl fullWidth size="small">
-    <InputLabel sx={{ color: "#8E9AA8", fontFamily: SYSTEM_FONT, fontSize: "0.8rem" }}>
+    <InputLabel
+      sx={{ color: "#8E9AA8", fontFamily: SYSTEM_FONT, fontSize: "0.8rem" }}
+    >
       {label}
     </InputLabel>
     <Select
@@ -95,11 +116,17 @@ const RankSelect = ({
           borderColor: "rgba(255, 255, 255, 0.1)",
         },
         "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#FF4655" },
-        "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF4655" },
+        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+          borderColor: "#FF4655",
+        },
       }}
     >
       {VALORANT_RANKS.map((r) => (
-        <MenuItem key={r} value={r} sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}>
+        <MenuItem
+          key={r}
+          value={r}
+          sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
+        >
           {r}
         </MenuItem>
       ))}
@@ -190,7 +217,11 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           InputLabelProps={{
-            sx: { color: "#8E9AA8", fontFamily: SYSTEM_FONT, fontSize: "0.8rem" },
+            sx: {
+              color: "#8E9AA8",
+              fontFamily: SYSTEM_FONT,
+              fontSize: "0.8rem",
+            },
           }}
           sx={{
             bgcolor: "#141D26",
@@ -208,7 +239,13 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
         />
 
         <FormControl fullWidth size="small">
-          <InputLabel sx={{ color: "#8E9AA8", fontFamily: SYSTEM_FONT, fontSize: "0.8rem" }}>
+          <InputLabel
+            sx={{
+              color: "#8E9AA8",
+              fontFamily: SYSTEM_FONT,
+              fontSize: "0.8rem",
+            }}
+          >
             Region
           </InputLabel>
           <Select
@@ -228,12 +265,20 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
               "& .MuiOutlinedInput-notchedOutline": {
                 borderColor: "rgba(255, 255, 255, 0.1)",
               },
-              "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#FF4655" },
-              "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF4655" },
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#FF4655",
+              },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#FF4655",
+              },
             }}
           >
             {Object.keys(VALORANT_REGIONS).map((r) => (
-              <MenuItem key={r} value={r} sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}>
+              <MenuItem
+                key={r}
+                value={r}
+                sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
+              >
                 {r}
               </MenuItem>
             ))}
@@ -241,7 +286,13 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
         </FormControl>
 
         <FormControl fullWidth size="small">
-          <InputLabel sx={{ color: "#8E9AA8", fontFamily: SYSTEM_FONT, fontSize: "0.8rem" }}>
+          <InputLabel
+            sx={{
+              color: "#8E9AA8",
+              fontFamily: SYSTEM_FONT,
+              fontSize: "0.8rem",
+            }}
+          >
             Server
           </InputLabel>
           <Select
@@ -258,12 +309,20 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
               "& .MuiOutlinedInput-notchedOutline": {
                 borderColor: "rgba(255, 255, 255, 0.1)",
               },
-              "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#FF4655" },
-              "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF4655" },
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#FF4655",
+              },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#FF4655",
+              },
             }}
           >
             {VALORANT_REGIONS[region].map((s) => (
-              <MenuItem key={s} value={s} sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}>
+              <MenuItem
+                key={s}
+                value={s}
+                sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
+              >
                 {s}
               </MenuItem>
             ))}
@@ -271,13 +330,21 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
         </FormControl>
 
         <FormControl fullWidth size="small">
-          <InputLabel sx={{ color: "#8E9AA8", fontFamily: SYSTEM_FONT, fontSize: "0.8rem" }}>
+          <InputLabel
+            sx={{
+              color: "#8E9AA8",
+              fontFamily: SYSTEM_FONT,
+              fontSize: "0.8rem",
+            }}
+          >
             Current Party Size
           </InputLabel>
           <Select
             value={String(groupSize)}
             label="Current Party Size"
-            onChange={(e: SelectChangeEvent) => setGroupSize(Number(e.target.value))}
+            onChange={(e: SelectChangeEvent) =>
+              setGroupSize(Number(e.target.value))
+            }
             sx={{
               bgcolor: "#141D26",
               color: "#F0F3F6",
@@ -288,20 +355,36 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
               "& .MuiOutlinedInput-notchedOutline": {
                 borderColor: "rgba(255, 255, 255, 0.1)",
               },
-              "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#FF4655" },
-              "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF4655" },
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#FF4655",
+              },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#FF4655",
+              },
             }}
           >
-            <MenuItem value="4" sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}>
+            <MenuItem
+              value="4"
+              sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
+            >
               4 players (need 1 solo)
             </MenuItem>
-            <MenuItem value="3" sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}>
+            <MenuItem
+              value="3"
+              sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
+            >
               3 players (need 2 players)
             </MenuItem>
-            <MenuItem value="2" sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}>
+            <MenuItem
+              value="2"
+              sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
+            >
               2 players (need 3 players)
             </MenuItem>
-            <MenuItem value="1" sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}>
+            <MenuItem
+              value="1"
+              sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
+            >
               Solo (need 4 players)
             </MenuItem>
           </Select>
@@ -338,18 +421,36 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
             <FiberManualRecord sx={{ color: "#2ED573", fontSize: 9 }} />
-            <Typography sx={{ fontFamily: SYSTEM_FONT, color: "#F0F3F6", fontSize: "0.78rem" }}>
+            <Typography
+              sx={{
+                fontFamily: SYSTEM_FONT,
+                color: "#F0F3F6",
+                fontSize: "0.78rem",
+              }}
+            >
               Online: <strong>{telemetry.onlinePlayers}</strong>
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
             <Groups sx={{ color: "#FF4655", fontSize: 16 }} />
-            <Typography sx={{ fontFamily: SYSTEM_FONT, color: "#F0F3F6", fontSize: "0.78rem" }}>
+            <Typography
+              sx={{
+                fontFamily: SYSTEM_FONT,
+                color: "#F0F3F6",
+                fontSize: "0.78rem",
+              }}
+            >
               In Queue: <strong>{telemetry.inQueueCount}</strong>
             </Typography>
           </Box>
         </Box>
-        <Typography sx={{ color: "#8E9AA8", fontFamily: SYSTEM_FONT, fontSize: "0.75rem" }}>
+        <Typography
+          sx={{
+            color: "#8E9AA8",
+            fontFamily: SYSTEM_FONT,
+            fontSize: "0.75rem",
+          }}
+        >
           Searching for {needed} player{needed > 1 ? "s" : ""}
         </Typography>
       </Box>
