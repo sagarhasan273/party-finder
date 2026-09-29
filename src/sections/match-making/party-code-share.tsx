@@ -117,7 +117,6 @@ export const PartyCodeShare: React.FC<PartyCodeShareProps> = ({
               borderRadius: "6px",
               fontFamily: SYSTEM_FONT,
               fontSize: "0.82rem",
-              "& input": { py: 0.8, px: 1.2 },
               "& fieldset": { borderColor: "rgba(255, 255, 255, 0.1)" },
             },
           }}

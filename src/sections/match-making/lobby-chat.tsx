@@ -156,18 +156,7 @@ export const LobbyChat: React.FC<LobbyChatProps> = ({
           placeholder="Type a message..."
           value={messageInput}
           onChange={(e) => setMessageInput(e.target.value)}
-          sx={{
-            minWidth: 0,
-            bgcolor: "#141D26",
-            "& .MuiOutlinedInput-root": {
-              color: "#F0F3F6",
-              borderRadius: "6px",
-              fontFamily: SYSTEM_FONT,
-              fontSize: "0.82rem",
-              "& input": { py: 0.8, px: 1.2, boxSizing: "border-box" },
-              "& fieldset": { borderColor: "rgba(255, 255, 255, 0.1)" },
-            },
-          }}
+          sx={{}}
         />
         <IconButton
           type="submit"
