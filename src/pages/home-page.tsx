@@ -22,6 +22,10 @@ import { LobbyChat } from "../sections/match-making/lobby-chat";
 import { PartyCodeShare } from "../sections/match-making/party-code-share";
 import { ConnectedPlayers } from "../sections/match-making/connected-players";
 import {
+  HistoryStats,
+  type HistoryStatsData,
+} from "../sections/match-making/history-stats";
+import {
   VALORANT_RANKS,
   MatchSearchForm,
   VALORANT_REGIONS,
@@ -107,6 +111,12 @@ export function HomePage(): JSX.Element {
   const [isMuted, setIsMuted] = useState(false);
   const [isLocalSpeaking, setIsLocalSpeaking] = useState(false);
   const [isRemoteSpeaking, setIsRemoteSpeaking] = useState(false);
+
+  // Add this new state for your history tracking
+  const [historyStats, setHistoryStats] = useState<HistoryStatsData>({
+    totalVisits: 0,
+    searches: {},
+  });
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const dcRef = useRef<RTCDataChannel | null>(null);
@@ -381,6 +391,10 @@ export function HomePage(): JSX.Element {
 
       on<ChatMessage>("room-chat", (msg) => {
         setChatMessages((p) => [...p, msg]);
+      }),
+
+      on<HistoryStatsData>("history-stats", (data) => {
+        setHistoryStats(data);
       }),
 
       on<{ partyCode: string }>("party-code-updated", ({ partyCode }) => {
@@ -700,6 +714,8 @@ export function HomePage(): JSX.Element {
           />
         </Box>
       )}
+
+      <HistoryStats data={historyStats} />
 
       <ConnectWithMe />
 

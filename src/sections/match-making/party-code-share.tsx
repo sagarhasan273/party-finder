@@ -27,7 +27,7 @@ export const PartyCodeShare: React.FC<PartyCodeShareProps> = ({
 
   const handleBroadcast = () => {
     if (!partyCodeInput.trim()) return;
-    onSendPartyCode(partyCodeInput.trim().toUpperCase());
+    onSendPartyCode(partyCodeInput.trim());
     setPartyCodeInput("");
   };
 
