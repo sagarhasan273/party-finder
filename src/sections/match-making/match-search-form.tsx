@@ -19,6 +19,30 @@ import type { Telemetry, QueueState } from "../../types/type-common";
 const SYSTEM_FONT =
   'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
+// --- Responsive Style Constants ---
+const RESPONSIVE_LABEL = {
+  color: "#8E9AA8",
+  fontFamily: SYSTEM_FONT,
+  fontSize: { xs: "0.8rem", sm: "0.85rem", md: "0.9rem" },
+};
+
+const RESPONSIVE_INPUT_FONT = {
+  fontFamily: SYSTEM_FONT,
+  fontSize: { xs: "0.82rem", sm: "0.88rem", md: "0.95rem" },
+};
+
+const RESPONSIVE_INPUT_PADDING = {
+  py: { xs: 1, sm: 1.2, md: 1.4 },
+  px: { xs: 1.5, sm: 1.8, md: 2 },
+};
+
+const RESPONSIVE_MENU_ITEM = {
+  fontFamily: SYSTEM_FONT,
+  fontSize: { xs: "0.82rem", sm: "0.88rem", md: "0.95rem" },
+  py: { xs: 0.8, sm: 1, md: 1.2 },
+};
+// ----------------------------------
+
 export const VALORANT_REGIONS: Record<string, string[]> = {
   NA: [
     "Ashburn (Virginia)",
@@ -90,28 +114,26 @@ const RankSelect = ({
   label,
   value,
   onChange,
+  disabled,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  disabled?: boolean;
 }) => (
-  <FormControl fullWidth size="small">
-    <InputLabel
-      sx={{ color: "#8E9AA8", fontFamily: SYSTEM_FONT, fontSize: "0.8rem" }}
-    >
-      {label}
-    </InputLabel>
+  <FormControl fullWidth size="small" disabled={disabled}>
+    <InputLabel sx={RESPONSIVE_LABEL}>{label}</InputLabel>
     <Select
       value={value}
       label={label}
+      disabled={disabled}
       onChange={(e: SelectChangeEvent) => onChange(e.target.value)}
       sx={{
         bgcolor: "#141D26",
         color: "#F0F3F6",
         borderRadius: "6px",
-        fontFamily: SYSTEM_FONT,
-        fontSize: "0.82rem",
-        "& .MuiSelect-select": { py: 1, px: 1.5 },
+        ...RESPONSIVE_INPUT_FONT,
+        "& .MuiSelect-select": RESPONSIVE_INPUT_PADDING,
         "& .MuiOutlinedInput-notchedOutline": {
           borderColor: "rgba(255, 255, 255, 0.1)",
         },
@@ -119,14 +141,16 @@ const RankSelect = ({
         "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
           borderColor: "#FF4655",
         },
+        "&.Mui-disabled .MuiOutlinedInput-notchedOutline": {
+          borderColor: "rgba(255, 255, 255, 0.05)",
+        },
+        "&.Mui-disabled": {
+          opacity: 0.6,
+        },
       }}
     >
       {VALORANT_RANKS.map((r) => (
-        <MenuItem
-          key={r}
-          value={r}
-          sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
-        >
+        <MenuItem key={r} value={r} sx={RESPONSIVE_MENU_ITEM}>
           {r}
         </MenuItem>
       ))}
@@ -178,6 +202,7 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
   onCancelSearch,
 }) => {
   const needed = 5 - groupSize;
+  const isSearching = queueState === "searching";
 
   return (
     <Box
@@ -215,42 +240,33 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
           size="small"
           label="Riot ID"
           value={username}
+          disabled={isSearching}
           onChange={(e) => setUsername(e.target.value)}
-          InputLabelProps={{
-            sx: {
-              color: "#8E9AA8",
-              fontFamily: SYSTEM_FONT,
-              fontSize: "0.8rem",
-            },
-          }}
+          InputLabelProps={{ sx: RESPONSIVE_LABEL }}
           sx={{
             bgcolor: "#141D26",
             "& .MuiOutlinedInput-root": {
               color: "#F0F3F6",
               borderRadius: "6px",
-              fontSize: "0.82rem",
-              fontFamily: SYSTEM_FONT,
-              "& input": { py: 1, px: 1.5 },
+              ...RESPONSIVE_INPUT_FONT,
+              "& input": RESPONSIVE_INPUT_PADDING,
               "& fieldset": { borderColor: "rgba(255, 255, 255, 0.1)" },
               "&:hover fieldset": { borderColor: "#FF4655" },
               "&.Mui-focused fieldset": { borderColor: "#FF4655" },
+              "&.Mui-disabled fieldset": {
+                borderColor: "rgba(255, 255, 255, 0.05)",
+              },
+              "&.Mui-disabled": { opacity: 0.6 },
             },
           }}
         />
 
-        <FormControl fullWidth size="small">
-          <InputLabel
-            sx={{
-              color: "#8E9AA8",
-              fontFamily: SYSTEM_FONT,
-              fontSize: "0.8rem",
-            }}
-          >
-            Region
-          </InputLabel>
+        <FormControl fullWidth size="small" disabled={isSearching}>
+          <InputLabel sx={RESPONSIVE_LABEL}>Region</InputLabel>
           <Select
             value={region}
             label="Region"
+            disabled={isSearching}
             onChange={(e: SelectChangeEvent) => {
               setRegion(e.target.value);
               setServer(VALORANT_REGIONS[e.target.value][0]);
@@ -259,9 +275,8 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
               bgcolor: "#141D26",
               color: "#F0F3F6",
               borderRadius: "6px",
-              fontFamily: SYSTEM_FONT,
-              fontSize: "0.82rem",
-              "& .MuiSelect-select": { py: 1, px: 1.5 },
+              ...RESPONSIVE_INPUT_FONT,
+              "& .MuiSelect-select": RESPONSIVE_INPUT_PADDING,
               "& .MuiOutlinedInput-notchedOutline": {
                 borderColor: "rgba(255, 255, 255, 0.1)",
               },
@@ -271,41 +286,33 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
               "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                 borderColor: "#FF4655",
               },
+              "&.Mui-disabled .MuiOutlinedInput-notchedOutline": {
+                borderColor: "rgba(255, 255, 255, 0.05)",
+              },
+              "&.Mui-disabled": { opacity: 0.6 },
             }}
           >
             {Object.keys(VALORANT_REGIONS).map((r) => (
-              <MenuItem
-                key={r}
-                value={r}
-                sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
-              >
+              <MenuItem key={r} value={r} sx={RESPONSIVE_MENU_ITEM}>
                 {r}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
 
-        <FormControl fullWidth size="small">
-          <InputLabel
-            sx={{
-              color: "#8E9AA8",
-              fontFamily: SYSTEM_FONT,
-              fontSize: "0.8rem",
-            }}
-          >
-            Server
-          </InputLabel>
+        <FormControl fullWidth size="small" disabled={isSearching}>
+          <InputLabel sx={RESPONSIVE_LABEL}>Server</InputLabel>
           <Select
             value={server}
             label="Server"
+            disabled={isSearching}
             onChange={(e: SelectChangeEvent) => setServer(e.target.value)}
             sx={{
               bgcolor: "#141D26",
               color: "#F0F3F6",
               borderRadius: "6px",
-              fontFamily: SYSTEM_FONT,
-              fontSize: "0.82rem",
-              "& .MuiSelect-select": { py: 1, px: 1.5 },
+              ...RESPONSIVE_INPUT_FONT,
+              "& .MuiSelect-select": RESPONSIVE_INPUT_PADDING,
               "& .MuiOutlinedInput-notchedOutline": {
                 borderColor: "rgba(255, 255, 255, 0.1)",
               },
@@ -315,33 +322,26 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
               "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                 borderColor: "#FF4655",
               },
+              "&.Mui-disabled .MuiOutlinedInput-notchedOutline": {
+                borderColor: "rgba(255, 255, 255, 0.05)",
+              },
+              "&.Mui-disabled": { opacity: 0.6 },
             }}
           >
             {VALORANT_REGIONS[region].map((s) => (
-              <MenuItem
-                key={s}
-                value={s}
-                sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
-              >
+              <MenuItem key={s} value={s} sx={RESPONSIVE_MENU_ITEM}>
                 {s}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
 
-        <FormControl fullWidth size="small">
-          <InputLabel
-            sx={{
-              color: "#8E9AA8",
-              fontFamily: SYSTEM_FONT,
-              fontSize: "0.8rem",
-            }}
-          >
-            Current Party Size
-          </InputLabel>
+        <FormControl fullWidth size="small" disabled={isSearching}>
+          <InputLabel sx={RESPONSIVE_LABEL}>Current Party Size</InputLabel>
           <Select
             value={String(groupSize)}
             label="Current Party Size"
+            disabled={isSearching}
             onChange={(e: SelectChangeEvent) =>
               setGroupSize(Number(e.target.value))
             }
@@ -349,9 +349,8 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
               bgcolor: "#141D26",
               color: "#F0F3F6",
               borderRadius: "6px",
-              fontFamily: SYSTEM_FONT,
-              fontSize: "0.82rem",
-              "& .MuiSelect-select": { py: 1, px: 1.5 },
+              ...RESPONSIVE_INPUT_FONT,
+              "& .MuiSelect-select": RESPONSIVE_INPUT_PADDING,
               "& .MuiOutlinedInput-notchedOutline": {
                 borderColor: "rgba(255, 255, 255, 0.1)",
               },
@@ -361,30 +360,22 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
               "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                 borderColor: "#FF4655",
               },
+              "&.Mui-disabled .MuiOutlinedInput-notchedOutline": {
+                borderColor: "rgba(255, 255, 255, 0.05)",
+              },
+              "&.Mui-disabled": { opacity: 0.6 },
             }}
           >
-            <MenuItem
-              value="4"
-              sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
-            >
+            <MenuItem value="4" sx={RESPONSIVE_MENU_ITEM}>
               4 players (need 1 solo)
             </MenuItem>
-            <MenuItem
-              value="3"
-              sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
-            >
+            <MenuItem value="3" sx={RESPONSIVE_MENU_ITEM}>
               3 players (need 2 players)
             </MenuItem>
-            <MenuItem
-              value="2"
-              sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
-            >
+            <MenuItem value="2" sx={RESPONSIVE_MENU_ITEM}>
               2 players (need 3 players)
             </MenuItem>
-            <MenuItem
-              value="1"
-              sx={{ fontFamily: SYSTEM_FONT, fontSize: "0.82rem", py: 0.8 }}
-            >
+            <MenuItem value="1" sx={RESPONSIVE_MENU_ITEM}>
               Solo (need 4 players)
             </MenuItem>
           </Select>
@@ -399,15 +390,30 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
           mt: 1.5,
         }}
       >
-        <RankSelect label="Your Rank" value={myRank} onChange={setMyRank} />
-        <RankSelect label="Min Rank" value={minRank} onChange={setMinRank} />
-        <RankSelect label="Max Rank" value={maxRank} onChange={setMaxRank} />
+        <RankSelect
+          label="Your Rank"
+          value={myRank}
+          onChange={setMyRank}
+          disabled={isSearching}
+        />
+        <RankSelect
+          label="Min Rank"
+          value={minRank}
+          onChange={setMinRank}
+          disabled={isSearching}
+        />
+        <RankSelect
+          label="Max Rank"
+          value={maxRank}
+          onChange={setMaxRank}
+          disabled={isSearching}
+        />
       </Box>
 
       <Box
         sx={{
           mt: 2,
-          p: 1.5,
+          p: { xs: 1.5, md: 2 },
           bgcolor: "#141D26",
           borderRadius: "6px",
           border: "1px solid rgba(255, 255, 255, 0.05)",
@@ -425,7 +431,7 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
               sx={{
                 fontFamily: SYSTEM_FONT,
                 color: "#F0F3F6",
-                fontSize: "0.78rem",
+                fontSize: { xs: "0.78rem", sm: "0.82rem", md: "0.85rem" },
               }}
             >
               Online: <strong>{telemetry.onlinePlayers}</strong>
@@ -437,7 +443,7 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
               sx={{
                 fontFamily: SYSTEM_FONT,
                 color: "#F0F3F6",
-                fontSize: "0.78rem",
+                fontSize: { xs: "0.78rem", sm: "0.82rem", md: "0.85rem" },
               }}
             >
               In Queue: <strong>{telemetry.inQueueCount}</strong>
@@ -448,7 +454,7 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
           sx={{
             color: "#8E9AA8",
             fontFamily: SYSTEM_FONT,
-            fontSize: "0.75rem",
+            fontSize: { xs: "0.75rem", sm: "0.8rem", md: "0.82rem" },
           }}
         >
           Searching for {needed} player{needed > 1 ? "s" : ""}
@@ -460,19 +466,21 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
           <Box
             sx={{
               textAlign: "center",
-              py: 2.5,
-              px: 1.5,
+              py: { xs: 2.5, md: 3 },
+              px: { xs: 1.5, md: 2 },
               borderRadius: "6px",
               border: "1px dashed rgba(255, 70, 85, 0.4)",
               bgcolor: "rgba(255, 70, 85, 0.04)",
             }}
           >
-            <Radar sx={{ fontSize: 28, color: "#FF4655", mb: 0.5 }} />
+            <Radar
+              sx={{ fontSize: { xs: 28, md: 32 }, color: "#FF4655", mb: 0.5 }}
+            />
             <Typography
               sx={{
                 fontFamily: SYSTEM_FONT,
                 fontWeight: 600,
-                fontSize: { xs: "0.88rem", sm: "0.95rem" },
+                fontSize: { xs: "0.88rem", sm: "0.95rem", md: "1rem" },
                 color: "#FF4655",
               }}
             >
@@ -484,11 +492,11 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
               onClick={onCancelSearch}
               sx={{
                 mt: 1.5,
-                fontSize: "0.75rem",
+                fontSize: { xs: "0.75rem", sm: "0.8rem", md: "0.85rem" },
                 fontFamily: SYSTEM_FONT,
                 textTransform: "none",
-                py: 0.4,
-                px: 2,
+                py: { xs: 0.4, md: 0.6 },
+                px: { xs: 2, md: 3 },
                 color: "#F0F3F6",
                 borderColor: "rgba(255, 255, 255, 0.15)",
                 borderRadius: "4px",
@@ -510,8 +518,8 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
             disabled={!isConnected}
             onClick={onStartSearch}
             sx={{
-              py: 1,
-              fontSize: "0.88rem",
+              py: { xs: 1, md: 1.2 },
+              fontSize: { xs: "0.88rem", sm: "0.92rem", md: "1rem" },
               fontFamily: SYSTEM_FONT,
               fontWeight: 600,
               textTransform: "none",

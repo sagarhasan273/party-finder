@@ -39,9 +39,9 @@ export const LobbyChat: React.FC<LobbyChatProps> = ({
   return (
     <Box
       sx={{
-        boxSizing: "border-box", // Ensures padding doesn't add to the total width
-        minWidth: 0, // Prevents flex/grid blowouts
-        overflowX: "hidden", // Double-safeguard against horizontal scroll
+        boxSizing: "border-box",
+        minWidth: 0,
+        overflowX: "hidden",
         p: { xs: 2, sm: 2.5 },
         bgcolor: "#17212B",
         borderRadius: "8px",

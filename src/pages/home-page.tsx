@@ -719,7 +719,6 @@ export function HomePage(): JSX.Element {
 
       <ConnectWithMe />
 
-      {/* Hidden Audio element for rendering WebRTC remote tracks correctly */}
       <audio ref={remoteAudioRef} autoPlay style={{ display: "none" }}>
         <track kind="captions" />
       </audio>

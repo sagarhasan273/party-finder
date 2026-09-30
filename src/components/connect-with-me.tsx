@@ -4,7 +4,6 @@ import { Box, Chip, Button, Typography } from "@mui/material";
 import {
   Code as CodeIcon,
   Check as CheckIcon,
-  Chat as DiscordIcon,
   Reddit as RedditIcon,
   PersonPin as BioIcon,
   Twitter as TwitterIcon,
@@ -15,19 +14,12 @@ import {
   Telegram as TelegramIcon,
   Sensors as BroadcastIcon,
   OpenInNew as ExternalIcon,
-  Instagram as InstagramIcon,
 } from "@mui/icons-material";
+
+import { PERSONAL_LINKS } from "../@mock";
 
 const SYSTEM_FONT =
   'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-
-interface PersonalLink {
-  name: string;
-  handle: string;
-  url: string;
-  icon: React.ReactElement;
-  accent: string;
-}
 
 interface SharePlatform {
   name: string;
@@ -35,37 +27,6 @@ interface SharePlatform {
   icon: React.ReactElement;
   accent: string;
 }
-
-const PERSONAL_LINKS: PersonalLink[] = [
-  {
-    name: "Facebook",
-    handle: "fb.com/sagarhasan",
-    url: "https://facebook.com/your_profile",
-    icon: <FacebookIcon sx={{ fontSize: 20 }} />,
-    accent: "#1877F2",
-  },
-  {
-    name: "WhatsApp",
-    handle: "+880 1XXXXXXXXX",
-    url: "https://wa.me/8801XXXXXXXXX",
-    icon: <WhatsAppIcon sx={{ fontSize: 20 }} />,
-    accent: "#25D366",
-  },
-  {
-    name: "Discord",
-    handle: "sagarhasan#0000",
-    url: "https://discord.gg/your_server",
-    icon: <DiscordIcon sx={{ fontSize: 20 }} />,
-    accent: "#5865F2",
-  },
-  {
-    name: "Instagram",
-    handle: "@sagar_hasan",
-    url: "https://instagram.com/your_profile",
-    icon: <InstagramIcon sx={{ fontSize: 20 }} />,
-    accent: "#E4405F",
-  },
-];
 
 // const TECH_STACK: string[] = [
 //   "React + MUI",

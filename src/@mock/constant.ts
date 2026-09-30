@@ -1,4 +1,52 @@
+import { createElement } from "react";
+
+import {
+  Chat as DiscordIcon,
+  WhatsApp as WhatsAppIcon,
+  Facebook as FacebookIcon,
+  Instagram as InstagramIcon,
+} from "@mui/icons-material";
+
 import type { LocationWithRegion } from "../types/type-user";
+
+interface PersonalLink {
+  name: string;
+  handle: string;
+  url: string;
+  icon: React.ReactElement;
+  accent: string;
+}
+
+export const PERSONAL_LINKS: PersonalLink[] = [
+  {
+    name: "Facebook",
+    handle: "fb.com/sagarhasan273",
+    url: "https://www.facebook.com/share/1EZr8K6Tjm",
+    icon: createElement(FacebookIcon, { sx: { fontSize: 20 } }),
+    accent: "#1877F2",
+  },
+  {
+    name: "WhatsApp",
+    handle: "+880 1941717226",
+    url: "https://wa.me/8801941717226",
+    icon: createElement(WhatsAppIcon, { sx: { fontSize: 20 } }),
+    accent: "#25D366",
+  },
+  {
+    name: "Discord",
+    handle: "sagarhasan273#2846",
+    url: "https://discord.com/users/783664230494371860",
+    icon: createElement(DiscordIcon, { sx: { fontSize: 20 } }),
+    accent: "#5865F2",
+  },
+  {
+    name: "Instagram",
+    handle: "sagar.hasan.273",
+    url: "https://www.instagram.com/sagar.hasan.273?stkn=djRlNjhwd2xlZ255",
+    icon: createElement(InstagramIcon, { sx: { fontSize: 20 } }),
+    accent: "#E4405F",
+  },
+];
 
 export type Region = {
   code: "ap" | "na" | "latam" | "br" | "eu" | "kr";

@@ -40,7 +40,7 @@ export const HistoryStats: React.FC<{ data: HistoryStatsData }> = ({
             color: "#F0F3F6",
           }}
         >
-          Paste History of search
+          Past History Of Player Search
         </Typography>
       </Box>
 
