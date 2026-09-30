@@ -1,14 +1,15 @@
 import type { SelectChangeEvent } from "@mui/material";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 
-import { Radar, Groups, FiberManualRecord } from "@mui/icons-material";
+import { Radar, Groups, Refresh, FiberManualRecord } from "@mui/icons-material";
 import {
   Box,
   Button,
   Select,
   MenuItem,
   TextField,
+  keyframes,
   Typography,
   InputLabel,
   FormControl,
@@ -18,6 +19,26 @@ import type { Telemetry, QueueState } from "../../types/type-common";
 
 const SYSTEM_FONT =
   'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+// --- Animations ---
+const pulse = keyframes`
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+`;
+
+const blink = keyframes`
+  0% { opacity: 0.2; }
+  20% { opacity: 1; }
+  100% { opacity: 0.2; }
+`;
+
+const textColorPulse = keyframes`
+  0% { color: #FF4655; }
+  50% { color: #FF98A0; }
+  100% { color: #FF4655; }
+`;
+// ------------------
 
 // --- Responsive Style Constants ---
 const RESPONSIVE_LABEL = {
@@ -203,6 +224,36 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
 }) => {
   const needed = 5 - groupSize;
   const isSearching = queueState === "searching";
+
+  // Timer State
+  const [searchTime, setSearchTime] = useState(0);
+
+  // Live Timer Logic
+  useEffect(() => {
+    let timerId: ReturnType<typeof setInterval>;
+    if (isSearching) {
+      setSearchTime(0); // Reset timer on fresh search
+      timerId = setInterval(() => {
+        setSearchTime((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setSearchTime(0);
+    }
+
+    // Cleanup interval on unmount or state change
+    return () => {
+      if (timerId) clearInterval(timerId);
+    };
+  }, [isSearching]);
+
+  // Format seconds to MM:SS
+  const formattedTime = `${Math.floor(searchTime / 60)
+    .toString()
+    .padStart(2, "0")}:${(searchTime % 60).toString().padStart(2, "0")}`;
+
+  const handleReload = () => {
+    window.location.reload();
+  };
 
   return (
     <Box
@@ -474,41 +525,151 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
             }}
           >
             <Radar
-              sx={{ fontSize: { xs: 28, md: 32 }, color: "#FF4655", mb: 0.5 }}
+              sx={{
+                fontSize: { xs: 28, md: 32 },
+                color: "#FF4655",
+                mb: 0.5,
+                animation: `${pulse} 1.5s ease-in-out infinite`,
+              }}
             />
             <Typography
               sx={{
                 fontFamily: SYSTEM_FONT,
                 fontWeight: 600,
                 fontSize: { xs: "0.88rem", sm: "0.95rem", md: "1rem" },
-                color: "#FF4655",
+                animation: `${textColorPulse} 2s ease-in-out infinite`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              Searching {server} for {needed} teammate{needed > 1 ? "s" : ""}...
+              Searching {server} for {needed} teammate{needed > 1 ? "s" : ""}
+              <Box
+                component="span"
+                sx={{
+                  display: "inline-flex",
+                  width: "1.2rem",
+                  justifyContent: "flex-start",
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    animation: `${blink} 1.4s infinite both`,
+                    animationDelay: "0s",
+                  }}
+                >
+                  .
+                </Box>
+                <Box
+                  component="span"
+                  sx={{
+                    animation: `${blink} 1.4s infinite both`,
+                    animationDelay: "0.2s",
+                  }}
+                >
+                  .
+                </Box>
+                <Box
+                  component="span"
+                  sx={{
+                    animation: `${blink} 1.4s infinite both`,
+                    animationDelay: "0.4s",
+                  }}
+                >
+                  .
+                </Box>
+              </Box>
             </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={onCancelSearch}
+
+            <Typography
               sx={{
-                mt: 1.5,
-                fontSize: { xs: "0.75rem", sm: "0.8rem", md: "0.85rem" },
+                mt: 0.5,
+                mb: 1.5,
                 fontFamily: SYSTEM_FONT,
-                textTransform: "none",
-                py: { xs: 0.4, md: 0.6 },
-                px: { xs: 2, md: 3 },
+                fontWeight: 600,
                 color: "#F0F3F6",
-                borderColor: "rgba(255, 255, 255, 0.15)",
-                borderRadius: "4px",
-                fontWeight: 500,
-                "&:hover": {
-                  borderColor: "#FF4655",
-                  bgcolor: "rgba(255, 70, 85, 0.08)",
-                },
+                fontSize: { xs: "0.85rem", sm: "0.9rem" },
               }}
             >
-              Cancel search
-            </Button>
+              <Box
+                component="span"
+                sx={{ color: "#8E9AA8", fontWeight: 400, mr: 0.8 }}
+              >
+                Time Elapsed:
+              </Box>
+              {formattedTime}
+            </Typography>
+
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                gap: 1.5,
+                mt: 1.5,
+                flexWrap: "wrap",
+              }}
+            >
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={onCancelSearch}
+                sx={{
+                  fontSize: { xs: "0.75rem", sm: "0.8rem", md: "0.85rem" },
+                  fontFamily: SYSTEM_FONT,
+                  textTransform: "none",
+                  py: { xs: 0.4, md: 0.6 },
+                  px: { xs: 2, md: 3 },
+                  color: "#F0F3F6",
+                  borderColor: "rgba(255, 255, 255, 0.15)",
+                  borderRadius: "4px",
+                  fontWeight: 500,
+                  "&:hover": {
+                    borderColor: "#FF4655",
+                    bgcolor: "rgba(255, 70, 85, 0.08)",
+                  },
+                }}
+              >
+                Cancel search
+              </Button>
+
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={handleReload}
+                startIcon={<Refresh sx={{ fontSize: "16px !important" }} />}
+                sx={{
+                  fontSize: { xs: "0.75rem", sm: "0.8rem", md: "0.85rem" },
+                  fontFamily: SYSTEM_FONT,
+                  textTransform: "none",
+                  py: { xs: 0.4, md: 0.6 },
+                  px: { xs: 2, md: 3 },
+                  color: "#8E9AA8",
+                  borderColor: "rgba(255, 255, 255, 0.15)",
+                  borderRadius: "4px",
+                  fontWeight: 500,
+                  "&:hover": {
+                    color: "#F0F3F6",
+                    borderColor: "#F0F3F6",
+                    bgcolor: "rgba(255, 255, 255, 0.05)",
+                  },
+                }}
+              >
+                Reload
+              </Button>
+            </Box>
+
+            <Typography
+              sx={{
+                mt: 2,
+                fontFamily: SYSTEM_FONT,
+                color: "#8E9AA8",
+                fontSize: { xs: "0.7rem", md: "0.75rem" },
+              }}
+            >
+              Taking longer than 2 or 3 minute? Reload the page to generate a
+              new connection and search again.
+            </Typography>
           </Box>
         ) : (
           <Button

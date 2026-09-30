@@ -430,6 +430,10 @@ export function HomePage(): JSX.Element {
       setValidationError("Min rank cannot exceed max rank.");
       return;
     }
+    if (!username) {
+      setValidationError("Username should not be empty.");
+      return;
+    }
     setValidationError("");
     setQueueState("searching");
     const req: SearchRequest = {
