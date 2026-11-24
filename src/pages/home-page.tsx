@@ -1,13 +1,3 @@
-/**
- * home-page.tsx: all app logic. The UI pieces are in sections/lobby-ui.tsx,
- * the network code is in realtime.tsx.
- *
- *   socket.io  -> matchmaking (queue, match-found, telemetry, stats)
- *   LiveKit    -> voice + chat + party code once a match is found
- *
- * Layout: on desktop the lobby is a two-column grid. On phones it becomes
- * three tabs (Squad / Chat / Code) with an unread badge on Chat.
- */
 import React, { useState, useEffect, useCallback } from "react";
 
 import { Logout } from "@mui/icons-material";
@@ -193,7 +183,6 @@ export function HomePage(): React.JSX.Element {
     setQueueState("searching");
     const req: SearchRequest = {
       username: riotId,
-      profilePhoto: user.profilePhoto,
       region: form.region,
       server: form.server,
       rank: form.rank,
@@ -516,8 +505,8 @@ export function HomePage(): React.JSX.Element {
         <HistoryStats data={history} />
         {/* Full card on the search screen, slim banner inside a match. */}
         <Talk2ActiveCard variant={inLobby ? "strip" : "full"} />
+        <ConnectWithMe />
       </Box>
-      <ConnectWithMe />
     </Container>
   );
 }
