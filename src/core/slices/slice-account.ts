@@ -4,6 +4,8 @@ import { useMemo, useCallback } from "react";
 import { createSlice } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
 
+import { CONFIG } from "../../config-global";
+
 import type { RootState } from "../types";
 import type { UserType, LocationWithRegion } from "../../types/type-user";
 
@@ -18,13 +20,48 @@ interface UserState {
   isLoading: boolean;
 }
 
+// ── Persistence ───────────────────────────────────────────────────────────────
+// The user is cached in sessionStorage so a reload keeps the session. It is only
+// trusted while the JWT is also present, and useSessionBootstrap refreshes it
+// from the server in the background.
+const USER_STORAGE_KEY = "val5th_user";
+
+const readStoredUser = (): UserType | null => {
+  try {
+    if (!sessionStorage.getItem(CONFIG.googleAccessToken)) return null;
+    const raw = sessionStorage.getItem(USER_STORAGE_KEY);
+    const parsed = raw ? (JSON.parse(raw) as UserType) : null;
+    return parsed && typeof parsed === "object" && Object.keys(parsed).length
+      ? parsed
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+const persistUser = (user: UserType | null): void => {
+  try {
+    if (user && Object.keys(user as object).length) {
+      sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    } else {
+      sessionStorage.removeItem(USER_STORAGE_KEY);
+    }
+  } catch {
+    /* storage full or blocked: the session still works until reload */
+  }
+};
+
+const storedUser = readStoredUser();
+
 // Initial state
 const initialState: UserState = {
-  user: {} as UserType,
-  isProfileUpdated: true,
+  user: storedUser ?? ({} as UserType),
+  isProfileUpdated: storedUser
+    ? !(!storedUser.gamename || !storedUser.tagline)
+    : true,
   region: null,
   isRegionLoading: false,
-  isAuthenticated: false,
+  isAuthenticated: Boolean(storedUser),
   isSignInRequired: false,
   isLoading: false,
 };
@@ -95,7 +132,10 @@ const selectRegion = (state: RootState) => state.account.region;
 
 export const useCredentials = () => {
   const dispatch = useDispatch();
-  const logout = useCallback(() => dispatch(logoutAction()), [dispatch]);
+  const logout = useCallback(() => {
+    persistUser(null);
+    return dispatch(logoutAction());
+  }, [dispatch]);
 
   const user = useSelector(selectAccount);
   const isLoading = useSelector(selectIsLoading);
@@ -121,7 +161,10 @@ export const useCredentials = () => {
       isRegionLoading,
       isSignInRequired,
 
-      setUser: (payload: UserState["user"]) => dispatch(setUser(payload)),
+      setUser: (payload: UserState["user"]) => {
+        persistUser(payload);
+        return dispatch(setUser(payload));
+      },
       setLoading: (payload: UserState["isLoading"]) =>
         dispatch(setLoading(payload)),
       logout,

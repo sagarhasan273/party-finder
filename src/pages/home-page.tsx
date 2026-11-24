@@ -1,11 +1,16 @@
-import { Crosshair } from "lucide-react";
+/**
+ * home-page.tsx: all app logic. The UI pieces are in sections/lobby-ui.tsx,
+ * the network code is in realtime.tsx.
+ *
+ *   socket.io  -> matchmaking (queue, match-found, telemetry, stats)
+ *   LiveKit    -> voice + chat + party code once a match is found
+ */
 import React, { useState, useEffect, useCallback } from "react";
 
 import {
   Box,
   Menu,
   Alert,
-  Stack,
   Avatar,
   Button,
   Dialog,
@@ -21,30 +26,27 @@ import {
 import { tokens } from "../theme/theme";
 import { CONFIG } from "../config-global";
 import { useCredentials } from "../core/slices";
-import { useSocket } from "../contexts/socket-context";
 import ConnectWithMe from "../components/connect-with-me";
-import { useLiveKitRoom } from "../hooks/use-livekit-room";
-import { LobbyChat } from "../sections/match-making/lobby-chat";
-import { PartyCodeShare } from "../sections/match-making/party-code-share";
-import { ConnectedPlayers } from "../sections/match-making/connected-players";
+import { useSocket, useLiveKitRoom } from "../contexts/socket-context";
 import {
+  BrandMark,
+  LobbyChat,
   HistoryStats,
-  type HistoryStatsData,
-} from "../sections/match-making/history-stats";
-import {
-  type SearchForm,
+  PartyCodeShare,
   MatchSearchForm,
+  ConnectedPlayers,
   VALORANT_REGIONS,
-} from "../sections/match-making/match-search-form";
+} from "../sections/lobby-ui";
 
+import type { SearchForm, HistoryStatsData } from "../sections/lobby-ui";
 import type {
-  Telemetry,
   MatchData,
+  Telemetry,
   QueueState,
   ChatMessage,
   SearchRequest,
   DataChannelPayload,
-} from "../types/type-common";
+} from "../contexts/socket-context";
 
 const clock = (): string =>
   new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -260,23 +262,7 @@ export function HomePage(): React.JSX.Element {
           borderBottom: `1px solid ${tokens.line}`,
         }}
       >
-        <Stack direction="row" alignItems="center" gap={1.2}>
-          <Box
-            sx={{
-              width: 30,
-              height: 30,
-              borderRadius: "6px",
-              bgcolor: tokens.accent,
-              display: "grid",
-              placeItems: "center",
-            }}
-          >
-            <Crosshair size={17} color="#fff" aria-hidden />
-          </Box>
-          <Typography variant="h6" component="h1">
-            Valorant 5th Finder
-          </Typography>
-        </Stack>
+        <BrandMark heading />
 
         <IconButton
           onClick={(e) => setMenuAnchor(e.currentTarget)}

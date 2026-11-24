@@ -1,6 +1,6 @@
 # Valorant 5th Player Finder
 
-**"Never queue as a cursed 4-stack again."**
+"Never queue as a cursed 4-stack again."
 
 A real-time social matchmaking platform built specifically for Valorant players who hate the Competitive queue's 4-player restriction.  
 When 4 friends are in a party, they **cannot** start a game — this app instantly connects them with a trusted 5th player (or lets solo/duo players jump into ready-made 4-stacks).
@@ -53,15 +53,15 @@ When 4 friends are in a party, they **cannot** start a game — this app instant
 
 ## 🏗️ System Architecture (High-Level)
 
-```
+```mermaid
 graph TD
-    subgraph "Frontend (React + MUI + TypeScript)"
-        A[Landing + Auth] --> B[Profile (Rank Sync + Region)]
-        B --> C[Dashboard]
-        C --> D[Lobby Feed - Real-time 4-Stacks]
-        D --> E[Create Beacon / Join Party]
-        E --> F[Notifications + WebSocket]
-    end
+subgraph "Frontend (React + MUI + TypeScript)"
+A[Landing + Auth] --> B[Profile (Rank Sync + Region)]
+B --> C[Dashboard]
+C --> D[Lobby Feed - Real-time 4-Stacks]
+D --> E[Create Beacon / Join Party]
+E --> F[Notifications + WebSocket]
+end
 
     subgraph "Backend (Node.js + Express + TypeScript)"
         G[API Layer] --> H[WebSocket Server (Socket.io)]

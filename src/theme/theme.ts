@@ -1,3 +1,9 @@
+/**
+ * Fonts: add to <head> of index.html
+ *   <link rel="preconnect" href="https://fonts.googleapis.com" />
+ *   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+ *   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet" />
+ */
 import { alpha, createTheme } from "@mui/material/styles";
 
 /**
@@ -33,9 +39,19 @@ export const gameTheme = createTheme({
   shape: { borderRadius: 6 },
   typography: {
     fontFamily: body,
-    h1: { fontFamily: display, fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.02 },
+    h1: {
+      fontFamily: display,
+      fontWeight: 700,
+      letterSpacing: "-0.01em",
+      lineHeight: 1.02,
+    },
     h2: { fontFamily: display, fontWeight: 700, letterSpacing: "-0.005em" },
-    h6: { fontFamily: display, fontWeight: 600, fontSize: "1.25rem", letterSpacing: "0.01em" },
+    h6: {
+      fontFamily: display,
+      fontWeight: 600,
+      fontSize: "1.25rem",
+      letterSpacing: "0.01em",
+    },
     subtitle2: { fontWeight: 600, fontSize: "0.82rem", color: tokens.muted },
     button: { textTransform: "none", fontWeight: 600 },
   },
@@ -43,7 +59,10 @@ export const gameTheme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: { backgroundColor: tokens.bg },
-        ":focus-visible": { outline: `2px solid ${tokens.accent}`, outlineOffset: 2 },
+        ":focus-visible": {
+          outline: `2px solid ${tokens.accent}`,
+          outlineOffset: 2,
+        },
         "@media (prefers-reduced-motion: reduce)": {
           "*, *::before, *::after": {
             animationDuration: "0.01ms !important",
@@ -58,11 +77,16 @@ export const gameTheme = createTheme({
       defaultProps: { disableElevation: true },
       styleOverrides: {
         root: { borderRadius: 6 },
-        containedPrimary: { "&:hover": { backgroundColor: tokens.accentHover } },
+        containedPrimary: {
+          "&:hover": { backgroundColor: tokens.accentHover },
+        },
         outlined: {
           borderColor: tokens.lineStrong,
           color: tokens.text,
-          "&:hover": { borderColor: tokens.accent, backgroundColor: alpha(tokens.accent, 0.08) },
+          "&:hover": {
+            borderColor: tokens.accent,
+            backgroundColor: alpha(tokens.accent, 0.08),
+          },
         },
       },
     },
@@ -71,8 +95,13 @@ export const gameTheme = createTheme({
         root: {
           backgroundColor: tokens.inset,
           "& .MuiOutlinedInput-notchedOutline": { borderColor: tokens.line },
-          "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: tokens.lineStrong },
-          "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: tokens.accent, borderWidth: 1 },
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: tokens.lineStrong,
+          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: tokens.accent,
+            borderWidth: 1,
+          },
           "&.Mui-disabled": { opacity: 0.55 },
         },
       },
@@ -80,7 +109,10 @@ export const gameTheme = createTheme({
     MuiInputLabel: { styleOverrides: { root: { fontSize: "0.9rem" } } },
     MuiMenu: {
       styleOverrides: {
-        paper: { backgroundColor: tokens.surface, border: `1px solid ${tokens.line}` },
+        paper: {
+          backgroundColor: tokens.surface,
+          border: `1px solid ${tokens.line}`,
+        },
       },
     },
     MuiToggleButton: {
