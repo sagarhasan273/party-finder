@@ -37,7 +37,7 @@ import { CONFIG } from "../config-global";
 import { fonts, tokens } from "../theme/theme";
 import { useCredentials } from "../core/slices";
 import ConnectWithMe from "../components/connect-with-me";
-import Talk2ActiveCard from "../components/talk2active-card";
+import { Talk2ActiveCard } from "../components/talk2active-card";
 import { useSocket, useLiveKitRoom } from "../contexts/socket-context";
 import {
   Pill,
