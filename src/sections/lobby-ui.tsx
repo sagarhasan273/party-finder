@@ -705,8 +705,8 @@ export const ConnectedPlayers: React.FC<PlayersProps> = ({
 
       {micDenied && (
         <Alert severity="warning" sx={{ mt: 2 }}>
-          Microphone is blocked, so teammates can&#39;t hear you. Allow it in
-          your browser&#39;s site settings, then press Unmute.
+          Microphone is blocked, so teammates can&lsquo;t hear you. Allow it in
+          your browser&lsquo;s site settings, then press Unmute.
         </Alert>
       )}
       {audioBlocked && (
@@ -989,14 +989,25 @@ export const PartyCodeShare: React.FC<PartyCodeProps> = ({
 
 export interface HistoryStatsData {
   totalVisits: number;
+  /** Keys look like "AP-Mumbai (India)": region, a dash, then the server name. */
   searches: Record<string, number>;
 }
+
+const splitSearchKey = (key: string): { region: string; server: string } => {
+  const dash = key.indexOf("-");
+  return dash < 0
+    ? { region: key, server: key }
+    : { region: key.slice(0, dash), server: key.slice(dash + 1) };
+};
 
 export const HistoryStats: React.FC<{ data: HistoryStatsData }> = ({
   data,
 }) => {
-  const rows = Object.entries(data.searches).sort((a, b) => b[1] - a[1]);
-  const max = rows[0]?.[1] ?? 1;
+  const rows = Object.entries(data.searches)
+    .map(([key, count]) => ({ key, count, ...splitSearchKey(key) }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+  const max = rows[0]?.count ?? 1;
 
   return (
     <Panel
@@ -1032,7 +1043,7 @@ export const HistoryStats: React.FC<{ data: HistoryStatsData }> = ({
 
         <Box>
           <Typography variant="subtitle2" sx={{ mb: 1.2 }}>
-            Searches by region
+            Most searched servers
           </Typography>
           {rows.length === 0 ? (
             <Typography sx={{ color: tokens.muted, fontSize: "0.85rem" }}>
@@ -1041,24 +1052,40 @@ export const HistoryStats: React.FC<{ data: HistoryStatsData }> = ({
           ) : (
             <Box
               component="ul"
-              sx={{ listStyle: "none", m: 0, p: 0, display: "grid", gap: 1 }}
+              sx={{ listStyle: "none", m: 0, p: 0, display: "grid", gap: 1.2 }}
             >
-              {rows.map(([region, count]) => (
+              {rows.map(({ key, region, server, count }) => (
                 <Box
                   component="li"
-                  key={region}
+                  key={key}
                   sx={{
                     display: "grid",
-                    gridTemplateColumns: "56px 1fr 48px",
+                    gridTemplateColumns: {
+                      xs: "minmax(0, 1fr) 40px",
+                      sm: "minmax(0, 1.2fr) 2fr 48px",
+                    },
                     alignItems: "center",
-                    gap: 1.5,
+                    columnGap: 1.5,
+                    rowGap: 0.5,
                   }}
                 >
-                  <Typography sx={{ fontWeight: 600, fontSize: "0.85rem" }}>
-                    {region}
-                  </Typography>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      noWrap
+                      sx={{ fontWeight: 600, fontSize: "0.85rem" }}
+                    >
+                      {server}
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: "0.72rem", color: tokens.muted }}
+                    >
+                      {region}
+                    </Typography>
+                  </Box>
                   <Box
                     sx={{
+                      gridColumn: { xs: "1 / -1", sm: "auto" },
+                      gridRow: { xs: 2, sm: "auto" },
                       height: 8,
                       borderRadius: 4,
                       bgcolor: tokens.inset,
