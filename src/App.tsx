@@ -416,9 +416,11 @@ export function LoginPage(): React.JSX.Element {
       sx={{
         position: "relative",
         minHeight: "100svh",
+        maxWidth: "lg",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        mx: "auto",
         px: { xs: 2.5, sm: 5, md: 8 },
         pt: { xs: 2.5, sm: 4 },
         pb: { xs: "calc(20px + env(safe-area-inset-bottom))", sm: 4 },
