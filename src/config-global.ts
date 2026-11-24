@@ -6,6 +6,7 @@ export type ConfigValue = {
   appName: string;
   appVersion: string;
   serverUrl: string;
+  livekitUrl: string;
   googleAccessToken: string;
   googleAuthClientId: string;
 };
@@ -16,6 +17,7 @@ export const CONFIG: ConfigValue = {
   appName: "PartyFinder",
   appVersion: packageJson.version,
   serverUrl: import.meta.env.VITE_SERVER_URL ?? "",
+  livekitUrl: import.meta.env.VITE_LIVEKIT_URL ?? "",
   googleAccessToken:
     import.meta.env.VITE_GOOGLE_ACCESS_TOKEN ?? "party-finder-access-token",
   googleAuthClientId:

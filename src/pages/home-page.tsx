@@ -1,3 +1,13 @@
+/**
+ * home-page.tsx: all app logic. The UI pieces are in sections/lobby-ui.tsx,
+ * the network code is in realtime.tsx.
+ *
+ *   socket.io  -> matchmaking (queue, match-found, telemetry, stats)
+ *   LiveKit    -> voice + chat + party code once a match is found
+ *
+ * Layout: on desktop the lobby is a two-column grid. On phones it becomes
+ * three tabs (Squad / Chat / Code) with an unread badge on Chat.
+ */
 import React, { useState, useEffect, useCallback } from "react";
 
 import { Logout } from "@mui/icons-material";
@@ -27,7 +37,7 @@ import { CONFIG } from "../config-global";
 import { fonts, tokens } from "../theme/theme";
 import { useCredentials } from "../core/slices";
 import ConnectWithMe from "../components/connect-with-me";
-import { Talk2ActiveCard } from "../components/talk2active-card";
+import Talk2ActiveCard from "../components/talk2active-card";
 import { useSocket, useLiveKitRoom } from "../contexts/socket-context";
 import {
   Pill,
@@ -157,7 +167,7 @@ export function HomePage(): React.JSX.Element {
         setSeenIncoming(0);
         window.scrollTo({ top: 0, behavior: "smooth" });
         try {
-          await connect(d.livekit.url, d.livekit.token);
+          await connect(CONFIG.livekitUrl, d.livekit.token);
         } catch {
           setError("Voice couldn't connect. Leave the room and search again.");
         }
