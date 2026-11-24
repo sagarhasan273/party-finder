@@ -5,6 +5,9 @@
   "description": "Valorant 5th Lobby Finder",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "26.x"
+  },
   "scripts": {
     "dev": "vite",
     "start": "vite",
