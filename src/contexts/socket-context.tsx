@@ -11,115 +11,82 @@ import React, {
   createContext,
 } from "react";
 
+import { CONFIG } from "../config-global";
+import { useCredentials } from "../store/slices";
+
 interface SocketContextValue {
-  socket: Socket;
-  socketId: string | null;
   isConnected: boolean;
-  emit: (event: string, ...args: any[]) => void;
-  on: <T = any>(event: string, listener: (payload: T) => void) => () => void;
-  off: (event: string, listener?: (...args: any[]) => void) => void;
+  socketId: string | undefined;
+  emit: (event: string, payload?: unknown) => void;
+  /** Subscribes and returns the unsubscribe function. */
+  on: <T = unknown>(event: string, handler: (data: T) => void) => () => void;
 }
 
 const SocketContext = createContext<SocketContextValue | null>(null);
 
-interface SocketProviderProps {
-  url: string;
-  children: React.ReactNode;
-}
+export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { logout } = useCredentials();
+  // useCredentials() returns a new `logout` whenever user state changes; a ref
+  // keeps the socket from reconnecting every time that happens.
+  const logoutRef = useRef(logout);
+  logoutRef.current = logout;
+  const [isConnected, setIsConnected] = useState(false);
+  const [socketId, setSocketId] = useState<string>();
 
-export const SocketProvider: React.FC<SocketProviderProps> = ({
-  url,
-  children,
-}) => {
-  const socket = useMemo<Socket>(
-    () =>
-      io(url, {
-        autoConnect: false,
-        transports: ["websocket", "polling"],
-      }),
-    [url],
+  // One socket for the lifetime of the provider; it only connects once we have a token.
+  const [socket] = useState<Socket>(() =>
+    io(`${CONFIG.serverUrl}/val5th`, { autoConnect: false, transports: ["websocket", "polling"] }),
   );
 
-  const [socketId, setSocketId] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const disconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   useEffect(() => {
-    if (disconnectTimerRef.current) {
-      clearTimeout(disconnectTimerRef.current);
-      disconnectTimerRef.current = null;
-    }
+    socket.auth = { token: sessionStorage.getItem(CONFIG.googleAccessToken) };
 
-    const handleConnect = (): void => {
+    const onConnect = () => {
       setIsConnected(true);
-      setSocketId(socket.id ?? null);
+      setSocketId(socket.id);
+    };
+    const onDisconnect = () => setIsConnected(false);
+    const onError = (err: Error) => {
+      // Expired or invalid JWT: drop the session so the login page shows.
+      if (err.message === "unauthorized") {
+        sessionStorage.removeItem(CONFIG.googleAccessToken);
+        logoutRef.current();
+      }
     };
 
-    const handleDisconnect = (): void => {
-      setIsConnected(false);
-      setSocketId(null);
-    };
-
-    socket.on("connect", handleConnect);
-    socket.on("disconnect", handleDisconnect);
-
-    if (socket.connected) {
-      handleConnect();
-    } else {
-      socket.connect();
-    }
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("connect_error", onError);
+    socket.connect();
 
     return () => {
-      socket.off("connect", handleConnect);
-      socket.off("disconnect", handleDisconnect);
-
-      disconnectTimerRef.current = setTimeout(() => {
-        socket.disconnect();
-      }, 0);
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("connect_error", onError);
+      socket.disconnect();
     };
   }, [socket]);
 
-  const emit = useCallback(
-    (event: string, ...args: any[]) => {
-      if (!socket.connected) {
-        console.warn(`[Socket] Not connected. Dropped event: ${event}`);
-        return;
-      }
-      socket.emit(event, ...args);
-    },
-    [socket],
-  );
+  const emit = useCallback((event: string, payload?: unknown) => {
+    socket.emit(event, payload);
+  }, [socket]);
 
   const on = useCallback(
-    <T = any,>(event: string, listener: (payload: T) => void) => {
-      const fn = listener as (...args: any[]) => void;
-      socket.on(event, fn);
+    <T,>(event: string, handler: (data: T) => void) => {
+      socket.on(event, handler as (...args: unknown[]) => void);
       return () => {
-        socket.off(event, fn);
+        socket.off(event, handler as (...args: unknown[]) => void);
       };
     },
     [socket],
   );
 
-  const off = useCallback(
-    (event: string, listener?: (...args: any[]) => void) => {
-      if (listener) {
-        socket.off(event, listener);
-      } else {
-        socket.off(event);
-      }
-    },
-    [socket],
-  );
-
   const value = useMemo(
-    () => ({ socket, socketId, isConnected, emit, on, off }),
-    [socket, socketId, isConnected, emit, on, off],
+    () => ({ isConnected, socketId, emit, on }),
+    [isConnected, socketId, emit, on],
   );
 
-  return (
-    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
-  );
+  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 };
 
 export const useSocket = (): SocketContextValue => {

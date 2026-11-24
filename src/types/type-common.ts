@@ -1,32 +1,19 @@
-export type ResponseSuccess = {
+export interface ResponseType {
   status: boolean;
-  message: string;
-  data: any;
-  metaData?: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-  };
-};
-export type ResponseError = {
-  status: boolean;
-  message: string;
-  data?: any;
-};
-
-export type ResponseType = ResponseSuccess | ResponseError;
-
-export type QueueState = "idle" | "searching" | "matched";
-
+  data?: unknown;
+  message?: string;
+  [key: string]: unknown;
+}
 export interface Telemetry {
   onlinePlayers: number;
   inQueueCount: number;
+  timestamp?: number;
 }
 
+export type QueueState = "idle" | "searching" | "matched";
+
 export interface Participant {
+  userId: string;
   username: string;
   rank: string;
   currentGroupSize: number;
@@ -34,20 +21,16 @@ export interface Participant {
 
 export interface MatchData {
   roomId: string;
-  isInitiator: boolean;
-  peerSocketId: string;
   participants: Participant[];
+  livekit: { url: string; token: string };
 }
 
 export interface ChatMessage {
   sender: string;
   message: string;
   timestamp: string;
+  self?: boolean;
 }
-
-export type DataChannelPayload =
-  | { type: "CHAT"; data: ChatMessage }
-  | { type: "PARTY_CODE"; data: { partyCode: string } };
 
 export interface SearchRequest {
   username: string;
@@ -58,3 +41,8 @@ export interface SearchRequest {
   maxRank: string;
   currentGroupSize: number;
 }
+
+/** What travels over the LiveKit data channel. The sender name comes from the LiveKit token, not from the payload. */
+export type DataChannelPayload =
+  | { type: "CHAT"; message: string; timestamp: string }
+  | { type: "PARTY_CODE"; partyCode: string };

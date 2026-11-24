@@ -1,6 +1,6 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
 
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { createSlice } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -34,12 +34,14 @@ export const accountSlice = createSlice({
   initialState,
   reducers: {
     setUser(state, action: PayloadAction<UserState["user"]>) {
+      const hasUser =
+        !!action.payload && Object.keys(action.payload as object).length > 0;
       state.user = action.payload;
-      state.isAuthenticated = !!action.payload;
+      state.isAuthenticated = hasUser;
       state.isLoading = false;
-      state.isProfileUpdated = !(
-        !action.payload.gamename || !action.payload.tagline
-      );
+      state.isProfileUpdated = hasUser
+        ? !(!action.payload.gamename || !action.payload.tagline)
+        : true;
     },
 
     setRegion(state, action: PayloadAction<UserState["region"]>) {
@@ -77,7 +79,7 @@ export const accountSlice = createSlice({
 
 const {
   setUser,
-  logout,
+  logout: logoutAction,
   setLoading,
   setRegion,
   setIsProfileUpdated,
@@ -93,6 +95,7 @@ const selectRegion = (state: RootState) => state.account.region;
 
 export const useCredentials = () => {
   const dispatch = useDispatch();
+  const logout = useCallback(() => dispatch(logoutAction()), [dispatch]);
 
   const user = useSelector(selectAccount);
   const isLoading = useSelector(selectIsLoading);
@@ -121,7 +124,7 @@ export const useCredentials = () => {
       setUser: (payload: UserState["user"]) => dispatch(setUser(payload)),
       setLoading: (payload: UserState["isLoading"]) =>
         dispatch(setLoading(payload)),
-      logout: () => dispatch(logout()),
+      logout,
       setRegion: (payload: UserState["region"]) => dispatch(setRegion(payload)),
       setRegionLoading: (payload: UserState["isRegionLoading"]) =>
         dispatch(setRegionLoading(payload)),
@@ -139,6 +142,7 @@ export const useCredentials = () => {
       isRegionLoading,
       isSignInRequired,
       dispatch,
+      logout,
     ],
   );
 

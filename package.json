@@ -47,6 +47,7 @@
     "dayjs": "^1.11.13",
     "framer-motion": "^11.3.29",
     "jwt-decode": "^4.0.0",
+    "livekit-client": "^2.15.7",
     "lucide-react": "^0.518.0",
     "nprogress": "^0.2.0",
     "prop-types": "^15.8.1",

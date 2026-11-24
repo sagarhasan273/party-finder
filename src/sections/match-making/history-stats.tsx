@@ -1,10 +1,10 @@
 import React from "react";
 
-import { Box, Chip, Typography } from "@mui/material";
-import { Public, TrendingUp } from "@mui/icons-material";
+import { Box, Typography } from "@mui/material";
+import { TrendingUp } from "@mui/icons-material";
 
-const SYSTEM_FONT =
-  'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+import { tokens } from "../../theme/theme";
+import { Panel } from "../../components/panel";
 
 export interface HistoryStatsData {
   totalVisits: number;
@@ -14,143 +14,100 @@ export interface HistoryStatsData {
 export const HistoryStats: React.FC<{ data: HistoryStatsData }> = ({
   data,
 }) => {
-  // Sort the searches from highest count to lowest
-  const sortedSearches = Object.entries(data.searches).sort(
-    (a, b) => b[1] - a[1],
-  );
+  const rows = Object.entries(data.searches).sort((a, b) => b[1] - a[1]);
+  const max = rows[0]?.[1] ?? 1;
 
   return (
-    <Box
-      sx={{
-        mt: 2.5,
-        p: { xs: 2, sm: 2.5 },
-        bgcolor: "#17212B",
-        borderRadius: "8px",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
-        fontFamily: SYSTEM_FONT,
-      }}
+    <Panel
+      title="Community activity"
+      icon={<TrendingUp sx={{ color: tokens.live }} />}
+      sx={{ mt: 2.5 }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-        <TrendingUp sx={{ color: "#2ED573", fontSize: 20 }} />
-        <Typography
-          sx={{
-            fontFamily: SYSTEM_FONT,
-            fontWeight: 600,
-            fontSize: { xs: "0.95rem", sm: "1.05rem" },
-            color: "#F0F3F6",
-          }}
-        >
-          Past History Of Player Search
-        </Typography>
-      </Box>
-
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "1fr 2fr" },
-          gap: 2,
+          gridTemplateColumns: { xs: "1fr", md: "minmax(160px, 1fr) 3fr" },
+          gap: { xs: 2.5, md: 4 },
+          alignItems: "start",
         }}
       >
-        {/* Total Visits Card */}
-        <Box
-          sx={{
-            p: 2,
-            bgcolor: "#141D26",
-            borderRadius: "6px",
-            border: "1px solid rgba(255, 255, 255, 0.05)",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            textAlign: "center",
-          }}
-        >
+        <Box>
           <Typography
             sx={{
-              fontFamily: SYSTEM_FONT,
-              color: "#8E9AA8",
-              fontSize: "0.8rem",
-              fontWeight: 500,
-              mb: 0.5,
-            }}
-          >
-            Total Players Reached
-          </Typography>
-          <Typography
-            sx={{
-              fontFamily: SYSTEM_FONT,
-              color: "#F0F3F6",
-              fontSize: "2rem",
+              fontFamily: '"Barlow Condensed", sans-serif',
+              fontSize: "2.6rem",
               fontWeight: 700,
-              lineHeight: 1.2,
+              lineHeight: 1,
             }}
           >
             {data.totalVisits.toLocaleString()}
           </Typography>
+          <Typography
+            sx={{ color: tokens.muted, fontSize: "0.85rem", mt: 0.5 }}
+          >
+            players connected so far
+          </Typography>
         </Box>
 
-        {/* Server Leaderboard */}
-        <Box
-          sx={{
-            p: 2,
-            bgcolor: "#141D26",
-            borderRadius: "6px",
-            border: "1px solid rgba(255, 255, 255, 0.05)",
-          }}
-        >
-          <Typography
-            sx={{
-              fontFamily: SYSTEM_FONT,
-              color: "#8E9AA8",
-              fontSize: "0.8rem",
-              fontWeight: 500,
-              mb: 1.5,
-            }}
-          >
-            Most Searched Regions
+        <Box>
+          <Typography variant="subtitle2" sx={{ mb: 1.2 }}>
+            Searches by region
           </Typography>
-
-          {sortedSearches.length === 0 ? (
-            <Typography
-              sx={{
-                color: "#5E6A78",
-                fontSize: "0.8rem",
-                fontFamily: SYSTEM_FONT,
-              }}
-            >
-              No search data available yet.
+          {rows.length === 0 ? (
+            <Typography sx={{ color: tokens.muted, fontSize: "0.85rem" }}>
+              No searches yet. Yours will be the first.
             </Typography>
           ) : (
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-              {sortedSearches.map(([region, count]) => (
-                <Chip
+            <Box
+              component="ul"
+              sx={{ listStyle: "none", m: 0, p: 0, display: "grid", gap: 1 }}
+            >
+              {rows.map(([region, count]) => (
+                <Box
+                  component="li"
                   key={region}
-                  icon={
-                    <Public
-                      sx={{ fontSize: "14px !important", color: "#8E9AA8" }}
-                    />
-                  }
-                  label={
-                    <span>
-                      {region}:{" "}
-                      <strong style={{ color: "#F0F3F6" }}>{count}</strong>
-                    </span>
-                  }
-                  size="small"
                   sx={{
-                    bgcolor: "rgba(255, 255, 255, 0.04)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    color: "#8E9AA8",
-                    fontFamily: SYSTEM_FONT,
-                    fontSize: "0.75rem",
-                    borderRadius: "4px",
+                    display: "grid",
+                    gridTemplateColumns: "56px 1fr 48px",
+                    alignItems: "center",
+                    gap: 1.5,
                   }}
-                />
+                >
+                  <Typography sx={{ fontWeight: 600, fontSize: "0.85rem" }}>
+                    {region}
+                  </Typography>
+                  <Box
+                    sx={{
+                      height: 8,
+                      borderRadius: 4,
+                      bgcolor: tokens.inset,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        height: "100%",
+                        width: `${(count / max) * 100}%`,
+                        bgcolor: tokens.accent,
+                        borderRadius: 4,
+                      }}
+                    />
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontSize: "0.82rem",
+                      color: tokens.muted,
+                      textAlign: "right",
+                    }}
+                  >
+                    {count.toLocaleString()}
+                  </Typography>
+                </Box>
               ))}
             </Box>
           )}
         </Box>
       </Box>
-    </Box>
+    </Panel>
   );
 };

@@ -1,15 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import { userApi, inventoryApi } from "./apis";
-import { accountSlice, inventorySlice } from "./slices";
+import { userApi } from "./apis";
+import { accountSlice } from "./slices";
 
-const apis = [userApi, inventoryApi];
+const apis = [userApi];
 
 const rootReducer = {
   account: accountSlice.reducer,
-  inventory: inventorySlice.reducer,
   [userApi.reducerPath]: userApi.reducer,
-  [inventoryApi.reducerPath]: inventoryApi.reducer,
 };
 
 export const store = configureStore({

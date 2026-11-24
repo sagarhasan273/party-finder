@@ -1,23 +1,29 @@
 import { Crosshair } from "lucide-react";
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import {
   Box,
-  Chip,
+  Menu,
   Alert,
   Stack,
+  Avatar,
   Button,
   Dialog,
-  Snackbar,
+  MenuItem,
   Container,
   Typography,
+  IconButton,
   DialogTitle,
   DialogContent,
   DialogActions,
 } from "@mui/material";
 
+import { tokens } from "../theme/theme";
+import { CONFIG } from "../config-global";
+import { useCredentials } from "../core/slices";
 import { useSocket } from "../contexts/socket-context";
 import ConnectWithMe from "../components/connect-with-me";
+import { useLiveKitRoom } from "../hooks/use-livekit-room";
 import { LobbyChat } from "../sections/match-making/lobby-chat";
 import { PartyCodeShare } from "../sections/match-making/party-code-share";
 import { ConnectedPlayers } from "../sections/match-making/connected-players";
@@ -26,7 +32,7 @@ import {
   type HistoryStatsData,
 } from "../sections/match-making/history-stats";
 import {
-  VALORANT_RANKS,
+  type SearchForm,
   MatchSearchForm,
   VALORANT_REGIONS,
 } from "../sections/match-making/match-search-form";
@@ -40,652 +46,284 @@ import type {
   DataChannelPayload,
 } from "../types/type-common";
 
-const SYSTEM_FONT =
-  'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+const clock = (): string =>
+  new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-const ICE_SERVERS: RTCConfiguration = {
-  iceServers: [
-    {
-      urls: "stun:stun.relay.metered.ca:80",
-    },
-    {
-      urls: "turn:global.relay.metered.ca:80",
-      username: "74d8e1bcc14d1fcb6eb152c3",
-      credential: "ybp27pjQ9oRDsDcx",
-    },
-    {
-      urls: "turn:global.relay.metered.ca:80?transport=tcp",
-      username: "74d8e1bcc14d1fcb6eb152c3",
-      credential: "ybp27pjQ9oRDsDcx",
-    },
-    {
-      urls: "turn:global.relay.metered.ca:443",
-      username: "74d8e1bcc14d1fcb6eb152c3",
-      credential: "ybp27pjQ9oRDsDcx",
-    },
-    {
-      urls: "turns:global.relay.metered.ca:443?transport=tcp",
-      username: "74d8e1bcc14d1fcb6eb152c3",
-      credential: "ybp27pjQ9oRDsDcx",
-    },
-  ],
+/** Pre-fills the Riot ID from the profile when the user has saved one. */
+const initialRiotId = (user: unknown): string => {
+  const u = (user ?? {}) as Record<string, unknown>;
+  if (u.gamename && u.tagline) return `${u.gamename}#${u.tagline}`;
+  return "";
 };
 
-interface Vad {
-  ctx: AudioContext;
-  frame: number | null;
-}
+export function HomePage(): React.JSX.Element {
+  const { emit, on, isConnected } = useSocket();
+  const { user, logout } = useCredentials();
 
-const now = (): string =>
-  new Date().toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
+  const [form, setForm] = useState<SearchForm>({
+    username: initialRiotId(user),
+    region: "AP",
+    server: VALORANT_REGIONS.AP[0],
+    rank: "Gold 2",
+    minRank: "Silver 1",
+    maxRank: "Platinum 3",
+    groupSize: 1,
   });
-
-export function HomePage(): JSX.Element {
-  const { emit, on, isConnected, socketId } = useSocket();
-
-  const [username, setUsername] = useState<string>(
-    `Agent#${Math.floor(1000 + Math.random() * 9000)}`,
+  const patchForm = useCallback(
+    (patch: Partial<SearchForm>) => setForm((f) => ({ ...f, ...patch })),
+    [],
   );
-  const [region, setRegion] = useState<string>("AP");
-  const [server, setServer] = useState<string>(VALORANT_REGIONS.AP[0]);
-  const [myRank, setMyRank] = useState<string>("Gold 2");
-  const [minRank, setMinRank] = useState<string>("Silver 1");
-  const [maxRank, setMaxRank] = useState<string>("Platinum 3");
-  const [groupSize, setGroupSize] = useState<number>(4);
 
   const [telemetry, setTelemetry] = useState<Telemetry>({
     onlinePlayers: 1,
     inQueueCount: 0,
   });
   const [queueState, setQueueState] = useState<QueueState>("idle");
-  const [matchData, setMatchData] = useState<MatchData | null>(null);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [receivedPartyCode, setReceivedPartyCode] = useState("");
-  const [validationError, setValidationError] = useState("");
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [peerLeftPopupOpen, setPeerLeftPopupOpen] = useState(false);
-
-  const [isMuted, setIsMuted] = useState(false);
-  const [isLocalSpeaking, setIsLocalSpeaking] = useState(false);
-  const [isRemoteSpeaking, setIsRemoteSpeaking] = useState(false);
-
-  // Add this new state for your history tracking
-  const [historyStats, setHistoryStats] = useState<HistoryStatsData>({
+  const [match, setMatch] = useState<MatchData | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [partyCode, setPartyCode] = useState("");
+  const [error, setError] = useState("");
+  const [peerLeftOpen, setPeerLeftOpen] = useState(false);
+  const [history, setHistory] = useState<HistoryStatsData>({
     totalVisits: 0,
     searches: {},
   });
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
 
-  const pcRef = useRef<RTCPeerConnection | null>(null);
-  const dcRef = useRef<RTCDataChannel | null>(null);
-  const localStreamRef = useRef<MediaStream | null>(null);
-
-  // Use a ref for the physical DOM element to bypass autoplay restrictions
-  const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
-
-  const vadRef = useRef<Vad[]>([]);
-  const pendingIceRef = useRef<RTCIceCandidateInit[]>([]);
-
-  // Create a tracking Promise to solve the WebRTC Answer race condition
-  const mediaReadyPromiseRef = useRef<Promise<void> | null>(null);
-
-  const flushPendingIce = async (pc: RTCPeerConnection): Promise<void> => {
-    if (!pendingIceRef.current.length) return;
-    const candidates = [...pendingIceRef.current];
-    pendingIceRef.current = [];
-
-    await Promise.allSettled(
-      candidates.map(async (c) => {
-        try {
-          await pc.addIceCandidate(new RTCIceCandidate(c));
-        } catch (err) {
-          console.warn("[WebRTC] Error adding buffered ICE candidate:", err);
-        }
-      }),
-    );
+  // ── Voice + data channel (LiveKit) ─────────────────────────────────────────
+  const handleData = (payload: DataChannelPayload, senderName: string) => {
+    if (payload.type === "CHAT") {
+      setMessages((m) => [
+        ...m,
+        {
+          sender: senderName,
+          message: payload.message,
+          timestamp: payload.timestamp,
+        },
+      ]);
+    } else if (payload.type === "PARTY_CODE") {
+      setPartyCode(payload.partyCode);
+    }
   };
 
-  const setupVAD = useCallback(
-    (stream: MediaStream, isRemote: boolean): void => {
-      try {
-        const Ctx =
-          window.AudioContext ||
-          (window as unknown as { webkitAudioContext: typeof AudioContext })
-            .webkitAudioContext;
-        const ctx = new Ctx();
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 512;
-        ctx.createMediaStreamSource(stream).connect(analyser);
-        const data = new Uint8Array(analyser.frequencyBinCount);
-        const vad: Vad = { ctx, frame: null };
-        const tick = (): void => {
-          analyser.getByteFrequencyData(data);
-          const avg = data.reduce((a, v) => a + v, 0) / data.length;
-          (isRemote ? setIsRemoteSpeaking : setIsLocalSpeaking)(avg > 22);
-          vad.frame = requestAnimationFrame(tick);
-        };
-        tick();
-        vadRef.current.push(vad);
-      } catch (e) {
-        console.warn("VAD error:", e);
-      }
-    },
-    [],
-  );
+  const voice = useLiveKitRoom({ onData: handleData });
+  const { connect, disconnect } = voice;
 
-  const bindDataChannel = useCallback((dc: RTCDataChannel): void => {
-    dcRef.current = dc;
-
-    dc.onmessage = (event: MessageEvent<string>) => {
-      try {
-        const payload = JSON.parse(event.data) as DataChannelPayload;
-        if (payload.type === "CHAT") {
-          setChatMessages((p) => [...p, payload.data]);
-        } else if (payload.type === "PARTY_CODE") {
-          setReceivedPartyCode(payload.data.partyCode);
-        }
-      } catch (e) {
-        console.warn("Bad data channel message", e);
-      }
-    };
+  const resetLobby = useCallback(() => {
+    setMatch(null);
+    setMessages([]);
+    setPartyCode("");
+    setQueueState("idle");
   }, []);
 
-  const teardownWebRTC = useCallback((): void => {
-    vadRef.current.forEach((v) => {
-      if (v.frame !== null) cancelAnimationFrame(v.frame);
-      if (v.ctx.state !== "closed") v.ctx.close().catch(() => undefined);
-    });
-    vadRef.current = [];
-
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach((t) => t.stop());
-      localStreamRef.current = null;
-    }
-
-    if (remoteAudioRef.current) {
-      remoteAudioRef.current.pause();
-      remoteAudioRef.current.srcObject = null;
-    }
-
-    if (dcRef.current) {
-      dcRef.current.close();
-      dcRef.current = null;
-    }
-
-    if (pcRef.current) {
-      pcRef.current.close();
-      pcRef.current = null;
-    }
-
-    pendingIceRef.current = [];
-    mediaReadyPromiseRef.current = null;
-    setIsLocalSpeaking(false);
-    setIsRemoteSpeaking(false);
-  }, []);
-
-  const getOrCreatePeerConnection = useCallback(
-    (peerSocketId: string): RTCPeerConnection => {
-      if (pcRef.current) return pcRef.current;
-
-      const pc = new RTCPeerConnection(ICE_SERVERS);
-      pcRef.current = pc;
-
-      pc.oniceconnectionstatechange = () => {
-        if (pc.iceConnectionState === "failed") {
-          setValidationError(
-            "Voice channel connection failed. Verify TURN network access.",
-          );
-        }
-      };
-
-      pc.onicecandidate = (e: RTCPeerConnectionIceEvent) => {
-        if (e.candidate) {
-          emit("webrtc-ice-candidate", {
-            targetSocketId: peerSocketId,
-            candidate: e.candidate,
-          });
-        }
-      };
-
-      pc.ontrack = (e: RTCTrackEvent) => {
-        if (remoteAudioRef.current) {
-          remoteAudioRef.current.srcObject = e.streams[0];
-          remoteAudioRef.current.play().catch((err) => {
-            console.warn("[WebRTC] Autoplay prevented:", err);
-          });
-        }
-        setupVAD(e.streams[0], true);
-      };
-
-      return pc;
-    },
-    [emit, setupVAD],
-  );
-
-  const initWebRTC = useCallback(
-    async (isInitiator: boolean, peerSocketId: string): Promise<void> => {
-      teardownWebRTC();
-
-      const pc = getOrCreatePeerConnection(peerSocketId);
-
-      // Track the async microphone fetch so we don't accidentally answer
-      // an incoming offer before the mic track is added.
-      mediaReadyPromiseRef.current = (async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: {
-              echoCancellation: true,
-              noiseSuppression: true,
-              autoGainControl: true,
-            },
-          });
-          localStreamRef.current = stream;
-          stream.getTracks().forEach((t) => pc.addTrack(t, stream));
-          setupVAD(stream, false);
-        } catch {
-          setValidationError(
-            "Microphone permission denied. Voice comms are disabled.",
-          );
-        }
-      })();
-
-      // Wait until the mic is fully captured or denied
-      await mediaReadyPromiseRef.current;
-
-      if (isInitiator) {
-        const dc = pc.createDataChannel("valorantComm", { ordered: true });
-        bindDataChannel(dc);
-
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        emit("webrtc-offer", { targetSocketId: peerSocketId, offer });
-      } else {
-        pc.ondatachannel = (e: RTCDataChannelEvent) => {
-          bindDataChannel(e.channel);
-        };
-      }
-    },
-    [
-      bindDataChannel,
-      getOrCreatePeerConnection,
-      emit,
-      setupVAD,
-      teardownWebRTC,
-    ],
-  );
-
+  // ── Matchmaking events (socket.io) ─────────────────────────────────────────
   useEffect(() => {
-    const unsubscribe = [
+    const offs = [
       on<Telemetry>("telemetry-update", setTelemetry),
+      on<HistoryStatsData>("history-stats", setHistory),
       on<{ status: QueueState }>("queue-status", (d) =>
         setQueueState(d.status),
       ),
       on<{ message: string }>("error-msg", (d) => {
-        setValidationError(d.message);
+        setError(d.message);
         setQueueState("idle");
       }),
       on<MatchData>("match-found", async (d) => {
-        setMatchData(d);
+        setMatch(d);
         setQueueState("matched");
-        setValidationError("");
-        await initWebRTC(d.isInitiator, d.peerSocketId);
+        setError("");
+        setMessages([]);
+        setPartyCode("");
+        try {
+          await connect(d.livekit.url, d.livekit.token);
+        } catch {
+          setError("Voice couldn't connect. Leave the room and search again.");
+        }
       }),
-
-      on<{ senderSocketId: string; offer: RTCSessionDescriptionInit }>(
-        "webrtc-offer",
-        async ({ senderSocketId, offer }) => {
-          let pc = pcRef.current;
-          if (!pc) {
-            pc = getOrCreatePeerConnection(senderSocketId);
-          }
-
-          try {
-            // CRITICAL FIX: Ensure local mic has been added BEFORE answering
-            if (mediaReadyPromiseRef.current) {
-              await mediaReadyPromiseRef.current;
-            }
-
-            await pc.setRemoteDescription(new RTCSessionDescription(offer));
-            await flushPendingIce(pc);
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-            emit("webrtc-answer", { targetSocketId: senderSocketId, answer });
-          } catch (err) {
-            console.error("[WebRTC] Error handling offer:", err);
-          }
-        },
-      ),
-
-      on<{ answer: RTCSessionDescriptionInit }>(
-        "webrtc-answer",
-        async ({ answer }) => {
-          const pc = pcRef.current;
-          if (!pc) return;
-          try {
-            await pc.setRemoteDescription(new RTCSessionDescription(answer));
-            await flushPendingIce(pc);
-          } catch (err) {
-            console.error("[WebRTC] Error handling answer:", err);
-          }
-        },
-      ),
-
-      on<{ senderSocketId: string; candidate: RTCIceCandidateInit }>(
-        "webrtc-ice-candidate",
-        async ({ candidate }) => {
-          const pc = pcRef.current;
-          if (!pc || !candidate) return;
-          if (pc.remoteDescription && pc.remoteDescription.type) {
-            try {
-              await pc.addIceCandidate(new RTCIceCandidate(candidate));
-            } catch (err) {
-              console.warn("[WebRTC] Error adding ICE candidate:", err);
-            }
-          } else {
-            pendingIceRef.current.push(candidate);
-          }
-        },
-      ),
-
-      on<ChatMessage>("room-chat", (msg) => {
-        setChatMessages((p) => [...p, msg]);
-      }),
-
-      on<HistoryStatsData>("history-stats", (data) => {
-        setHistoryStats(data);
-      }),
-
-      on<{ partyCode: string }>("party-code-updated", ({ partyCode }) => {
-        setReceivedPartyCode(partyCode);
-      }),
-
       on("peer-left", () => {
-        teardownWebRTC();
-        setMatchData(null);
-        setChatMessages([]);
-        setReceivedPartyCode("");
-        setQueueState("idle");
-        setPeerLeftPopupOpen(true);
+        disconnect();
+        resetLobby();
+        setPeerLeftOpen(true);
       }),
     ];
+    return () => offs.forEach((off) => off());
+  }, [on, connect, disconnect, resetLobby]);
 
-    return () => {
-      unsubscribe.forEach((offFn) => offFn());
-      teardownWebRTC();
-    };
-  }, [on, emit, initWebRTC, getOrCreatePeerConnection, teardownWebRTC]);
-
-  const handleToggleMic = (): void => {
-    const track = localStreamRef.current?.getAudioTracks()[0];
-    if (track) {
-      track.enabled = !track.enabled;
-      setIsMuted(!track.enabled);
-    }
-  };
-
-  const handleStartQueue = (): void => {
-    if (VALORANT_RANKS.indexOf(minRank) > VALORANT_RANKS.indexOf(maxRank)) {
-      setValidationError("Min rank cannot exceed max rank.");
+  // ── Actions ────────────────────────────────────────────────────────────────
+  const startSearch = () => {
+    const riotId = form.username.trim();
+    if (!/^.{3,16}#[A-Za-z0-9]{3,5}$/.test(riotId)) {
+      setError("Enter your Riot ID as Name#TAG, for example Sova#1234.");
       return;
     }
-    if (!username) {
-      setValidationError("Username should not be empty.");
-      return;
-    }
-    setValidationError("");
+    setError("");
     setQueueState("searching");
     const req: SearchRequest = {
-      username,
-      region,
-      server,
-      rank: myRank,
-      minRank,
-      maxRank,
-      currentGroupSize: groupSize,
+      username: riotId,
+      region: form.region,
+      server: form.server,
+      rank: form.rank,
+      minRank: form.minRank,
+      maxRank: form.maxRank,
+      currentGroupSize: form.groupSize,
     };
     emit("start-search", req);
   };
 
-  const handleCancelQueue = (): void => {
+  const cancelSearch = () => {
     emit("cancel-search");
     setQueueState("idle");
   };
 
-  const sendPayload = (payload: DataChannelPayload): void => {
-    if (dcRef.current && dcRef.current.readyState === "open") {
-      dcRef.current.send(JSON.stringify(payload));
-      return;
-    }
+  const leaveLobby = async () => {
+    emit("leave-room");
+    await disconnect();
+    resetLobby();
+  };
 
-    if (matchData?.roomId) {
-      if (payload.type === "CHAT") {
-        emit("send-room-chat", {
-          roomId: matchData.roomId,
-          ...payload.data,
-        });
-      } else if (payload.type === "PARTY_CODE") {
-        emit("send-party-code", {
-          roomId: matchData.roomId,
-          partyCode: payload.data.partyCode,
-        });
-      }
+  const sendChat = (text: string) => {
+    const timestamp = clock();
+    if (voice.sendData({ type: "CHAT", message: text, timestamp })) {
+      setMessages((m) => [
+        ...m,
+        { sender: form.username, message: text, timestamp, self: true },
+      ]);
+    } else {
+      setError("Message not sent. Voice is still connecting.");
     }
   };
 
-  const handleSendChatMessage = (text: string): void => {
-    const msg: ChatMessage = {
-      sender: username,
-      message: text,
-      timestamp: now(),
-    };
-    sendPayload({ type: "CHAT", data: msg });
-    setChatMessages((p) => [...p, msg]);
+  const sendPartyCode = (code: string) => {
+    if (voice.sendData({ type: "PARTY_CODE", partyCode: code }))
+      setPartyCode(code);
+    else setError("Code not sent. Voice is still connecting.");
   };
 
-  const handleSendPartyCode = (partyCode: string): void => {
-    sendPayload({ type: "PARTY_CODE", data: { partyCode } });
-    setReceivedPartyCode(partyCode);
+  const signOut = async () => {
+    setMenuAnchor(null);
+    if (match) await leaveLobby();
+    sessionStorage.removeItem(CONFIG.googleAccessToken);
+    logout();
   };
 
-  const handleLeaveLobby = (): void => {
-    if (matchData) emit("leave-room", { roomId: matchData.roomId });
-    teardownWebRTC();
-    setMatchData(null);
-    setQueueState("idle");
-    setChatMessages([]);
-    setReceivedPartyCode("");
-  };
+  const profile = (user ?? {}) as { name?: string; profilePhoto?: string };
+  const inLobby = queueState === "matched" && match;
 
   return (
     <Container
       maxWidth="lg"
-      sx={{
-        px: { xs: 1.5, sm: 2.5 },
-        py: { xs: 2, sm: 3 },
-        fontFamily: SYSTEM_FONT,
-      }}
+      sx={{ px: { xs: 1.5, sm: 3 }, py: { xs: 2, sm: 3 } }}
     >
-      <Snackbar
-        open={Boolean(toastMessage)}
-        autoHideDuration={4500}
-        onClose={() => setToastMessage(null)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setToastMessage(null)}
-          severity="warning"
-          sx={{
-            width: "100%",
-            bgcolor: "#1E293B",
-            color: "#F0F3F6",
-            border: "1px solid rgba(255, 70, 85, 0.5)",
-            fontFamily: SYSTEM_FONT,
-            fontSize: "0.85rem",
-          }}
-        >
-          {toastMessage}
-        </Alert>
-      </Snackbar>
-
       <Dialog
-        open={peerLeftPopupOpen}
-        onClose={() => setPeerLeftPopupOpen(false)}
+        open={peerLeftOpen}
+        onClose={() => setPeerLeftOpen(false)}
         PaperProps={{
           sx: {
-            bgcolor: "#17212B",
-            border: "1px solid rgba(255, 70, 85, 0.4)",
-            borderRadius: "8px",
-            minWidth: { xs: "90vw", sm: "400px" },
+            border: `1px solid ${tokens.line}`,
+            minWidth: { xs: "88vw", sm: 400 },
           },
         }}
       >
         <DialogTitle
-          sx={{ fontFamily: SYSTEM_FONT, color: "#FF4655", fontWeight: 600 }}
+          sx={{
+            fontFamily: '"Barlow Condensed", sans-serif',
+            fontSize: "1.5rem",
+          }}
         >
-          Lobby Closed
+          Your teammate left
         </DialogTitle>
         <DialogContent>
-          <Typography
-            sx={{
-              fontFamily: SYSTEM_FONT,
-              color: "#F0F3F6",
-              fontSize: "0.9rem",
-            }}
-          >
-            Your teammate has left the lobby. You have been disconnected and
-            returned to matchmaking.
+          <Typography sx={{ color: tokens.muted }}>
+            The room is closed. Search again to find someone new.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button
             variant="contained"
-            onClick={() => setPeerLeftPopupOpen(false)}
-            sx={{
-              fontFamily: SYSTEM_FONT,
-              textTransform: "none",
-              bgcolor: "#FF4655",
-              color: "#FFFFFF",
-              "&:hover": { bgcolor: "#E03B49" },
-            }}
+            onClick={() => setPeerLeftOpen(false)}
+            autoFocus
           >
-            Acknowledge
+            Back to search
           </Button>
         </DialogActions>
       </Dialog>
 
       <Box
+        component="header"
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          flexWrap: "wrap",
-          gap: 1.5,
-          mb: 2.5,
-          pb: 1.5,
-          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+          gap: 2,
+          mb: 3,
+          pb: 2,
+          borderBottom: `1px solid ${tokens.line}`,
         }}
       >
-        <Stack direction="row" alignItems="center" gap={1} sx={{ mr: 4 }}>
+        <Stack direction="row" alignItems="center" gap={1.2}>
           <Box
             sx={{
-              width: 28,
-              height: 28,
+              width: 30,
+              height: 30,
               borderRadius: "6px",
-              background: "#FF4655",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              bgcolor: tokens.accent,
+              display: "grid",
+              placeItems: "center",
             }}
           >
-            <Crosshair size={16} color="#fff" />
+            <Crosshair size={17} color="#fff" aria-hidden />
           </Box>
-          <Typography
-            sx={{
-              fontFamily: SYSTEM_FONT,
-              fontWeight: 700,
-              fontSize: "1.15rem",
-              letterSpacing: "-0.01em",
-              color: "#ECE8E1",
-              lineHeight: 1,
-            }}
-          >
-            Valorant <span style={{ color: "#FF4655" }}>5</span>th Finder
+          <Typography variant="h6" component="h1">
+            Valorant 5th Finder
           </Typography>
         </Stack>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Chip
-            size="small"
-            label={isConnected ? "Online" : "Connecting"}
+        <IconButton
+          onClick={(e) => setMenuAnchor(e.currentTarget)}
+          aria-label="Account menu"
+          aria-haspopup="menu"
+          sx={{ p: 0.5 }}
+        >
+          <Avatar
+            src={profile.profilePhoto}
+            alt={profile.name ?? "Account"}
+            imgProps={{ referrerPolicy: "no-referrer" }}
+            sx={{ width: 34, height: 34 }}
+          >
+            {profile.name?.charAt(0)}
+          </Avatar>
+        </IconButton>
+        <Menu
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          onClose={() => setMenuAnchor(null)}
+        >
+          <MenuItem
+            disabled
             sx={{
-              height: 22,
-              bgcolor: isConnected
-                ? "rgba(46, 213, 115, 0.12)"
-                : "rgba(255, 70, 85, 0.12)",
-              color: isConnected ? "#2ED573" : "#FF4655",
-              border: `1px solid ${isConnected ? "rgba(46, 213, 115, 0.3)" : "rgba(255, 70, 85, 0.3)"}`,
-              borderRadius: "4px",
-              fontFamily: SYSTEM_FONT,
-              fontWeight: 600,
-              fontSize: "0.72rem",
-            }}
-          />
-          <Typography
-            sx={{
-              fontFamily: SYSTEM_FONT,
-              color: "#8E9AA8",
-              fontSize: "0.78rem",
+              opacity: "1 !important",
+              fontSize: "0.85rem",
+              color: tokens.muted,
             }}
           >
-            {username} {socketId && `(${socketId.slice(0, 5)})`}
-          </Typography>
-        </Box>
+            {profile.name}
+          </MenuItem>
+          <MenuItem onClick={signOut}>Sign out</MenuItem>
+        </Menu>
       </Box>
 
-      {validationError && (
+      {error && (
         <Alert
           severity="error"
-          sx={{
-            mb: 2,
-            py: 0.5,
-            px: 1.5,
-            fontSize: "0.8rem",
-            fontFamily: SYSTEM_FONT,
-            borderRadius: "6px",
-            bgcolor: "rgba(255, 70, 85, 0.1)",
-            border: "1px solid #FF4655",
-            color: "#F0F3F6",
-          }}
+          role="alert"
+          onClose={() => setError("")}
+          sx={{ mb: 2 }}
         >
-          {validationError}
+          {error}
         </Alert>
       )}
 
-      {queueState !== "matched" || !matchData ? (
-        <MatchSearchForm
-          username={username}
-          setUsername={setUsername}
-          region={region}
-          setRegion={setRegion}
-          server={server}
-          setServer={setServer}
-          myRank={myRank}
-          setMyRank={setMyRank}
-          minRank={minRank}
-          setMinRank={setMinRank}
-          maxRank={maxRank}
-          setMaxRank={setMaxRank}
-          groupSize={groupSize}
-          setGroupSize={setGroupSize}
-          telemetry={telemetry}
-          queueState={queueState}
-          isConnected={isConnected}
-          onStartSearch={handleStartQueue}
-          onCancelSearch={handleCancelQueue}
-        />
-      ) : (
+      {inLobby ? (
         <Box
           sx={{
             display: "grid",
@@ -693,39 +331,51 @@ export function HomePage(): JSX.Element {
             gap: 2,
           }}
         >
-          <Box sx={{ display: "grid", gap: 2, alignContent: "start" }}>
+          <Box
+            sx={{ display: "grid", gap: 2, alignContent: "start", minWidth: 0 }}
+          >
             <ConnectedPlayers
-              matchData={matchData}
-              region={region}
-              server={server}
-              username={username}
-              isMuted={isMuted}
-              isLocalSpeaking={isLocalSpeaking}
-              isRemoteSpeaking={isRemoteSpeaking}
-              onToggleMic={handleToggleMic}
-              onLeaveLobby={handleLeaveLobby}
+              matchData={match}
+              region={form.region}
+              server={form.server}
+              localIdentity={voice.localIdentity}
+              speakingIds={voice.speakingIds}
+              voiceStatus={voice.status}
+              isMuted={voice.isMuted}
+              micDenied={voice.micDenied}
+              audioBlocked={voice.audioBlocked}
+              onToggleMic={voice.toggleMic}
+              onEnableAudio={voice.enableAudio}
+              onLeave={leaveLobby}
             />
-
             <PartyCodeShare
-              receivedPartyCode={receivedPartyCode}
-              onSendPartyCode={handleSendPartyCode}
+              receivedPartyCode={partyCode}
+              onSendPartyCode={sendPartyCode}
+              disabled={voice.status !== "connected"}
             />
           </Box>
-
           <LobbyChat
-            messages={chatMessages}
-            onSendMessage={handleSendChatMessage}
+            messages={messages}
+            onSendMessage={sendChat}
+            disabled={voice.status !== "connected"}
           />
         </Box>
+      ) : (
+        <MatchSearchForm
+          value={form}
+          onChange={patchForm}
+          telemetry={telemetry}
+          queueState={queueState}
+          isConnected={isConnected}
+          onStart={startSearch}
+          onCancel={cancelSearch}
+        />
       )}
 
-      <HistoryStats data={historyStats} />
-
+      <Box sx={{ maxWidth: inLobby ? "none" : 720, mx: "auto" }}>
+        <HistoryStats data={history} />
+      </Box>
       <ConnectWithMe />
-
-      <audio ref={remoteAudioRef} autoPlay style={{ display: "none" }}>
-        <track kind="captions" />
-      </audio>
     </Container>
   );
 }

@@ -1,218 +1,204 @@
 import React from "react";
 
-import { Box, Button, Typography, IconButton } from "@mui/material";
+import { Box, Alert, Avatar, Button, Typography } from "@mui/material";
 import { Mic, MicOff, ExitToApp, GraphicEq } from "@mui/icons-material";
 
+import { tokens } from "../../theme/theme";
+import { Panel } from "../../components/panel";
+import { SquadSlots } from "../../components/squad-slots";
+
 import type { MatchData } from "../../types/type-common";
+import type { VoiceStatus } from "../../hooks/use-livekit-room";
 
-const SYSTEM_FONT =
-  'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-
-interface ConnectedPlayersProps {
+interface Props {
   matchData: MatchData;
   region: string;
   server: string;
-  username: string;
+  localIdentity: string;
+  speakingIds: string[];
+  voiceStatus: VoiceStatus;
   isMuted: boolean;
-  isLocalSpeaking: boolean;
-  isRemoteSpeaking: boolean;
+  micDenied: boolean;
+  audioBlocked: boolean;
   onToggleMic: () => void;
-  onLeaveLobby: () => void;
+  onEnableAudio: () => void;
+  onLeave: () => void;
 }
 
-export const ConnectedPlayers: React.FC<ConnectedPlayersProps> = ({
+const STATUS_LABEL: Record<VoiceStatus, string> = {
+  idle: "Voice off",
+  connecting: "Connecting voice",
+  connected: "Voice live",
+  failed: "Voice failed",
+};
+
+export const ConnectedPlayers: React.FC<Props> = ({
   matchData,
   region,
   server,
-  username,
+  localIdentity,
+  speakingIds,
+  voiceStatus,
   isMuted,
-  isLocalSpeaking,
-  isRemoteSpeaking,
+  micDenied,
+  audioBlocked,
   onToggleMic,
-  onLeaveLobby,
-}) => (
-  <Box
-    sx={{
-      boxSizing: "border-box",
-      minWidth: 0,
-      overflowX: "hidden",
-      p: { xs: 2, sm: 2.5 },
-      bgcolor: "#17212B",
-      borderRadius: "8px",
-      border: "1px solid rgba(255, 255, 255, 0.08)",
-    }}
-  >
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        mb: 1.5,
-        pb: 1,
-        borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
-        gap: 1,
-      }}
+  onEnableAudio,
+  onLeave,
+}) => {
+  const seated = matchData.participants.reduce(
+    (sum, p) => sum + p.currentGroupSize,
+    0,
+  );
+
+  return (
+    <Panel
+      title="Squad room"
+      subtitle={`${region}, ${server}`}
+      action={
+        <Box
+          role="status"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.8,
+            fontSize: "0.8rem",
+            color: voiceStatus === "connected" ? tokens.live : tokens.muted,
+          }}
+        >
+          <GraphicEq sx={{ fontSize: 18 }} />
+          {STATUS_LABEL[voiceStatus]}
+        </Box>
+      }
     >
-      <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography
-          sx={{
-            fontFamily: SYSTEM_FONT,
-            color: "#2ED573",
-            fontWeight: 700,
-            fontSize: { xs: "0.95rem", sm: "1.05rem" },
-            m: 0,
-            lineHeight: 1.2,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          Room {matchData.roomId}
-        </Typography>
-        <Typography
-          sx={{
-            color: "#8E9AA8",
-            fontFamily: SYSTEM_FONT,
-            fontSize: "0.72rem",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {region} · {server}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          flexWrap: "wrap",
+          mb: 2.5,
+        }}
+      >
+        <SquadSlots filled={Math.min(seated, 5)} size={30} />
+        <Typography sx={{ color: tokens.muted, fontSize: "0.85rem" }}>
+          {seated >= 5
+            ? "Stack is full"
+            : `${5 - seated} seat${5 - seated > 1 ? "s" : ""} still open`}
         </Typography>
       </Box>
 
       <Box
-        sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+          gap: 1.5,
+        }}
       >
-        <IconButton
-          size="small"
-          onClick={onToggleMic}
-          sx={{
-            p: 0.7,
-            borderRadius: "6px",
-            bgcolor: isMuted
-              ? "rgba(255, 70, 85, 0.15)"
-              : "rgba(46, 213, 115, 0.15)",
-            border: `1px solid ${isMuted ? "rgba(255, 70, 85, 0.4)" : "rgba(46, 213, 115, 0.4)"}`,
-          }}
-        >
-          {isMuted ? (
-            <MicOff sx={{ color: "#FF4655", fontSize: 16 }} />
-          ) : (
-            <Mic sx={{ color: "#2ED573", fontSize: 16 }} />
-          )}
-        </IconButton>
-
-        <Button
-          variant="contained"
-          size="small"
-          onClick={onLeaveLobby}
-          startIcon={<ExitToApp sx={{ fontSize: 15 }} />}
-          sx={{
-            px: 1.4,
-            py: 0.5,
-            fontSize: "0.75rem",
-            fontFamily: SYSTEM_FONT,
-            fontWeight: 600,
-            textTransform: "none",
-            bgcolor: "#FF4655",
-            color: "#FFFFFF",
-            borderRadius: "6px",
-            boxShadow: "none",
-            "&:hover": { bgcolor: "#E03B49", boxShadow: "none" },
-          }}
-        >
-          Leave
-        </Button>
-      </Box>
-    </Box>
-
-    <Typography
-      sx={{ fontFamily: SYSTEM_FONT, color: "#8E9AA8", fontSize: "0.75rem" }}
-    >
-      Connected Players
-    </Typography>
-
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-        gap: 1.2,
-        mt: 0.8,
-      }}
-    >
-      {matchData.participants.map((p) => {
-        const isSelf = p.username === username;
-        const speaking = isSelf ? isLocalSpeaking : isRemoteSpeaking;
-
-        return (
-          <Box
-            key={p.username}
-            sx={{
-              p: 1.5,
-              bgcolor: "#141D26",
-              border: `1px solid ${speaking ? "#2ED573" : "rgba(255, 255, 255, 0.06)"}`,
-              borderRadius: "6px",
-              position: "relative",
-              transition: "border-color 0.2s",
-            }}
-          >
+        {matchData.participants.map((p) => {
+          const isSelf = p.userId === localIdentity;
+          const speaking = speakingIds.includes(p.userId);
+          return (
             <Box
+              key={p.userId}
               sx={{
                 display: "flex",
-                justifyContent: "space-between",
                 alignItems: "center",
+                gap: 1.5,
+                p: 1.5,
+                minWidth: 0,
+                bgcolor: tokens.inset,
+                borderRadius: "6px",
+                border: `1px solid ${speaking ? tokens.live : tokens.line}`,
+                transition: "border-color 0.15s",
               }}
             >
-              <Typography
+              <Avatar
                 sx={{
-                  fontFamily: SYSTEM_FONT,
-                  fontWeight: 600,
-                  color: "#F0F3F6",
-                  fontSize: "0.82rem",
+                  width: 40,
+                  height: 40,
+                  bgcolor: tokens.text,
+                  color: tokens.bg,
+                  fontWeight: 700,
+                  boxShadow: speaking ? `0 0 0 3px ${tokens.live}` : "none",
+                  transition: "box-shadow 0.15s",
                 }}
               >
-                {p.username} {isSelf && "(You)"}
-              </Typography>
-              {speaking ? (
-                <GraphicEq sx={{ color: "#2ED573", fontSize: 15 }} />
-              ) : (
+                {p.username.charAt(0).toUpperCase()}
+              </Avatar>
+              <Box sx={{ minWidth: 0 }}>
                 <Typography
+                  noWrap
+                  sx={{ fontWeight: 600, fontSize: "0.92rem" }}
+                >
+                  {p.username}
+                  {isSelf && (
+                    <span style={{ color: tokens.muted, fontWeight: 400 }}>
+                      {" "}
+                      (you)
+                    </span>
+                  )}
+                </Typography>
+                <Typography
+                  noWrap
                   sx={{
-                    color: "#8E9AA8",
-                    fontFamily: SYSTEM_FONT,
-                    fontSize: "0.68rem",
+                    fontSize: "0.8rem",
+                    color: tokens.accent,
+                    fontWeight: 600,
                   }}
                 >
-                  Idle
+                  {p.rank}
                 </Typography>
-              )}
+                <Typography
+                  noWrap
+                  sx={{ fontSize: "0.75rem", color: tokens.muted }}
+                >
+                  {p.currentGroupSize === 1
+                    ? "Solo"
+                    : `Party of ${p.currentGroupSize}`}
+                </Typography>
+              </Box>
             </Box>
-            <Typography
-              sx={{
-                fontFamily: SYSTEM_FONT,
-                color: "#FF4655",
-                fontWeight: 600,
-                fontSize: "0.78rem",
-                mt: 0.2,
-              }}
-            >
-              {p.rank}
-            </Typography>
-            <Typography
-              sx={{
-                fontFamily: SYSTEM_FONT,
-                color: "#8E9AA8",
-                fontSize: "0.7rem",
-              }}
-            >
-              Has {p.currentGroupSize} player{p.currentGroupSize > 1 ? "s" : ""}
-            </Typography>
-          </Box>
-        );
-      })}
-    </Box>
-  </Box>
-);
+          );
+        })}
+      </Box>
+
+      {micDenied && (
+        <Alert severity="warning" sx={{ mt: 2 }}>
+          Microphone is blocked, so teammates can&apos;t hear you. Allow it in
+          your browser&apos;s site settings, then press Unmute.
+        </Alert>
+      )}
+      {audioBlocked && (
+        <Alert
+          severity="info"
+          sx={{ mt: 2 }}
+          action={
+            <Button color="inherit" size="small" onClick={onEnableAudio}>
+              Turn on sound
+            </Button>
+          }
+        >
+          Your browser is holding back voice until you interact.
+        </Alert>
+      )}
+
+      <Box sx={{ display: "flex", gap: 1.5, mt: 2.5, flexWrap: "wrap" }}>
+        <Button
+          variant={isMuted ? "contained" : "outlined"}
+          color={isMuted ? "primary" : "inherit"}
+          onClick={onToggleMic}
+          disabled={voiceStatus !== "connected"}
+          startIcon={isMuted ? <MicOff /> : <Mic sx={{ color: tokens.live }} />}
+          aria-pressed={isMuted}
+          sx={{ minWidth: 130 }}
+        >
+          {isMuted ? "Unmute" : "Mute"}
+        </Button>
+        <Button variant="outlined" onClick={onLeave} startIcon={<ExitToApp />}>
+          Leave room
+        </Button>
+      </Box>
+    </Panel>
+  );
+};

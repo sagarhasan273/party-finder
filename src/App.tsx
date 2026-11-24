@@ -1,43 +1,52 @@
-import { Toaster } from "sonner";
-import { Provider } from "react-redux";
+import { Provider as ReduxProvider } from "react-redux";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
-import { CssBaseline, ThemeProvider } from "@mui/material";
+import {
+  Box,
+  CssBaseline,
+  ThemeProvider,
+  CircularProgress,
+} from "@mui/material";
 
-import { theme } from "./theme";
-import { AppRouter } from "./router";
 import { store } from "./core/store";
 import { CONFIG } from "./config-global";
+import { gameTheme } from "./theme/theme";
+import { HomePage } from "./pages/home-page";
+import { LoginPage } from "./pages/login-page";
+import { useCredentials } from "./store/slices";
 import { SocketProvider } from "./contexts/socket-context";
+import { useSessionBootstrap } from "./hooks/use-session-bootstrap";
+
+function AuthGate() {
+  const ready = useSessionBootstrap();
+  const { isAuthenticated } = useCredentials();
+
+  if (!ready) {
+    return (
+      <Box sx={{ minHeight: "100svh", display: "grid", placeItems: "center" }}>
+        <CircularProgress aria-label="Loading" />
+      </Box>
+    );
+  }
+
+  return isAuthenticated ? (
+    <SocketProvider>
+      <HomePage />
+    </SocketProvider>
+  ) : (
+    <LoginPage />
+  );
+}
 
 export default function App() {
   return (
-    <GoogleOAuthProvider clientId={CONFIG.googleAuthClientId}>
-      <Provider store={store}>
-        <SocketProvider url={CONFIG.serverUrl}>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <AppRouter />
-
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                style: {
-                  border: "1px solid rgba(255, 255, 255, 0.94)",
-                  color: "#ffffff",
-                  background: "rgba(13, 15, 26, 0.95)",
-                  borderRadius: "4px",
-                  backdropFilter: "blur(10px)",
-                  fontFamily: '"Rajdhani", sans-serif',
-                  fontWeight: 600,
-                  fontSize: "0.90rem",
-                  padding: "16px 16px",
-                },
-              }}
-            />
-          </ThemeProvider>
-        </SocketProvider>
-      </Provider>
-    </GoogleOAuthProvider>
+    <ReduxProvider store={store}>
+      <GoogleOAuthProvider clientId={CONFIG.googleAuthClientId}>
+        <ThemeProvider theme={gameTheme}>
+          <CssBaseline />
+          <AuthGate />
+        </ThemeProvider>
+      </GoogleOAuthProvider>
+    </ReduxProvider>
   );
 }
