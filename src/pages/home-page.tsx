@@ -37,6 +37,7 @@ import { CONFIG } from "../config-global";
 import { fonts, tokens } from "../theme/theme";
 import { useCredentials } from "../core/slices";
 import ConnectWithMe from "../components/connect-with-me";
+import { Talk2ActiveCard } from "../components/talk2active-card";
 import { useSocket, useLiveKitRoom } from "../contexts/socket-context";
 import {
   Pill,
@@ -192,6 +193,7 @@ export function HomePage(): React.JSX.Element {
     setQueueState("searching");
     const req: SearchRequest = {
       username: riotId,
+      profilePhoto: user.profilePhoto,
       region: form.region,
       server: form.server,
       rank: form.rank,
@@ -512,6 +514,8 @@ export function HomePage(): React.JSX.Element {
 
       <Box sx={{ maxWidth: inLobby ? "none" : 760, mx: "auto" }}>
         <HistoryStats data={history} />
+        {/* Full card on the search screen, slim banner inside a match. */}
+        <Talk2ActiveCard variant={inLobby ? "strip" : "full"} />
       </Box>
       <ConnectWithMe />
     </Container>

@@ -54,6 +54,7 @@ export interface ChatMessage {
 
 export interface SearchRequest {
   username: string;
+  profilePhoto?: string;
   region: string;
   server: string;
   rank: string;

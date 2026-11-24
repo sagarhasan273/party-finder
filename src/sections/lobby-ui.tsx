@@ -1187,12 +1187,9 @@ export const ConnectedPlayers: React.FC<PlayersProps> = ({
           const isSelf = p.userId === localIdentity;
           const speaking = speakingIds.includes(p.userId);
           const color = rankColor(p.rank);
-          // Photo from the server if it sends one (participant.profilePhoto),
-          // otherwise your own Google photo for your card.
           const photo =
             (p as { profilePhoto?: string }).profilePhoto ||
             (isSelf ? localPhoto : undefined);
-          // Green ring: your mic is on, or a teammate is talking.
           const ringOn = isSelf ? micOn : speaking;
           return (
             <Box
