@@ -13,6 +13,8 @@ import React, { useState, useEffect } from "react";
 import { Provider as ReduxProvider } from "react-redux";
 import { useGoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 
+import { alpha } from "@mui/material/styles";
+import { Mic, VpnKey, TrendingUp } from "@mui/icons-material";
 import {
   Box,
   Alert,
@@ -28,9 +30,15 @@ import { store } from "./core/store";
 import { CONFIG } from "./config-global";
 import { HomePage } from "./pages/home-page";
 import { useCredentials } from "./core/slices";
-import { tokens, gameTheme } from "./theme/theme";
+import { fonts, tokens, gameTheme } from "./theme/theme";
 import { SocketProvider } from "./contexts/socket-context";
-import { BrandMark, SquadSlots } from "./sections/lobby-ui";
+import {
+  Pill,
+  EqBars,
+  BrandMark,
+  rankColor,
+  SquadSlots,
+} from "./sections/lobby-ui";
 
 import type { UserType } from "./types/type-user";
 
@@ -184,18 +192,21 @@ export const GoogleSignIn = ({
             <GoogleLogo />
           )
         }
-        sx={{
-          py: 1.4,
-          fontSize: "1rem",
-          bgcolor: "#ECE8E1",
-          color: "#0F1923",
-          "&:hover": { bgcolor: "#FFFFFF" },
-          "&.Mui-disabled": {
-            bgcolor: "rgba(236,232,225,0.6)",
-            color: "#0F1923",
+        sx={[
+          {
+            py: 1.1,
+            fontSize: "0.95rem",
+            bgcolor: tokens.text,
+            color: tokens.bg,
+            boxShadow: `0 12px 34px ${alpha(tokens.text, 0.12)}`,
+            "&:hover": { bgcolor: "#FFFFFF" },
+            "&.Mui-disabled": {
+              bgcolor: alpha(tokens.text, 0.6),
+              color: tokens.bg,
+            },
           },
-          ...sx,
-        }}
+          ...(Array.isArray(sx) ? sx : [sx]),
+        ]}
       >
         {isLoading ? "Signing in" : title}
       </Button>
@@ -208,49 +219,288 @@ export const GoogleSignIn = ({
   );
 };
 
+/** Decorative "match found" card: shows what the product does at a glance. */
+const MatchPreview = () => {
+  const mates = [
+    { name: "You", rank: "Gold 3", talking: false },
+    { name: "Nightjar", rank: "Platinum 1", talking: true },
+  ];
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        position: "relative",
+        width: "100%",
+        maxWidth: 390,
+        justifySelf: { md: "end" },
+        p: { xs: 2, sm: 2.5 },
+        bgcolor: alpha(tokens.surface, 0.9),
+        border: `1px solid ${tokens.line}`,
+        borderRadius: "4px",
+        boxShadow: `0 30px 80px rgba(0,0,0,0.45), 0 0 0 1px ${alpha(tokens.accent, 0.06)}`,
+        transform: { md: "rotate(-1.5deg)" },
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          top: -1,
+          left: -1,
+          width: 44,
+          height: 2,
+          bgcolor: tokens.accent,
+        },
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <Box>
+          <Typography
+            sx={{
+              fontFamily: fonts.mono,
+              fontSize: "0.68rem",
+              color: tokens.accent,
+              letterSpacing: "0.08em",
+            }}
+          >
+            AP · MUMBAI
+          </Typography>
+          <Typography variant="h6" sx={{ fontSize: "1.15rem" }}>
+            Match found
+          </Typography>
+        </Box>
+        <Pill color={tokens.live} pulse>
+          Voice live
+        </Pill>
+      </Box>
+
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          py: 1.5,
+          mb: 2,
+          bgcolor: tokens.inset,
+          border: `1px solid ${tokens.line}`,
+          borderRadius: "4px",
+        }}
+      >
+        <SquadSlots filled={4} searching size={36} />
+      </Box>
+
+      <Box sx={{ display: "grid", gap: 1 }}>
+        {mates.map((m) => {
+          const c = rankColor(m.rank);
+          return (
+            <Box
+              key={m.name}
+              sx={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                p: 1.25,
+                pl: 1.75,
+                overflow: "hidden",
+                borderRadius: "4px",
+                bgcolor: m.talking ? alpha(tokens.live, 0.06) : tokens.inset,
+                border: `1px solid ${m.talking ? alpha(tokens.live, 0.5) : tokens.line}`,
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 3,
+                  bgcolor: c,
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: "50%",
+                  display: "grid",
+                  placeItems: "center",
+                  fontFamily: fonts.display,
+                  fontWeight: 800,
+                  color: c,
+                  bgcolor: alpha(c, 0.14),
+                  border: `1px solid ${alpha(c, 0.5)}`,
+                }}
+              >
+                {m.name.charAt(0)}
+              </Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 600, fontSize: "0.88rem" }}>
+                  {m.name}
+                </Typography>
+                <Typography
+                  sx={{ fontSize: "0.76rem", color: c, fontWeight: 700 }}
+                >
+                  {m.rank}
+                </Typography>
+              </Box>
+              <EqBars
+                active={m.talking}
+                color={m.talking ? tokens.live : tokens.faint}
+              />
+            </Box>
+          );
+        })}
+      </Box>
+
+      <Box
+        sx={{
+          mt: 2,
+          p: 1.5,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 1,
+          borderRadius: "4px",
+          border: `1px dashed ${alpha(tokens.live, 0.5)}`,
+          bgcolor: tokens.liveSoft,
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: "0.72rem",
+            color: tokens.live,
+            fontWeight: 600,
+            letterSpacing: "0.1em",
+          }}
+        >
+          PARTY CODE
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: fonts.mono,
+            fontWeight: 700,
+            letterSpacing: "0.14em",
+          }}
+        >
+          ••• ••••
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
+const FEATURES = [
+  {
+    icon: <TrendingUp fontSize="small" />,
+    title: "Rank-matched",
+    body: "Only players inside your range.",
+  },
+  {
+    icon: <Mic fontSize="small" />,
+    title: "Voice first",
+    body: "Talk before you commit.",
+  },
+  {
+    icon: <VpnKey fontSize="small" />,
+    title: "Code when ready",
+    body: "Share the invite on your terms.",
+  },
+];
+
 export function LoginPage(): React.JSX.Element {
   return (
     <Box
       sx={{
+        position: "relative",
         minHeight: "100svh",
         display: "flex",
         flexDirection: "column",
-        px: { xs: 2.5, sm: 6 },
-        py: { xs: 2.5, sm: 4 },
+        overflow: "hidden",
+        px: { xs: 2.5, sm: 5, md: 8 },
+        pt: { xs: 2.5, sm: 4 },
+        pb: { xs: "calc(20px + env(safe-area-inset-bottom))", sm: 4 },
       }}
     >
-      <BrandMark />
+      {/* Huge outlined "5" behind everything. */}
+      <Box
+        aria-hidden
+        sx={{
+          position: "absolute",
+          right: { xs: -70, md: "6%" },
+          top: { xs: 30, md: "50%" },
+          transform: { md: "translateY(-50%)" },
+          fontFamily: fonts.display,
+          fontWeight: 800,
+          fontSize: { xs: "20rem", md: "36rem" },
+          lineHeight: 0.8,
+          color: "transparent",
+          WebkitTextStroke: `1.5px ${alpha(tokens.accent, 0.16)}`,
+          pointerEvents: "none",
+          userSelect: "none",
+        }}
+      >
+        5
+      </Box>
+
+      <Box
+        component="header"
+        sx={{
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <BrandMark />
+      </Box>
 
       <Box
         component="main"
         sx={{
+          position: "relative",
           flex: 1,
-          display: "flex",
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "1.15fr 0.85fr" },
           alignItems: "center",
-          py: { xs: 6, sm: 8 },
+          gap: { xs: 6, md: 8 },
+          py: { xs: 5, md: 6 },
         }}
       >
-        <Box sx={{ width: "100%", maxWidth: 520 }}>
-          {/* The hero is the product: four seats taken, one still open. */}
-          <SquadSlots filled={4} searching size={52} />
+        <Box sx={{ maxWidth: 580 }}>
+          <Pill color={tokens.accent} pulse>
+            Ranked LFG with voice
+          </Pill>
 
           <Typography
             variant="h1"
             sx={{
-              mt: 4,
-              fontSize: { xs: "3.4rem", sm: "4.8rem" },
+              mt: 3,
+              fontSize: { xs: "2.8rem", sm: "4rem", md: "4.6rem" },
               color: tokens.text,
             }}
           >
-            Your stack is one short.
+            Your stack is
+            <Box
+              component="span"
+              sx={{
+                display: "block",
+                color: tokens.accent,
+                textShadow: `0 0 40px ${alpha(tokens.accent, 0.35)}`,
+              }}
+            >
+              one short.
+            </Box>
           </Typography>
 
           <Typography
             sx={{
-              mt: 2.5,
-              maxWidth: 440,
-              fontSize: { xs: "1rem", sm: "1.1rem" },
-              lineHeight: 1.55,
+              mt: 3,
+              maxWidth: 460,
+              fontSize: { xs: "0.95rem", sm: "1.02rem" },
+              lineHeight: 1.6,
               color: tokens.muted,
             }}
           >
@@ -258,17 +508,90 @@ export function LoginPage(): React.JSX.Element {
             fits, and you talk on voice before you ever share a party code.
           </Typography>
 
-          <Box sx={{ mt: 4, maxWidth: 360 }}>
+          <Box sx={{ mt: 3.5, maxWidth: 340 }}>
             <GoogleSignIn />
             <Typography
-              sx={{ mt: 1.5, fontSize: "0.78rem", color: tokens.faint }}
+              sx={{
+                mt: 1.5,
+                fontSize: "0.76rem",
+                color: tokens.faint,
+                lineHeight: 1.5,
+              }}
             >
               Google is only used to sign you in. Your browser asks for
               microphone access when a match starts.
             </Typography>
           </Box>
+
+          <Box
+            component="ul"
+            sx={{
+              listStyle: "none",
+              p: 0,
+              m: 0,
+              mt: { xs: 4, sm: 5 },
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+              gap: { xs: 1.5, sm: 2 },
+            }}
+          >
+            {FEATURES.map((f) => (
+              <Box
+                component="li"
+                key={f.title}
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "row", sm: "column" },
+                  alignItems: { xs: "center", sm: "flex-start" },
+                  gap: { xs: 1.5, sm: 1 },
+                  pt: { sm: 1.5 },
+                  borderTop: { sm: `1px solid ${tokens.line}` },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 34,
+                    height: 34,
+                    flexShrink: 0,
+                    display: "grid",
+                    placeItems: "center",
+                    borderRadius: "4px",
+                    color: tokens.accent,
+                    bgcolor: tokens.accentSoft,
+                  }}
+                >
+                  {f.icon}
+                </Box>
+                <Box>
+                  <Typography
+                    sx={{
+                      fontFamily: fonts.display,
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                      fontSize: "0.92rem",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {f.title}
+                  </Typography>
+                  <Typography sx={{ fontSize: "0.8rem", color: tokens.muted }}>
+                    {f.body}
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+          </Box>
         </Box>
+
+        <MatchPreview />
       </Box>
+
+      <Typography
+        sx={{ position: "relative", fontSize: "0.72rem", color: tokens.faint }}
+      >
+        Fan-made. Not affiliated with Riot Games.
+      </Typography>
     </Box>
   );
 }
@@ -279,8 +602,21 @@ function AuthGate() {
 
   if (!ready) {
     return (
-      <Box sx={{ minHeight: "100svh", display: "grid", placeItems: "center" }}>
-        <CircularProgress aria-label="Loading" />
+      <Box
+        sx={{
+          minHeight: "100svh",
+          display: "grid",
+          placeItems: "center",
+          gap: 2,
+          alignContent: "center",
+        }}
+      >
+        <BrandMark />
+        <CircularProgress
+          aria-label="Loading"
+          size={28}
+          sx={{ justifySelf: "center" }}
+        />
       </Box>
     );
   }

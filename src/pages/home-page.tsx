@@ -4,13 +4,21 @@
  *
  *   socket.io  -> matchmaking (queue, match-found, telemetry, stats)
  *   LiveKit    -> voice + chat + party code once a match is found
+ *
+ * Layout: on desktop the lobby is a two-column grid. On phones it becomes
+ * three tabs (Squad / Chat / Code) with an unread badge on Chat.
  */
 import React, { useState, useEffect, useCallback } from "react";
 
+import { Logout } from "@mui/icons-material";
+import { alpha, useTheme } from "@mui/material/styles";
 import {
   Box,
+  Tab,
   Menu,
+  Tabs,
   Alert,
+  Badge,
   Avatar,
   Button,
   Dialog,
@@ -19,23 +27,26 @@ import {
   Typography,
   IconButton,
   DialogTitle,
+  ListItemIcon,
   DialogContent,
   DialogActions,
+  useMediaQuery,
 } from "@mui/material";
 
-import { tokens } from "../theme/theme";
 import { CONFIG } from "../config-global";
+import { fonts, tokens } from "../theme/theme";
 import { useCredentials } from "../core/slices";
 import ConnectWithMe from "../components/connect-with-me";
 import { useSocket, useLiveKitRoom } from "../contexts/socket-context";
 import {
+  Pill,
   BrandMark,
   LobbyChat,
+  ANY_SERVER,
   HistoryStats,
   PartyCodeShare,
   MatchSearchForm,
   ConnectedPlayers,
-  VALORANT_REGIONS,
 } from "../sections/lobby-ui";
 
 import type { SearchForm, HistoryStatsData } from "../sections/lobby-ui";
@@ -47,6 +58,8 @@ import type {
   SearchRequest,
   DataChannelPayload,
 } from "../contexts/socket-context";
+
+type LobbyTab = "squad" | "chat" | "code";
 
 const clock = (): string =>
   new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -61,11 +74,13 @@ const initialRiotId = (user: unknown): string => {
 export function HomePage(): React.JSX.Element {
   const { emit, on, isConnected } = useSocket();
   const { user, logout } = useCredentials();
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"), { noSsr: true });
 
   const [form, setForm] = useState<SearchForm>({
     username: initialRiotId(user),
     region: "AP",
-    server: VALORANT_REGIONS.AP[0],
+    server: ANY_SERVER,
     rank: "Gold 2",
     minRank: "Silver 1",
     maxRank: "Platinum 3",
@@ -92,6 +107,15 @@ export function HomePage(): React.JSX.Element {
   });
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
 
+  // Mobile lobby tabs + unread counter for the Chat tab.
+  const [tab, setTab] = useState<LobbyTab>("squad");
+  const [seenIncoming, setSeenIncoming] = useState(0);
+  const incoming = messages.filter((m) => !m.self).length;
+  useEffect(() => {
+    if (isDesktop || tab === "chat") setSeenIncoming(incoming);
+  }, [isDesktop, tab, incoming]);
+  const unread = Math.max(0, incoming - seenIncoming);
+
   // ── Voice + data channel (LiveKit) ─────────────────────────────────────────
   const handleData = (payload: DataChannelPayload, senderName: string) => {
     if (payload.type === "CHAT") {
@@ -116,6 +140,8 @@ export function HomePage(): React.JSX.Element {
     setMessages([]);
     setPartyCode("");
     setQueueState("idle");
+    setTab("squad");
+    setSeenIncoming(0);
   }, []);
 
   // ── Matchmaking events (socket.io) ─────────────────────────────────────────
@@ -136,6 +162,9 @@ export function HomePage(): React.JSX.Element {
         setError("");
         setMessages([]);
         setPartyCode("");
+        setTab("squad");
+        setSeenIncoming(0);
+        window.scrollTo({ top: 0, behavior: "smooth" });
         try {
           await connect(d.livekit.url, d.livekit.token);
         } catch {
@@ -156,6 +185,7 @@ export function HomePage(): React.JSX.Element {
     const riotId = form.username.trim();
     if (!/^.{3,16}#[A-Za-z0-9]{3,5}$/.test(riotId)) {
       setError("Enter your Riot ID as Name#TAG, for example Sova#1234.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
     setError("");
@@ -210,37 +240,69 @@ export function HomePage(): React.JSX.Element {
 
   const profile = (user ?? {}) as { name?: string; profilePhoto?: string };
   const inLobby = queueState === "matched" && match;
+  const voiceReady = voice.status === "connected";
+
+  const players = inLobby ? (
+    <ConnectedPlayers
+      matchData={match}
+      region={form.region}
+      server={form.server === ANY_SERVER ? "Any server" : form.server}
+      localIdentity={voice.localIdentity}
+      speakingIds={voice.speakingIds}
+      voiceStatus={voice.status}
+      isMuted={voice.isMuted}
+      micDenied={voice.micDenied}
+      audioBlocked={voice.audioBlocked}
+      onToggleMic={voice.toggleMic}
+      onEnableAudio={voice.enableAudio}
+      onLeave={leaveLobby}
+      localPhoto={profile.profilePhoto}
+    />
+  ) : null;
+  const code = (
+    <PartyCodeShare
+      receivedPartyCode={partyCode}
+      onSendPartyCode={sendPartyCode}
+      disabled={!voiceReady}
+    />
+  );
+  const chat = (
+    <LobbyChat
+      messages={messages}
+      onSendMessage={sendChat}
+      disabled={!voiceReady}
+    />
+  );
 
   return (
     <Container
       maxWidth="lg"
-      sx={{ px: { xs: 1.5, sm: 3 }, py: { xs: 2, sm: 3 } }}
+      sx={{ px: { xs: 1.5, sm: 3 }, pt: 0, pb: { xs: 3, sm: 5 } }}
     >
       <Dialog
         open={peerLeftOpen}
         onClose={() => setPeerLeftOpen(false)}
-        PaperProps={{
-          sx: {
-            border: `1px solid ${tokens.line}`,
-            minWidth: { xs: "88vw", sm: 400 },
-          },
-        }}
+        PaperProps={{ sx: { minWidth: { xs: "88vw", sm: 420 } } }}
       >
         <DialogTitle
           sx={{
-            fontFamily: '"Barlow Condensed", sans-serif',
-            fontSize: "1.5rem",
+            fontFamily: fonts.display,
+            fontWeight: 800,
+            fontSize: "1.4rem",
+            textTransform: "uppercase",
+            pb: 0.5,
           }}
         >
           Your teammate left
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ color: tokens.muted }}>
-            The room is closed. Search again to find someone new.
+            The room is closed. Jump back in and we&rsquo;ll find someone new.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
+        <DialogActions sx={{ p: 2.5, pt: 1 }}>
           <Button
+            fullWidth
             variant="contained"
             onClick={() => setPeerLeftOpen(false)}
             autoFocus
@@ -253,48 +315,96 @@ export function HomePage(): React.JSX.Element {
       <Box
         component="header"
         sx={{
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+          mx: { xs: -1.5, sm: -3 },
+          px: { xs: 1.5, sm: 3 },
+          py: 1.25,
+          mb: { xs: 2, sm: 3 },
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           gap: 2,
-          mb: 3,
-          pb: 2,
+          bgcolor: alpha(tokens.bg, 0.78),
+          backdropFilter: "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
           borderBottom: `1px solid ${tokens.line}`,
         }}
       >
         <BrandMark heading />
 
-        <IconButton
-          onClick={(e) => setMenuAnchor(e.currentTarget)}
-          aria-label="Account menu"
-          aria-haspopup="menu"
-          sx={{ p: 0.5 }}
-        >
-          <Avatar
-            src={profile.profilePhoto}
-            alt={profile.name ?? "Account"}
-            imgProps={{ referrerPolicy: "no-referrer" }}
-            sx={{ width: 34, height: 34 }}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box sx={{ display: { xs: "none", sm: "block" } }}>
+            {inLobby ? (
+              <Pill color={tokens.live} pulse>
+                In a squad
+              </Pill>
+            ) : (
+              <Pill
+                color={isConnected ? tokens.live : tokens.faint}
+                pulse={isConnected}
+              >
+                {isConnected ? "Online" : "Offline"}
+              </Pill>
+            )}
+          </Box>
+          <IconButton
+            onClick={(e) => setMenuAnchor(e.currentTarget)}
+            aria-label="Account menu"
+            aria-haspopup="menu"
+            sx={{ p: 0.4, border: `1px solid ${tokens.line}` }}
           >
-            {profile.name?.charAt(0)}
-          </Avatar>
-        </IconButton>
+            <Avatar
+              src={profile.profilePhoto}
+              alt={profile.name ?? "Account"}
+              imgProps={{ referrerPolicy: "no-referrer" }}
+              sx={{
+                width: 30,
+                height: 30,
+                bgcolor: tokens.surfaceRaised,
+                color: tokens.text,
+              }}
+            >
+              {profile.name?.charAt(0)}
+            </Avatar>
+          </IconButton>
+        </Box>
         <Menu
           anchorEl={menuAnchor}
           open={Boolean(menuAnchor)}
           onClose={() => setMenuAnchor(null)}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "right" }}
         >
-          <MenuItem
-            disabled
+          <Box
             sx={{
-              opacity: "1 !important",
-              fontSize: "0.85rem",
-              color: tokens.muted,
+              px: 2,
+              py: 1.25,
+              borderBottom: `1px solid ${tokens.line}`,
+              mb: 0.5,
             }}
           >
-            {profile.name}
+            <Typography
+              sx={{
+                fontSize: "0.7rem",
+                color: tokens.faint,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}
+            >
+              Signed in as
+            </Typography>
+            <Typography sx={{ fontWeight: 600, fontSize: "0.9rem" }} noWrap>
+              {profile.name}
+            </Typography>
+          </Box>
+          <MenuItem onClick={signOut} sx={{ minHeight: 44 }}>
+            <ListItemIcon>
+              <Logout fontSize="small" />
+            </ListItemIcon>
+            Sign out
           </MenuItem>
-          <MenuItem onClick={signOut}>Sign out</MenuItem>
         </Menu>
       </Box>
 
@@ -310,42 +420,84 @@ export function HomePage(): React.JSX.Element {
       )}
 
       {inLobby ? (
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "7fr 5fr" },
-            gap: 2,
-          }}
-        >
+        isDesktop ? (
           <Box
-            sx={{ display: "grid", gap: 2, alignContent: "start", minWidth: 0 }}
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "7fr 5fr",
+              gap: 2.5,
+              alignItems: "stretch",
+            }}
           >
-            <ConnectedPlayers
-              matchData={match}
-              region={form.region}
-              server={form.server}
-              localIdentity={voice.localIdentity}
-              speakingIds={voice.speakingIds}
-              voiceStatus={voice.status}
-              isMuted={voice.isMuted}
-              micDenied={voice.micDenied}
-              audioBlocked={voice.audioBlocked}
-              onToggleMic={voice.toggleMic}
-              onEnableAudio={voice.enableAudio}
-              onLeave={leaveLobby}
-            />
-            <PartyCodeShare
-              receivedPartyCode={partyCode}
-              onSendPartyCode={sendPartyCode}
-              disabled={voice.status !== "connected"}
-            />
+            <Box
+              sx={{
+                display: "grid",
+                gap: 2.5,
+                alignContent: "start",
+                minWidth: 0,
+              }}
+            >
+              {players}
+              {code}
+            </Box>
+            {chat}
           </Box>
-          <LobbyChat
-            messages={messages}
-            onSendMessage={sendChat}
-            disabled={voice.status !== "connected"}
-          />
-        </Box>
+        ) : (
+          <Box>
+            <Tabs
+              value={tab}
+              onChange={(_, v: LobbyTab) => setTab(v)}
+              variant="fullWidth"
+              aria-label="Lobby sections"
+              sx={{
+                mb: 2,
+                minHeight: 44,
+                bgcolor: tokens.surface,
+                border: `1px solid ${tokens.line}`,
+                borderRadius: "4px",
+                "& .MuiTabs-indicator": { height: 3, bgcolor: tokens.accent },
+              }}
+            >
+              <Tab value="squad" label="Squad" />
+              <Tab
+                value="chat"
+                label={
+                  <Badge
+                    color="primary"
+                    badgeContent={unread}
+                    max={9}
+                    sx={{ "& .MuiBadge-badge": { right: -12 } }}
+                  >
+                    Chat
+                  </Badge>
+                }
+              />
+              <Tab
+                value="code"
+                label={
+                  <Badge
+                    color="success"
+                    variant="dot"
+                    invisible={!partyCode}
+                    sx={{ "& .MuiBadge-badge": { right: -8 } }}
+                  >
+                    Code
+                  </Badge>
+                }
+              />
+            </Tabs>
+            {/* All three stay mounted so drafts survive switching tabs. */}
+            <Box sx={{ display: tab === "squad" ? "block" : "none" }}>
+              {players}
+            </Box>
+            <Box sx={{ display: tab === "chat" ? "block" : "none" }}>
+              {chat}
+            </Box>
+            <Box sx={{ display: tab === "code" ? "block" : "none" }}>
+              {code}
+            </Box>
+          </Box>
+        )
       ) : (
         <MatchSearchForm
           value={form}
@@ -358,7 +510,7 @@ export function HomePage(): React.JSX.Element {
         />
       )}
 
-      <Box sx={{ maxWidth: inLobby ? "none" : 720, mx: "auto" }}>
+      <Box sx={{ maxWidth: inLobby ? "none" : 760, mx: "auto" }}>
         <HistoryStats data={history} />
       </Box>
       <ConnectWithMe />
