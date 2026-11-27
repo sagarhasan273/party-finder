@@ -55,6 +55,7 @@ import type {
   MatchData,
   Telemetry,
   QueueState,
+  LobbyUpdate,
   ChatMessage,
   SearchRequest,
   DataChannelPayload,
@@ -101,6 +102,7 @@ export function HomePage(): React.JSX.Element {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [partyCode, setPartyCode] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [peerLeftOpen, setPeerLeftOpen] = useState(false);
   const [history, setHistory] = useState<HistoryStatsData>({
     totalVisits: 0,
@@ -138,6 +140,7 @@ export function HomePage(): React.JSX.Element {
 
   const resetLobby = useCallback(() => {
     setMatch(null);
+    setNotice("");
     setMessages([]);
     setPartyCode("");
     setQueueState("idle");
@@ -161,6 +164,11 @@ export function HomePage(): React.JSX.Element {
         setMatch(d);
         setQueueState("matched");
         setError("");
+        setNotice(
+          d.openSeats
+            ? `Lobby started with the players available. ${d.openSeats} seat${d.openSeats > 1 ? "s" : ""} open, new players will join automatically.`
+            : "",
+        );
         setMessages([]);
         setPartyCode("");
         setTab("squad");
@@ -171,6 +179,11 @@ export function HomePage(): React.JSX.Element {
         } catch {
           setError("Voice couldn't connect. Leave the room and search again.");
         }
+      }),
+      on<LobbyUpdate>("lobby-update", (d) => {
+        setMatch((m) => (m && m.roomId === d.roomId ? { ...m, ...d, livekit: m.livekit } : m));
+        if (d.left) setNotice(`${d.left} left. Their seat is open, we'll fill it.`);
+        else if (d.joined?.length) setNotice(`${d.joined.join(", ")} joined the lobby.`);
       }),
       on("peer-left", () => {
         disconnect();
@@ -193,6 +206,7 @@ export function HomePage(): React.JSX.Element {
     setQueueState("searching");
     const req: SearchRequest = {
       username: riotId,
+      profilePhoto: profile.profilePhoto,
       region: form.region,
       server: form.server,
       rank: form.rank,
@@ -247,7 +261,13 @@ export function HomePage(): React.JSX.Element {
     <ConnectedPlayers
       matchData={match}
       region={form.region}
-      server={form.server === ANY_SERVER ? "Any server" : form.server}
+      server={
+        match?.server && match.server !== ANY_SERVER
+          ? match.server
+          : form.server === ANY_SERVER
+            ? "Any server"
+            : form.server
+      }
       localIdentity={voice.localIdentity}
       speakingIds={voice.speakingIds}
       voiceStatus={voice.status}
@@ -258,6 +278,7 @@ export function HomePage(): React.JSX.Element {
       onEnableAudio={voice.enableAudio}
       onLeave={leaveLobby}
       localPhoto={profile.profilePhoto}
+      playerMeta={voice.playerMeta}
     />
   ) : null;
   const code = (
@@ -417,6 +438,17 @@ export function HomePage(): React.JSX.Element {
           sx={{ mb: 2 }}
         >
           {error}
+        </Alert>
+      )}
+
+      {inLobby && notice && (
+        <Alert
+          severity="info"
+          role="status"
+          onClose={() => setNotice("")}
+          sx={{ mb: 2 }}
+        >
+          {notice}
         </Alert>
       )}
 

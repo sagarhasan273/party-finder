@@ -27,6 +27,8 @@ import { useCredentials } from "../core/slices";
 export interface Telemetry {
   onlinePlayers: number;
   inQueueCount: number;
+  /** People waiting (a party of 3 counts as 3). */
+  playersInQueue?: number;
   timestamp?: number;
 }
 
@@ -35,14 +37,41 @@ export type QueueState = "idle" | "searching" | "matched";
 export interface Participant {
   userId: string;
   username: string;
+  /** Google profile photo, from the server (also in LiveKit metadata). */
+  profilePhoto?: string;
   rank: string;
   currentGroupSize: number;
 }
 
-export interface MatchData {
+/** A lobby: up to 5 seats filled by parties of any size (4+1, 2+2+1, 1+1+1+1+1 ...). */
+export interface LobbyView {
   roomId: string;
+  region?: string;
+  /** The lobby's server; a real server name when anyone picked one. */
+  server?: string;
   participants: Participant[];
-  livekit: { url: string; token: string };
+  seated?: number;
+  /** Seats still open. New searchers who fit join automatically. */
+  openSeats?: number;
+}
+
+export interface MatchData extends LobbyView {
+  livekit: { url?: string; token: string };
+}
+
+/** Sent when someone joins or leaves your lobby. */
+export interface LobbyUpdate extends LobbyView {
+  joined?: string[];
+  left?: string;
+}
+
+/** What each player's LiveKit token carries as participant metadata. */
+export interface PlayerMetadata {
+  userId: string;
+  username: string;
+  profilePhoto?: string;
+  rank?: string;
+  currentGroupSize?: number;
 }
 
 export interface ChatMessage {
@@ -188,6 +217,8 @@ export function useLiveKitRoom({ onData }: Options = {}) {
   const [isMuted, setIsMuted] = useState(false);
   const [micDenied, setMicDenied] = useState(false);
   const [audioBlocked, setAudioBlocked] = useState(false);
+  /** identity -> metadata (Google photo, rank, party size) from each LiveKit token. */
+  const [playerMeta, setPlayerMeta] = useState<Record<string, PlayerMetadata>>({});
 
   const disconnect = useCallback(async () => {
     const room = roomRef.current;
@@ -207,6 +238,7 @@ export function useLiveKitRoom({ onData }: Options = {}) {
     setIsMuted(false);
     setMicDenied(false);
     setAudioBlocked(false);
+    setPlayerMeta({});
   }, []);
 
   const connect = useCallback(
@@ -224,6 +256,20 @@ export function useLiveKitRoom({ onData }: Options = {}) {
       });
       roomRef.current = room;
       setStatus("connecting");
+
+      const readMeta = (p: { identity: string; metadata?: string }) => {
+        if (!p.metadata) return;
+        try {
+          const meta = JSON.parse(p.metadata) as PlayerMetadata;
+          setPlayerMeta((m) => ({ ...m, [p.identity]: meta }));
+        } catch {
+          /* not ours */
+        }
+      };
+      const syncAllMeta = () => {
+        readMeta(room.localParticipant);
+        room.remoteParticipants.forEach(readMeta);
+      };
 
       room
         .on(RoomEvent.ActiveSpeakersChanged, (speakers) =>
@@ -254,6 +300,8 @@ export function useLiveKitRoom({ onData }: Options = {}) {
             /* ignore malformed packets */
           }
         })
+        .on(RoomEvent.ParticipantConnected, readMeta)
+        .on(RoomEvent.ParticipantMetadataChanged, (_old, p) => readMeta(p))
         .on(RoomEvent.Reconnecting, () => setStatus("connecting"))
         .on(RoomEvent.Reconnected, () => setStatus("connected"))
         .on(RoomEvent.Disconnected, () => {
@@ -268,6 +316,7 @@ export function useLiveKitRoom({ onData }: Options = {}) {
       }
 
       setLocalIdentity(room.localParticipant.identity);
+      syncAllMeta();
       setStatus("connected");
       setAudioBlocked(!room.canPlaybackAudio);
 
@@ -330,6 +379,7 @@ export function useLiveKitRoom({ onData }: Options = {}) {
     isMuted,
     micDenied,
     audioBlocked,
+    playerMeta,
     connect,
     disconnect,
     toggleMic,

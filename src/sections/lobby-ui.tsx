@@ -1102,6 +1102,8 @@ interface PlayersProps {
   onLeave: () => void;
   /** Your own Google photo, used when the server sends none for you. */
   localPhoto?: string;
+  /** LiveKit participant metadata by identity (carries each player's Google photo). */
+  playerMeta?: Record<string, { profilePhoto?: string }>;
 }
 
 const STATUS: Record<VoiceStatus, { label: string; color: string }> = {
@@ -1125,6 +1127,7 @@ export const ConnectedPlayers: React.FC<PlayersProps> = ({
   onEnableAudio,
   onLeave,
   localPhoto,
+  playerMeta,
 }) => {
   const micOn = voiceStatus === "connected" && !isMuted;
   const seated = matchData.participants.reduce(
@@ -1159,7 +1162,7 @@ export const ConnectedPlayers: React.FC<PlayersProps> = ({
           border: `1px solid ${tokens.line}`,
         }}
       >
-        <SquadSlots filled={Math.min(seated, 5)} size={26} />
+        <SquadSlots filled={Math.min(seated, 5)} searching={seated < 5} size={26} />
         <Typography
           sx={{
             fontFamily: fonts.display,
@@ -1172,7 +1175,7 @@ export const ConnectedPlayers: React.FC<PlayersProps> = ({
         >
           {seated >= 5
             ? "Stack is full"
-            : `${5 - seated} seat${5 - seated > 1 ? "s" : ""} open`}
+            : `${5 - seated} seat${5 - seated > 1 ? "s" : ""} open · finding players`}
         </Typography>
       </Box>
 
@@ -1188,7 +1191,8 @@ export const ConnectedPlayers: React.FC<PlayersProps> = ({
           const speaking = speakingIds.includes(p.userId);
           const color = rankColor(p.rank);
           const photo =
-            (p as { profilePhoto?: string }).profilePhoto ||
+            p.profilePhoto ||
+            playerMeta?.[p.userId]?.profilePhoto ||
             (isSelf ? localPhoto : undefined);
           const ringOn = isSelf ? micOn : speaking;
           return (
